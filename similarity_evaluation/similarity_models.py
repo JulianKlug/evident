@@ -1,0 +1,78 @@
+import spacy
+from sentence_transformers import SentenceTransformer, CrossEncoder, util
+import torch
+from angle_emb import AnglE, Prompts
+from angle_emb.utils import cosine_similarity
+
+# define a similarity model class
+class SimilarityModel:
+    def __init__(self, name):
+        self.name = name
+    
+    def compute_similarity(self, text1, text2):
+        # Placeholder for actual similarity computation logic
+        pass
+    
+
+class SpacySimilarityModel(SimilarityModel):
+    def __init__(self):
+        super().__init__('spacy')
+        self.nlp = spacy.load("en_core_web_lg")
+
+    def compute_similarity(self, text1, text2):
+        doc1 = self.nlp(text1)
+        doc2 = self.nlp(text2)
+        return doc1.similarity(doc2)
+
+transformer_models = [
+    'sentence-transformers/all-MiniLM-L12-v2',
+    "cross-encoder/stsb-distilroberta-base",
+    "neuml/pubmedbert-base-embeddings",
+    "epfl-llm/meditron-7b",
+    'distilbert-base-nli-mean-tokens',
+    'FremyCompany/BioLORD-2023'
+]
+
+# Sentence Transformer similarity model
+class SentenceTransformerSimilarityModel(SimilarityModel):
+    def __init__(self, model_name):
+        super().__init__(f'sentence_transformer_{model_name}')
+        self.model = SentenceTransformer(model_name)
+    
+    def compute_similarity(self, text1, text2):
+        embeddings = self.model.encode([text1, text2])
+        return float(util.pytorch_cos_sim(embeddings[0], embeddings[1]))
+
+encoder_models = [
+    'sentence-transformers/all-MiniLM-L12-v2',
+    "cross-encoder/stsb-distilroberta-base",
+    "neuml/pubmedbert-base-embeddings",
+    "epfl-llm/meditron-7b",
+    'FremyCompany/BioLORD-2023'
+]
+
+# Cross Encoder similarity model
+class CrossEncoderSimilarityModel(SimilarityModel):
+    def __init__(self, model_name):
+        super().__init__(f'cross_encoder_{model_name}')
+        self.model = CrossEncoder(model_name)
+    
+    def compute_similarity(self, text1, text2):
+        return float(self.model.predict([[text1, text2]])[0])
+    
+# angLE model
+class AngLEModel(SimilarityModel):
+    def __init__(self):
+        super().__init__('angle')
+        self.model = AnglE.from_pretrained('NousResearch/Llama-2-7b-hf',
+                              pretrained_lora_path='SeanLee97/angle-llama-7b-nli-v2',
+                              pooling_strategy='last',
+                              is_llm=True,
+                              torch_dtype=torch.float16).cuda()
+
+    def compute_similarity(self, text1, text2):
+        vec1, vec2 = self.model.encode([
+            {'text': text1},
+            {'text': text2}
+        ], prompt=Prompts.A)
+        return cosine_similarity(vec1, vec2)
