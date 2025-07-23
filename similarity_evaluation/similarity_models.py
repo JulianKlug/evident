@@ -3,6 +3,8 @@ from sentence_transformers import SentenceTransformer, CrossEncoder, util
 import torch
 from angle_emb import AnglE, Prompts
 from angle_emb.utils import cosine_similarity
+from transformers import AutoTokenizer
+
 
 # define a similarity model class
 class SimilarityModel:
@@ -28,7 +30,8 @@ transformer_models = [
     'sentence-transformers/all-MiniLM-L12-v2',
     "cross-encoder/stsb-distilroberta-base",
     "neuml/pubmedbert-base-embeddings",
-    "epfl-llm/meditron-7b",
+    # too big for gpu
+    # "epfl-llm/meditron-7b",
     'distilbert-base-nli-mean-tokens',
     'FremyCompany/BioLORD-2023'
 ]
@@ -38,16 +41,29 @@ class SentenceTransformerSimilarityModel(SimilarityModel):
     def __init__(self, model_name):
         super().__init__(f'sentence_transformer_{model_name}')
         self.model = SentenceTransformer(model_name)
-    
+
+        # if model has a tokenizer, load tokenizer
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        except Exception as e:
+            self.tokenizer = None
+
     def compute_similarity(self, text1, text2):
-        embeddings = self.model.encode([text1, text2])
+        if self.tokenizer:
+            # Tokenize the input texts
+            inputs = self.tokenizer([text1, text2], return_tensors='pt', padding=True, truncation=True)
+            embeddings = self.model.encode(inputs['input_ids'], convert_to_tensor=True)
+        else:
+            # Directly encode the texts
+            embeddings = self.model.encode([text1, text2], convert_to_tensor=True)
         return float(util.pytorch_cos_sim(embeddings[0], embeddings[1]))
 
 encoder_models = [
     'sentence-transformers/all-MiniLM-L12-v2',
     "cross-encoder/stsb-distilroberta-base",
     "neuml/pubmedbert-base-embeddings",
-    "epfl-llm/meditron-7b",
+    # too big for gpu
+    # "epfl-llm/meditron-7b",
     'FremyCompany/BioLORD-2023'
 ]
 
