@@ -117,6 +117,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--data_path', type=str, required=True, help='Path to the EBMSASS dataset directory.')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output.')
     parser.add_argument('-t', '--testing', action='store_true', help='Enable testing mode (use a subset of the data).')
+    parser.add_argument('-r', '--retrain', action='store_true', help='Retrain models on the training set.')
     args = parser.parse_args()
 
-    similarity_model_evaluation(args.output_dir, args.data_path, args.verbose, args.testing)
+    similarity_model_evaluation(args.output_dir, args.data_path, args.verbose, args.testing, args.retrain)
