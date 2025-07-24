@@ -4,6 +4,8 @@ import os
 from sklearn.metrics import roc_curve
 from similarity_evaluation.similarity_models import SpacySimilarityModel, transformer_models, SentenceTransformerSimilarityModel, CrossEncoderSimilarityModel, encoder_models, AngLEModel
 from scipy.stats import pearsonr    
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
 
 
 def similarity_model_evaluation(output_dir, ebmsass_path, verbose=True, testing=False, retrain=False):
@@ -29,7 +31,6 @@ def similarity_model_evaluation(output_dir, ebmsass_path, verbose=True, testing=
 
     if retrain:
         # split data into train, validation, and test sets
-        from sklearn.model_selection import train_test_split
         train_df, test_df = train_test_split(overall_df, test_size=0.3, random_state=42)
         val_df, test_df = train_test_split(test_df, test_size=0.5, random_state=42)
 
@@ -50,6 +51,8 @@ def similarity_model_evaluation(output_dir, ebmsass_path, verbose=True, testing=
 
     models = models + sentence_transformer_models + cross_encoder_models
 
+    if retrain:
+        overall_df = test_df.copy()
     
     results = []
     for model in models:
@@ -65,20 +68,14 @@ def similarity_model_evaluation(output_dir, ebmsass_path, verbose=True, testing=
                 print(f"Model {model_name} does not support training. Skipping...")
 
         scores = []
-        if retrain:
-            # Use the test set for evaluation
-            scores = test_df.apply(lambda row: model.compute_similarity(row['sentence1'], row['sentence2']), axis=1)
-        else:
-            scores = overall_df.apply(lambda row: model.compute_similarity(row['sentence1'], row['sentence2']), axis=1)
+        scores = overall_df.apply(lambda row: model.compute_similarity(row['sentence1'], row['sentence2']), axis=1)
         scores = scores.to_numpy()
-        
         overall_df[model_name] = scores
         
         # Calculate Pearson correlation
         corr, _ = pearsonr(overall_df[model_name], overall_df['score'])
 
         # compute auc for detecting a simiarity of at least 3
-        from sklearn.metrics import roc_auc_score
         y_true = (overall_df['score'] >= 3).astype(int)
         y_scores = overall_df[model_name]
         auc = roc_auc_score(y_true, y_scores)
