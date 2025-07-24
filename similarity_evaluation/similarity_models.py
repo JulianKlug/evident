@@ -44,6 +44,8 @@ class SentenceTransformerSimilarityModel(SimilarityModel):
         super().__init__(f'sentence_transformer_{model_name}')
         self.model = SentenceTransformer(model_name)
 
+    # TODO: could also be fine-tuned: https://github.com/adiekaye/fine-tuning-sentence-transformers/blob/main/01_tuning_your_model.py 
+
     def compute_similarity(self, text1, text2):
         embeddings = self.model.encode([text1, text2])
         return float(util.pytorch_cos_sim(embeddings[0], embeddings[1]))

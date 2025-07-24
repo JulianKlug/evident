@@ -1,8 +1,11 @@
 import pandas as pd
 from thefuzz import process
 
+from similarity_evaluation.similarity_models import SentenceTransformerSimilarityModel, SimilarityModel
+
 
 def score_recommendation(recommendation_text:str, recommendation_grade:str, recommendation_level:str, recommendation_gt_df:pd.DataFrame,
+                        semantic_model:SimilarityModel, semantic_threshold:float=0.6,
                          interactive:bool=True, verbose:bool=True) -> tuple:
     """
     This function takes a recommendation text, grade, and level, and returns the scores of the recommendation based on the ground truth dataframe.
@@ -20,6 +23,12 @@ def score_recommendation(recommendation_text:str, recommendation_grade:str, reco
         The recommendation level to be scored.
     recommendation_gt_df : pd.DataFrame
         The ground truth dataframe containing the recommendation text, grade, and level.
+    semantic_model : SimilarityModel
+        The semantic model to be used for scoring the recommendation text.
+    semantic_threshold : float, optional
+        The threshold for the semantic similarity score to consider a match. Default is 0.6
+    interactive : bool, optional
+        If True, the function will prompt the user to choose from the best matches if no exact match is found. Default is True.
     verbose : bool
         If True, print the fuzzy match found for the recommendation text.
 
@@ -55,13 +64,31 @@ def score_recommendation(recommendation_text:str, recommendation_grade:str, reco
         return (grade_eval, level_eval, best_match[0], best_match[1], False)
 
     else:
+        # if not complete match is found, use get_similarity_score to find the best match
+        similarities = []
+        for i, row in recommendation_gt_df.iterrows():
+            score = semantic_model.compute_similarity(recommendation_text, row['recommendation'])
+            similarities.append((row['recommendation'], score))
+
+        # Find the best semantic match
+        best_semantic_match = max(similarities, key=lambda x: x[1])
+        if best_semantic_match[1] >= semantic_threshold:
+            match_row = recommendation_gt_df[recommendation_gt_df.recommendation == best_semantic_match[0]]
+            grade_eval = recommendation_grade.lower() == match_row['class'].values[0].lower()
+            level_eval = recommendation_level.lower() == match_row.LOE.values[0].lower()
+            
+            if verbose:
+                print(f'Semantic match found for "{recommendation_text}" with score {best_semantic_match[1]:.3f}: "{best_semantic_match[0]}"')
+            
+            return (grade_eval, level_eval, best_semantic_match[0], best_semantic_match[1] * 100, False)
+        
         if not interactive:
             if verbose:
                 print(f'No match found for "{recommendation_text}"')
             return (-1, -1, -1, -1, False)
         else:
             # give choice of best matches to the user
-            print(f'No exact match found, please choose from the following options:')
+            print('No exact match found, please choose from the following options:')
             print(f'- "{recommendation_text} -"')
             for i, match in enumerate(matches):
                 print(f'{i}: {match[0]} - {match[1]}')
@@ -117,6 +144,7 @@ def evaluate_guideline_extraction(df:pd.DataFrame, gt_df:pd.DataFrame, interacti
     n_correct_grades = 0
     n_correct_levels = 0
     all_matches = []
+    semantic_model = SentenceTransformerSimilarityModel("neuml/pubmedbert-base-embeddings")
 
     # Iterate through the extracted dataframe
     for i, row in df.iterrows():
@@ -129,6 +157,7 @@ def evaluate_guideline_extraction(df:pd.DataFrame, gt_df:pd.DataFrame, interacti
                                                                                              recommendation_grade,
                                                                                              recommendation_level,
                                                                                              gt_df,
+                                                                                             semantic_model=semantic_model,
                                                                                              interactive=interactive,
                                                                                              verbose=verbose)
 
