@@ -1,3 +1,4 @@
+import numpy as np
 import spacy
 from sentence_transformers import SentenceTransformer, CrossEncoder, util
 import torch
@@ -67,7 +68,30 @@ class CrossEncoderSimilarityModel(SimilarityModel):
     
     def compute_similarity(self, text1, text2):
         return float(self.model.predict([[text1, text2]])[0])
-    
+
+
+class NLICrossEncoderSimilarityModel(SimilarityModel):
+    """NLI cross-encoder that returns entailment probability as similarity.
+
+    NLI models output logits for [contradiction, entailment, neutral].
+    We apply softmax and return the entailment probability, which directly
+    captures whether two sentences mean the same thing (entailment) vs
+    opposite (contradiction).
+    """
+
+    def __init__(self, model_name):
+        super().__init__(f'nli_cross_encoder_{model_name}')
+        self.model = CrossEncoder(model_name)
+
+    def compute_similarity(self, text1, text2):
+        scores = self.model.predict([[text1, text2]])
+        logits = scores[0] if scores.ndim > 1 else scores
+        # softmax over [contradiction, entailment, neutral]
+        exp = np.exp(logits - np.max(logits))
+        probs = exp / exp.sum()
+        return float(probs[1])  # entailment probability
+
+
 # angLE model
 class AngLEModel(SimilarityModel):
     def __init__(self):

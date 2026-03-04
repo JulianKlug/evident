@@ -61,7 +61,7 @@ def match_recommendations(
     """
     if similarity_model is None:
         from similarity_evaluation.similarity_models import SentenceTransformerSimilarityModel
-        similarity_model = SentenceTransformerSimilarityModel("neuml/pubmedbert-base-embeddings")
+        similarity_model = SentenceTransformerSimilarityModel("FremyCompany/BioLORD-2023")
 
     extracted_texts = extracted_df["recommendation"].tolist()
     gt_texts = gt_df["recommendation"].tolist()
