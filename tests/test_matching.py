@@ -115,3 +115,28 @@ class TestMatchRecommendations:
         assert len(result.matches) == 0
         assert len(result.false_positives) == 0
         assert len(result.false_negatives) == 0
+
+
+class TestInputValidation:
+    def test_missing_recommendation_column(self, fake_similarity_model):
+        df_bad = pd.DataFrame({"class": ["I"], "LOE": ["A"]})
+        df_good = pd.DataFrame({"recommendation": ["text"], "class": ["I"], "LOE": ["A"]})
+        with pytest.raises(ValueError, match="recommendation"):
+            match_recommendations(df_bad, df_good, similarity_model=fake_similarity_model)
+
+    def test_missing_class_column(self, fake_similarity_model):
+        df_bad = pd.DataFrame({"recommendation": ["text"], "LOE": ["A"]})
+        df_good = pd.DataFrame({"recommendation": ["text"], "class": ["I"], "LOE": ["A"]})
+        with pytest.raises(ValueError, match="class"):
+            match_recommendations(df_bad, df_good, similarity_model=fake_similarity_model)
+
+    def test_missing_loe_column(self, fake_similarity_model):
+        df_bad = pd.DataFrame({"recommendation": ["text"], "class": ["I"]})
+        df_good = pd.DataFrame({"recommendation": ["text"], "class": ["I"], "LOE": ["A"]})
+        with pytest.raises(ValueError, match="LOE"):
+            match_recommendations(df_good, df_bad, similarity_model=fake_similarity_model)
+
+    def test_valid_dataframe_passes(self, fake_similarity_model):
+        df = pd.DataFrame({"recommendation": ["text"], "class": ["I"], "LOE": ["A"]})
+        result = match_recommendations(df, df.copy(), similarity_model=fake_similarity_model)
+        assert isinstance(result.matches, list)

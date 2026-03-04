@@ -18,6 +18,11 @@ class EvaluationResult:
     n_fp: int
     n_fn: int
 
+    # Similarity quality
+    mean_similarity: float
+    min_similarity: float
+    max_similarity: float
+
     # Accuracy (of matched recommendations only)
     grade_accuracy: float
     level_accuracy: float
@@ -74,6 +79,17 @@ def compute_metrics(
     recall = n_tp / (n_tp + n_fn) if (n_tp + n_fn) > 0 else 0.0
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
 
+    # Similarity quality stats
+    if n_tp > 0:
+        sim_scores = [m.similarity_score for m in matches]
+        mean_similarity = sum(sim_scores) / len(sim_scores)
+        min_similarity = min(sim_scores)
+        max_similarity = max(sim_scores)
+    else:
+        mean_similarity = 0.0
+        min_similarity = 0.0
+        max_similarity = 0.0
+
     # Grade/level comparison
     if n_tp == 0:
         return EvaluationResult(
@@ -83,6 +99,9 @@ def compute_metrics(
             n_tp=0,
             n_fp=n_fp,
             n_fn=n_fn,
+            mean_similarity=mean_similarity,
+            min_similarity=min_similarity,
+            max_similarity=max_similarity,
             grade_accuracy=0.0,
             level_accuracy=0.0,
             combined_accuracy=0.0,
@@ -140,6 +159,9 @@ def compute_metrics(
         n_tp=n_tp,
         n_fp=n_fp,
         n_fn=n_fn,
+        mean_similarity=mean_similarity,
+        min_similarity=min_similarity,
+        max_similarity=max_similarity,
         grade_accuracy=grade_accuracy,
         level_accuracy=level_accuracy,
         combined_accuracy=combined_accuracy,

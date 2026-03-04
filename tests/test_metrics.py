@@ -149,3 +149,29 @@ class TestConfusionMatrix:
         assert result.per_class_grade["i"] == pytest.approx(1.0)
         # GT "iia" has 1 correct out of 2 → 0.5
         assert result.per_class_grade["iia"] == pytest.approx(0.5)
+
+
+class TestSimilarityMetrics:
+    def test_similarity_stats_all_same(self):
+        matches = [_make_match(score=0.95) for _ in range(4)]
+        result = compute_metrics(MatchResult(matches, _empty_fp, _empty_fn))
+        assert result.mean_similarity == pytest.approx(0.95)
+        assert result.min_similarity == pytest.approx(0.95)
+        assert result.max_similarity == pytest.approx(0.95)
+
+    def test_similarity_stats_varied(self):
+        matches = [
+            _make_match(score=0.8),
+            _make_match(score=0.9),
+            _make_match(score=1.0),
+        ]
+        result = compute_metrics(MatchResult(matches, _empty_fp, _empty_fn))
+        assert result.mean_similarity == pytest.approx(0.9)
+        assert result.min_similarity == pytest.approx(0.8)
+        assert result.max_similarity == pytest.approx(1.0)
+
+    def test_similarity_stats_no_matches(self):
+        result = compute_metrics(MatchResult([], _fp_rows(1), _fn_rows(1)))
+        assert result.mean_similarity == pytest.approx(0.0)
+        assert result.min_similarity == pytest.approx(0.0)
+        assert result.max_similarity == pytest.approx(0.0)

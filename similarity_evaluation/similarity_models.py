@@ -149,3 +149,55 @@ class AngLEModel(SimilarityModel):
             {'text': text2}
         ], prompt=Prompts.A)
         return cosine_similarity(vec1, vec2)
+
+
+# ---------------------------------------------------------------------------
+# Model factory
+# ---------------------------------------------------------------------------
+
+_MODEL_REGISTRY: dict[str, str] = {
+    # Bi-encoders (SentenceTransformer)
+    "sentence-transformers/all-MiniLM-L12-v2": "bi-encoder",
+    "neuml/pubmedbert-base-embeddings": "bi-encoder",
+    "FremyCompany/BioLORD-2023": "bi-encoder",
+    "distilbert-base-nli-mean-tokens": "bi-encoder",
+    # Cross-encoders
+    "cross-encoder/stsb-distilroberta-base": "cross-encoder",
+    # NLI cross-encoders
+    "cross-encoder/nli-deberta-v3-base": "nli-cross-encoder",
+}
+
+DEFAULT_MODEL = "FremyCompany/BioLORD-2023"
+
+
+def get_similarity_model(model_name: str | None = None) -> SimilarityModel:
+    """Create a similarity model by name.
+
+    Parameters
+    ----------
+    model_name : str or None
+        A model identifier present in ``_MODEL_REGISTRY``.  When *None*,
+        ``DEFAULT_MODEL`` is used.
+
+    Returns
+    -------
+    SimilarityModel
+    """
+    if model_name is None:
+        model_name = DEFAULT_MODEL
+
+    model_type = _MODEL_REGISTRY.get(model_name)
+    if model_type is None:
+        raise ValueError(
+            f"Unknown model '{model_name}'. "
+            f"Available models: {list(_MODEL_REGISTRY.keys())}"
+        )
+
+    if model_type == "bi-encoder":
+        return SentenceTransformerSimilarityModel(model_name)
+    elif model_type == "cross-encoder":
+        return CrossEncoderSimilarityModel(model_name)
+    elif model_type == "nli-cross-encoder":
+        return NLICrossEncoderSimilarityModel(model_name)
+    else:
+        raise ValueError(f"Unknown model type '{model_type}' for model '{model_name}'")

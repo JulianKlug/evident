@@ -30,6 +30,18 @@ class MatchResult:
     false_negatives: pd.DataFrame  # GT recommendations not found in extraction
 
 
+_REQUIRED_COLUMNS = {"recommendation", "class", "LOE"}
+
+
+def _validate_dataframe(df: pd.DataFrame, name: str) -> None:
+    """Check that *df* contains the required columns."""
+    missing = _REQUIRED_COLUMNS - set(df.columns)
+    if missing:
+        raise ValueError(
+            f"{name} DataFrame is missing required columns: {sorted(missing)}"
+        )
+
+
 def build_similarity_matrix(
     extracted: list[str],
     ground_truth: list[str],
@@ -49,7 +61,7 @@ def match_recommendations(
     extracted_df: pd.DataFrame,
     gt_df: pd.DataFrame,
     similarity_model: SimilarityModel | None = None,
-    similarity_threshold: float = 0.6,
+    similarity_threshold: float = 0.95,
 ) -> MatchResult:
     """
     Optimal bipartite matching between extracted and GT recommendations.
@@ -59,9 +71,12 @@ def match_recommendations(
     3. Filter assignments below similarity_threshold
     4. Return matched pairs, unmatched extracted (FP), unmatched GT (FN)
     """
+    _validate_dataframe(extracted_df, "extracted_df")
+    _validate_dataframe(gt_df, "gt_df")
+
     if similarity_model is None:
-        from similarity_evaluation.similarity_models import SentenceTransformerSimilarityModel
-        similarity_model = SentenceTransformerSimilarityModel("FremyCompany/BioLORD-2023")
+        from similarity_evaluation.similarity_models import get_similarity_model
+        similarity_model = get_similarity_model()
 
     extracted_texts = extracted_df["recommendation"].tolist()
     gt_texts = gt_df["recommendation"].tolist()

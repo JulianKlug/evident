@@ -14,12 +14,20 @@ if TYPE_CHECKING:
     from similarity_evaluation.similarity_models import SimilarityModel
 
 
+def _read_dataframe(path: str) -> pd.DataFrame:
+    """Read a CSV or Excel file into a DataFrame based on file extension."""
+    ext = os.path.splitext(path)[1].lower()
+    if ext in (".xls", ".xlsx", ".xlsm", ".xlsb"):
+        return pd.read_excel(path)
+    return pd.read_csv(path)
+
+
 def evaluate_extraction(
     extracted_df: pd.DataFrame,
     gt_df: pd.DataFrame,
     grading_scheme: GradingScheme | None = None,
     similarity_model: SimilarityModel | None = None,
-    similarity_threshold: float = 0.6,
+    similarity_threshold: float = 0.95,
 ) -> EvaluationResult:
     """
     Full evaluation pipeline:
@@ -48,6 +56,18 @@ def print_report(result: EvaluationResult) -> None:
     print(f"  Precision:       {result.precision:.3f}")
     print(f"  Recall:          {result.recall:.3f}")
     print(f"  F1 Score:        {result.f1:.3f}")
+
+    print(f"\n--- Match Quality ---")
+    print(f"  Mean Similarity: {result.mean_similarity:.3f}")
+    print(f"  Min Similarity:  {result.min_similarity:.3f}")
+    print(f"  Max Similarity:  {result.max_similarity:.3f}")
+
+    if result.matches:
+        weakest = sorted(result.matches, key=lambda m: m.similarity_score)[:3]
+        print(f"\n--- Weakest Matches (bottom {len(weakest)}) ---")
+        for m in weakest:
+            print(f"  [{m.similarity_score:.3f}] {m.extracted_text[:80]}")
+            print(f"       vs {m.gt_text[:80]}")
 
     print(f"\n--- Accuracy (matched only, n={result.n_tp}) ---")
     print(f"  Grade Accuracy:    {result.grade_accuracy:.3f}")
@@ -82,23 +102,30 @@ def print_report(result: EvaluationResult) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate extraction against ground truth")
-    parser.add_argument("-p", "--extracted", type=str, required=True, help="Path to extracted recommendations CSV")
-    parser.add_argument("-g", "--ground-truth", type=str, required=True, help="Path to ground truth CSV")
+    parser.add_argument("-p", "--extracted", type=str, required=True, help="Path to extracted recommendations (CSV or Excel)")
+    parser.add_argument("-g", "--ground-truth", type=str, required=True, help="Path to ground truth (CSV or Excel)")
     parser.add_argument("-s", "--scheme", type=str, default=None, help="Grading scheme name (esc_ers, abcd_123, grade)")
-    parser.add_argument("-t", "--threshold", type=float, default=0.6, help="Similarity threshold (default 0.6)")
+    parser.add_argument("-t", "--threshold", type=float, default=0.95, help="Similarity threshold (default 0.95)")
+    parser.add_argument("-m", "--model", type=str, default=None, help="Similarity model name (default: FremyCompany/BioLORD-2023)")
     parser.add_argument("-o", "--output", type=str, default=None, help="Output directory for results CSVs")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
 
     args = parser.parse_args()
 
-    extracted_df = pd.read_csv(args.extracted)
-    gt_df = pd.read_csv(args.ground_truth)
+    extracted_df = _read_dataframe(args.extracted)
+    gt_df = _read_dataframe(args.ground_truth)
 
     grading_scheme = get_scheme(args.scheme) if args.scheme else None
+
+    similarity_model = None
+    if args.model:
+        from similarity_evaluation.similarity_models import get_similarity_model
+        similarity_model = get_similarity_model(args.model)
 
     result = evaluate_extraction(
         extracted_df, gt_df,
         grading_scheme=grading_scheme,
+        similarity_model=similarity_model,
         similarity_threshold=args.threshold,
     )
 

@@ -80,6 +80,11 @@ ABCD_123 = GradingScheme(
         "level 1": "1",
         "level 2": "2",
         "level 3": "3",
+        "i": "1",
+        "ii": "2",
+        "iii": "3",
+        "iia": "2",
+        "iit": "2",
     },
 )
 
@@ -95,12 +100,19 @@ GRADE = GradingScheme(
         "conditional against": "Weak Against",
         "strong against": "Strong Against",
         "strong": "Strong For",
+        "strong recommendation": "Strong For",
+        "conditional recommendation": "Weak For",
+        "conditional": "Weak For",
     },
     level_aliases={
         "high": "High",
         "moderate": "Moderate",
         "low": "Low",
         "very low": "Very Low",
+        "high-certainty evidence": "High",
+        "moderate-certainty evidence": "Moderate",
+        "low-certainty evidence": "Low",
+        "very low-certainty evidence": "Very Low",
     },
 )
 
