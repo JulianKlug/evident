@@ -102,10 +102,18 @@ def get_few_shot_examples(
     scheme: GradingScheme,
     n_examples: int = 3,
     exclude_key: str | None = None,
+    include_source_text: bool = False,
 ) -> list[dict]:
     """Sample few-shot examples from ground truth of the same grading scheme.
 
     Excludes the target guideline (by key) to prevent data leakage.
+
+    Args:
+        scheme: Grading scheme to match.
+        n_examples: Number of examples to sample.
+        exclude_key: Guideline key to exclude (prevents leakage).
+        include_source_text: If True, include a truncated source_text excerpt
+            from the recommendation text to illustrate input→output mapping.
     """
     if scheme.name == "grade":
         datasets = load_acp_datasets()
@@ -120,11 +128,16 @@ def get_few_shot_examples(
         if exclude_key and ds.key == exclude_key:
             continue
         for _, row in ds.ground_truth_df.iterrows():
-            pool.append({
+            example = {
                 "recommendation": row["recommendation"],
                 "class": row["class"],
                 "LOE": row["LOE"],
-            })
+            }
+            if include_source_text:
+                # Use a truncated version of the recommendation as a source excerpt
+                rec_text = str(row["recommendation"])
+                example["source_text"] = rec_text[:200] + ("..." if len(rec_text) > 200 else "")
+            pool.append(example)
 
     if not pool:
         return []

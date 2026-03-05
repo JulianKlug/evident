@@ -37,6 +37,20 @@ class _BioLORDSimilarityModel:
         embs = self._model.encode([text1, text2])
         return float(util.cos_sim(embs[0], embs[1])[0][0])
 
+    def encode_batch(self, texts: list[str], batch_size: int = 32) -> "np.ndarray":
+        """Encode a list of texts into normalized embeddings.
+
+        Returns:
+            np.ndarray of shape (len(texts), embedding_dim), L2-normalized.
+        """
+        import numpy as np
+        embs = self._model.encode(texts, batch_size=batch_size, show_progress_bar=False)
+        embs = np.array(embs)
+        # L2-normalize for cosine similarity via dot product
+        norms = np.linalg.norm(embs, axis=1, keepdims=True)
+        norms = np.where(norms == 0, 1, norms)
+        return embs / norms
+
 
 MODELS = list(AVAILABLE_MODELS.keys())
 STRATEGIES = ["zero_shot", "few_shot"]

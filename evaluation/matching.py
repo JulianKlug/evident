@@ -47,7 +47,16 @@ def build_similarity_matrix(
     ground_truth: list[str],
     similarity_model: SimilarityModel,
 ) -> np.ndarray:
-    """Compute pairwise similarity matrix (n_extracted × n_gt)."""
+    """Compute pairwise similarity matrix (n_extracted × n_gt).
+
+    Uses batch encoding + matrix multiply if the model supports encode_batch(),
+    falling back to pairwise compute_similarity() otherwise.
+    """
+    if hasattr(similarity_model, "encode_batch"):
+        ext_embs = similarity_model.encode_batch(extracted)
+        gt_embs = similarity_model.encode_batch(ground_truth)
+        return ext_embs @ gt_embs.T
+
     n_ext = len(extracted)
     n_gt = len(ground_truth)
     matrix = np.zeros((n_ext, n_gt))

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import re
 
 import pandas as pd
@@ -145,3 +146,38 @@ def _fallback_csv_parse(text: str) -> list[dict]:
     except csv.Error:
         pass
     return records
+
+
+def parse_json_response(raw_text: str) -> pd.DataFrame:
+    """Parse JSON-structured LLM output into a DataFrame with columns [recommendation, class, LOE].
+
+    Expected format: {"recommendations": [{"text": str, "grade": str, "level": str}, ...]}
+    """
+    if not raw_text or not raw_text.strip():
+        return pd.DataFrame(columns=["recommendation", "class", "LOE"])
+
+    try:
+        data = json.loads(raw_text.strip())
+    except json.JSONDecodeError:
+        return pd.DataFrame(columns=["recommendation", "class", "LOE"])
+
+    recs = data.get("recommendations", [])
+    if not recs:
+        return pd.DataFrame(columns=["recommendation", "class", "LOE"])
+
+    records = []
+    for rec in recs:
+        text = rec.get("text", "").strip()
+        grade = rec.get("grade", "").strip()
+        level = rec.get("level", "").strip()
+        if text and grade and level:
+            records.append({
+                "recommendation": text,
+                "class": grade,
+                "LOE": level,
+            })
+
+    if not records:
+        return pd.DataFrame(columns=["recommendation", "class", "LOE"])
+
+    return pd.DataFrame(records, columns=["recommendation", "class", "LOE"])

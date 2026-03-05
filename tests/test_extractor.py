@@ -12,7 +12,7 @@ from evaluation.grading import GRADE
 class MockOllamaClient:
     """Mock client that returns canned responses."""
 
-    def __init__(self, responses: list[str]):
+    def __init__(self, responses: list):
         self._responses = responses
         self._call_count = 0
         self.model = "mock-model"
@@ -22,7 +22,7 @@ class MockOllamaClient:
     def has_thinking(self):
         return False
 
-    def generate(self, prompt: str) -> LLMResponse:
+    def generate(self, prompt, num_ctx=None):
         if self._call_count < len(self._responses):
             text = self._responses[self._call_count]
         else:

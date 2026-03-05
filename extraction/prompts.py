@@ -41,8 +41,18 @@ class PromptStrategy:
     examples: list[dict] = field(default_factory=list)  # For few-shot: [{recommendation, class, LOE}]
 
 
-def build_prompt(page_text: str, strategy: PromptStrategy) -> str:
-    """Build a complete prompt for extracting recommendations from a guideline page."""
+def build_prompt(
+    page_text: str,
+    strategy: PromptStrategy,
+    output_format: str = "pipe",
+) -> str:
+    """Build a complete prompt for extracting recommendations from a guideline text.
+
+    Args:
+        page_text: The guideline text to extract from.
+        strategy: Prompting strategy (zero_shot or few_shot with scheme).
+        output_format: "pipe" for pipe-delimited or "json" for JSON array.
+    """
     scheme_name = strategy.scheme.name
     terms = _SCHEME_TERMINOLOGY.get(scheme_name)
     if terms is None:
@@ -55,23 +65,41 @@ def build_prompt(page_text: str, strategy: PromptStrategy) -> str:
 
     parts = []
 
-    # System instruction
+    # System instruction with precise definition
     parts.append(
         f"You are an expert medical researcher. Extract all clinical recommendations "
-        f"from the following {terms['domain']} page.\n"
+        f"from the following {terms['domain']} text.\n"
         f"\n"
-        f"For each recommendation, identify:\n"
-        f"- The recommendation text\n"
-        f"- The {grade_label} ({grade_values})\n"
-        f"- The {level_label} ({level_values})\n"
+        f"A \"recommendation\" is an actionable statement that directs clinical practice "
+        f"and is explicitly graded with a {grade_label} and a {level_label}.\n"
         f"\n"
-        f"Output format: one recommendation per line, using pipe delimiters:\n"
-        f"recommendation text | {grade_label} | {level_label}\n"
-        f"\n"
+        f"For each recommendation, extract:\n"
+        f"- The recommendation text — copy it EXACTLY as written in the source\n"
+        f"- The {grade_label} — use ONLY these valid values: {grade_values}\n"
+        f"- The {level_label} — use ONLY these valid values: {level_values}\n"
+    )
+
+    # Output format
+    if output_format == "json":
+        parts.append(
+            f"Output a JSON array of objects, each with keys \"text\", \"grade\", \"level\".\n"
+            f"Example: {{\"recommendations\": [{{\"text\": \"...\", \"grade\": \"...\", \"level\": \"...\"}}]}}\n"
+        )
+    else:
+        parts.append(
+            f"Output format: one recommendation per line, using pipe delimiters:\n"
+            f"recommendation text | {grade_label} | {level_label}\n"
+        )
+
+    # Rules with negative examples
+    parts.append(
         f"Rules:\n"
         f"- Extract ONLY explicitly stated recommendations with a clear {grade_label} and {level_label}\n"
+        f"- Copy the recommendation text EXACTLY as written — do NOT paraphrase or summarize\n"
+        f"- Do NOT extract: background statements, evidence summaries, section headers, "
+        f"or statements without an explicit {grade_label} and {level_label}\n"
         f"- Do NOT infer or create recommendations that are not in the text\n"
-        f"- If no recommendations are found on this page, output exactly: NO_RECOMMENDATIONS_FOUND\n"
+        f"- If no recommendations are found, output exactly: NO_RECOMMENDATIONS_FOUND\n"
         f"- Do NOT include headers, row numbers, or any other text"
     )
 
@@ -79,11 +107,14 @@ def build_prompt(page_text: str, strategy: PromptStrategy) -> str:
     if strategy.name == "few_shot" and strategy.examples:
         parts.append("\nExamples of correctly extracted recommendations:")
         for ex in strategy.examples:
+            source = ex.get("source_text")
+            if source:
+                parts.append(f"Source: \"{source}\"")
             parts.append(f"{ex['recommendation']} | {ex['class']} | {ex['LOE']}")
         parts.append("")
 
-    # The actual page text
-    parts.append(f"\n--- Guideline Page Text ---\n{page_text}\n--- End of Page ---")
+    # The actual text
+    parts.append(f"\n--- Guideline Text ---\n{page_text}\n--- End of Text ---")
     parts.append(f"\nExtracted recommendations:")
 
     return "\n".join(parts)

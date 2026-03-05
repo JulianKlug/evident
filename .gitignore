@@ -1,3 +1,4 @@
+*.log
 *.csv
 .idea/
 .ipynb_checkpoints/

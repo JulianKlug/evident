@@ -23,8 +23,9 @@ import pandas as pd
 
 def run_benchmark_unbuffered(
     datasets, models, strategies, similarity_model, similarity_threshold=0.65,
+    pages_per_chunk=1, output_format="pipe", normalize=False, two_pass=False,
 ):
-    """Same as run_full_benchmark but with flushed prints."""
+    """Same as run_full_benchmark but with flushed prints and new options."""
     entries = []
 
     for model_name in models:
@@ -38,11 +39,25 @@ def run_benchmark_unbuffered(
 
                 start = time.time()
                 try:
-                    result = extract_guideline(
-                        source=ds.doi,
-                        strategy=strategy,
-                        client=client,
-                    )
+                    if two_pass:
+                        from extraction.two_pass import two_pass_extract
+                        result = two_pass_extract(
+                            source=ds.doi,
+                            strategy=strategy,
+                            extract_client=client,
+                            pages_per_chunk=pages_per_chunk,
+                            output_format=output_format,
+                            normalize=normalize,
+                        )
+                    else:
+                        result = extract_guideline(
+                            source=ds.doi,
+                            strategy=strategy,
+                            client=client,
+                            pages_per_chunk=pages_per_chunk,
+                            output_format=output_format,
+                            normalize=normalize,
+                        )
                 except Exception as e:
                     print(f"  ERROR: {e}", flush=True)
                     continue
@@ -108,6 +123,10 @@ if __name__ == "__main__":
     # Parse CLI args for subset
     models = MODELS
     strategies = STRATEGIES
+    pages_per_chunk = 1
+    output_format = "pipe"
+    normalize = False
+    two_pass = False
 
     if "--acp-only" in sys.argv:
         available = [ds for ds in available if ds.dataset_name == "ACP"]
@@ -123,6 +142,19 @@ if __name__ == "__main__":
         strategies = ["zero_shot"]
     if "--few-shot-only" in sys.argv:
         strategies = ["few_shot"]
+    if "--pages-per-chunk" in sys.argv:
+        idx = sys.argv.index("--pages-per-chunk")
+        pages_per_chunk = int(sys.argv[idx + 1])
+        print(f"Pages per chunk: {pages_per_chunk}", flush=True)
+    if "--json" in sys.argv:
+        output_format = "json"
+        print("Using JSON output format", flush=True)
+    if "--normalize" in sys.argv:
+        normalize = True
+        print("Grade/level normalization enabled", flush=True)
+    if "--two-pass" in sys.argv:
+        two_pass = True
+        print("Two-pass extraction enabled", flush=True)
 
     n_combos = len(available) * len(models) * len(strategies)
     print(f"\nRunning {n_combos} benchmark combinations "
@@ -134,7 +166,11 @@ if __name__ == "__main__":
     print("Similarity model ready.\n", flush=True)
 
     results = run_benchmark_unbuffered(
-        available, models, strategies, sim_model
+        available, models, strategies, sim_model,
+        pages_per_chunk=pages_per_chunk,
+        output_format=output_format,
+        normalize=normalize,
+        two_pass=two_pass,
     )
 
     if not results.empty:
