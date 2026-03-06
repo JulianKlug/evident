@@ -10,7 +10,7 @@ from extraction.datasets import (
     get_few_shot_examples,
     GuidelineDataset,
 )
-from evaluation.grading import GRADE, ABCD_123
+from evaluation.grading import GRADE, ABCD_123, ESC_ERS
 
 
 class TestLoadACPDatasets:
@@ -33,14 +33,16 @@ class TestLoadERSDatasets:
         assert len(datasets) > 0
         for ds in datasets:
             assert ds.dataset_name == "ERS"
-            assert ds.grading_scheme is ABCD_123
+            assert ds.grading_scheme in (ABCD_123, ESC_ERS, GRADE)
 
     def test_normalizes_class_values(self):
         datasets = load_ers_datasets()
         for ds in datasets:
             classes = ds.ground_truth_df["class"].unique()
             for c in classes:
-                assert c == c.upper().strip(), f"Class not normalized: '{c}'"
+                # Values should be normalized to canonical scheme values
+                assert c == c.strip(), f"Class not stripped: '{c}'"
+                assert c not in ("0.0", "nan", ""), f"Invalid class: '{c}'"
 
     def test_normalizes_roman_numeral_loe(self):
         """Roman numeral LOE values (i, ii, iii) should be normalized to 1, 2, 3."""

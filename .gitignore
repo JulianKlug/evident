@@ -1,3 +1,4 @@
+benchmark_log*
 *.log
 *.csv
 .idea/

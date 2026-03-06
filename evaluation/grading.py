@@ -58,11 +58,20 @@ ESC_ERS = GradingScheme(
         "class iii": "III",
         "class iia": "IIa",
         "class iib": "IIb",
+        "class 1": "I",
+        "class 2a": "IIa",
+        "class 2b": "IIb",
+        "class 3": "III",
+        "ii a": "IIa",
+        "ii b": "IIb",
     },
     level_aliases={
         "level a": "A",
         "level b": "B",
         "level c": "C",
+        "level of evidence a": "A",
+        "level of evidence b": "B",
+        "level of evidence c": "C",
     },
 )
 
@@ -117,6 +126,9 @@ GRADE = GradingScheme(
         "weak recommendation": "Weak For",
         "weak recommendation for": "Weak For",
         "weak recommendation against": "Weak Against",
+        # Truncation artifacts in GT data
+        "onditional recommendation": "Weak For",
+        "trong recommendation": "Strong For",
     },
     level_aliases={
         "high": "High",
@@ -131,6 +143,15 @@ GRADE = GradingScheme(
         "moderate certainty": "Moderate",
         "low certainty": "Low",
         "very low certainty": "Very Low",
+        # Truncation artifacts in GT data
+        "igh-certainty evidence": "High",
+        # Slash-separated levels (take the lower)
+        "moderate/low-certainty evidence": "Low",
+        # Confidence-style (used by some ERS guidelines)
+        "high confidence in estimates of effect": "High",
+        "moderate confidence in estimates of effect": "Moderate",
+        "low confidence in estimates of effect": "Low",
+        "very low confidence in estimates of effect": "Very Low",
     },
 )
 

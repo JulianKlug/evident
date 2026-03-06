@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from evaluation.grading import GradingScheme, GRADE, ABCD_123
+from evaluation.grading import GradingScheme, GRADE, ABCD_123, ESC_ERS
 
 
 _DATA_ROOT = "/mnt/data1/klug/datasets/evidence_extraction"
@@ -35,8 +35,8 @@ def _load_extraction_xlsx(path: str) -> pd.DataFrame:
     # Drop rows where recommendation is NaN
     df = df.dropna(subset=["recommendation"])
     # Normalize class and LOE: strip whitespace, fix case
-    df["class"] = df["class"].astype(str).str.strip()
-    df["LOE"] = df["LOE"].astype(str).str.strip()
+    df["class"] = df["class"].astype(str).str.strip().str.rstrip(";,.")
+    df["LOE"] = df["LOE"].astype(str).str.strip().str.rstrip(";,.")
     return df.reset_index(drop=True)
 
 
@@ -52,6 +52,15 @@ def load_acp_datasets() -> list[GuidelineDataset]:
         if not os.path.isfile(extraction_path):
             continue
         gt_df = _load_extraction_xlsx(extraction_path)
+        # Normalize GT grades/levels (fixes truncation artifacts, etc.)
+        gt_df["class"] = gt_df["class"].apply(
+            lambda x: GRADE.normalize_grade(x) or x
+        )
+        gt_df["LOE"] = gt_df["LOE"].apply(
+            lambda x: GRADE.normalize_level(x) or x
+        )
+        # Drop rows with invalid/missing values (e.g. '0.0')
+        gt_df = gt_df[~gt_df["class"].isin(["0.0", "nan", ""])].reset_index(drop=True)
         datasets.append(GuidelineDataset(
             key=key,
             title=str(row.get("Title", "")),
@@ -63,8 +72,61 @@ def load_acp_datasets() -> list[GuidelineDataset]:
     return datasets
 
 
+def _detect_grading_scheme(gt_df: pd.DataFrame) -> GradingScheme:
+    """Auto-detect grading scheme from ground truth values."""
+    grades = set(gt_df["class"].str.lower().str.strip())
+    # GRADE-style: "strong recommendation", "conditional recommendation"
+    grade_keywords = {"strong recommendation", "conditional recommendation",
+                      "strong recommendation against", "conditional recommendation against"}
+    if grades & grade_keywords:
+        return GRADE
+    # ESC_ERS-style: Roman numerals I, IIa, IIb, III
+    esc_keywords = {"i", "iia", "iib", "iii"}
+    if grades & esc_keywords:
+        return ESC_ERS
+    # Default: ABCD_123
+    return ABCD_123
+
+
+# OCR artifacts in NI9RV3E7: 'L' misread for 'I' in Roman numerals
+_ESC_ERS_GRADE_FIXES = {
+    "ILA": "IIa", "ILB": "IIb", "ILI": "III",
+    "LIB": "IIb", "LLA": "IIa", "LLI": "III",
+}
+
+
+def _normalize_ers_gt(gt_df: pd.DataFrame, scheme: GradingScheme) -> pd.DataFrame:
+    """Normalize ERS ground truth values based on detected scheme."""
+    gt_df = gt_df.copy()
+    gt_df["class"] = gt_df["class"].str.upper().str.strip()
+    gt_df["class"] = gt_df["class"].str.replace(r"/.*", "", regex=True)
+
+    if scheme is ESC_ERS:
+        # Fix OCR artifacts
+        gt_df["class"] = gt_df["class"].replace(_ESC_ERS_GRADE_FIXES)
+        # Normalize to canonical ESC_ERS values
+        gt_df["class"] = gt_df["class"].apply(
+            lambda x: ESC_ERS.normalize_grade(x) or x
+        )
+        gt_df["LOE"] = gt_df["LOE"].apply(
+            lambda x: ESC_ERS.normalize_level(x) or x
+        )
+    elif scheme is GRADE:
+        gt_df["class"] = gt_df["class"].apply(
+            lambda x: GRADE.normalize_grade(x) or x
+        )
+        gt_df["LOE"] = gt_df["LOE"].apply(
+            lambda x: GRADE.normalize_level(x) or x
+        )
+    else:
+        gt_df["LOE"] = gt_df["LOE"].apply(
+            lambda x: ABCD_123.normalize_level(x) or x
+        )
+    return gt_df
+
+
 def load_ers_datasets() -> list[GuidelineDataset]:
-    """Load all ERS guideline datasets (ABCD_123 scheme)."""
+    """Load all ERS guideline datasets with auto-detected grading scheme."""
     metadata_path = os.path.join(_ERS_DIR, "ERS_guidelines.csv")
     metadata = pd.read_csv(metadata_path, encoding="utf-8-sig")
 
@@ -75,19 +137,16 @@ def load_ers_datasets() -> list[GuidelineDataset]:
         if not os.path.isfile(extraction_path):
             continue
         gt_df = _load_extraction_xlsx(extraction_path)
-        # Normalize messy ERS class values: 'a' → 'A', 'A ' → 'A', 'c/d' → 'C'
-        gt_df["class"] = gt_df["class"].str.upper().str.strip()
-        gt_df["class"] = gt_df["class"].str.replace(r"/.*", "", regex=True)
-        # Normalize Roman numeral LOE values via the grading scheme
-        gt_df["LOE"] = gt_df["LOE"].apply(
-            lambda x: ABCD_123.normalize_level(x) or x
-        )
+        scheme = _detect_grading_scheme(gt_df)
+        gt_df = _normalize_ers_gt(gt_df, scheme)
+        # Drop rows with invalid/missing values
+        gt_df = gt_df[~gt_df["class"].isin(["0.0", "nan", ""])].reset_index(drop=True)
         datasets.append(GuidelineDataset(
             key=key,
             title=str(row.get("Title", "")),
             doi=str(row.get("DOI", "")),
             ground_truth_df=gt_df,
-            grading_scheme=ABCD_123,
+            grading_scheme=scheme,
             dataset_name="ERS",
         ))
     return datasets
@@ -117,8 +176,8 @@ def get_few_shot_examples(
     """
     if scheme.name == "grade":
         datasets = load_acp_datasets()
-    elif scheme.name == "abcd_123":
-        datasets = load_ers_datasets()
+    elif scheme.name in ("abcd_123", "esc_ers"):
+        datasets = [ds for ds in load_ers_datasets() if ds.grading_scheme.name == scheme.name]
     else:
         return []
 
