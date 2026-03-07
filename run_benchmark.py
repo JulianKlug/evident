@@ -24,6 +24,7 @@ import pandas as pd
 def run_benchmark_unbuffered(
     datasets, models, strategies, similarity_model, similarity_threshold=0.65,
     pages_per_chunk=1, output_format="pipe", normalize=False, two_pass=False,
+    vision=False, vision_model="gemma3:27b",
 ):
     """Same as run_full_benchmark but with flushed prints and new options."""
     entries = []
@@ -39,7 +40,16 @@ def run_benchmark_unbuffered(
 
                 start = time.time()
                 try:
-                    if two_pass:
+                    if vision:
+                        from extraction.vision_extractor import vision_extract_guideline
+                        result = vision_extract_guideline(
+                            source=ds.doi,
+                            strategy=strategy,
+                            client=client,
+                            vision_model=vision_model,
+                            normalize=normalize,
+                        )
+                    elif two_pass:
                         from extraction.two_pass import two_pass_extract
                         result = two_pass_extract(
                             source=ds.doi,
@@ -156,6 +166,16 @@ if __name__ == "__main__":
         two_pass = True
         print("Two-pass extraction enabled", flush=True)
 
+    vision = False
+    vision_model = "gemma3:27b"
+    if "--vision" in sys.argv:
+        vision = True
+        print("Vision-based table extraction enabled", flush=True)
+    if "--vision-model" in sys.argv:
+        idx = sys.argv.index("--vision-model")
+        vision_model = sys.argv[idx + 1]
+        print(f"Vision model: {vision_model}", flush=True)
+
     n_combos = len(available) * len(models) * len(strategies)
     print(f"\nRunning {n_combos} benchmark combinations "
           f"({len(models)} models x {len(strategies)} strategies x {len(available)} guidelines)",
@@ -171,6 +191,8 @@ if __name__ == "__main__":
         output_format=output_format,
         normalize=normalize,
         two_pass=two_pass,
+        vision=vision,
+        vision_model=vision_model,
     )
 
     if not results.empty:

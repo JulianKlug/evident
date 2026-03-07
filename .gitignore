@@ -1,3 +1,4 @@
+artifacts/
 benchmark_log*
 *.log
 *.csv

@@ -23,6 +23,14 @@ class PDFPage:
     text: str
 
 
+@dataclass
+class PDFTableImage:
+    """A table region rendered as an image from a PDF page."""
+    page_number: int
+    table_index: int
+    image_bytes: bytes
+
+
 _DOI_PATTERN = re.compile(r"^10\.\d{4,}/")
 _DEFAULT_PDF_DIR = "/tmp/evident_pdfs"
 _UNPAYWALL_EMAIL = "evident.project@gmail.com"
@@ -196,6 +204,56 @@ def _is_valid_pdf(path: str) -> bool:
             return header == b"%PDF-"
     except Exception:
         return False
+
+
+def load_pdf_table_images(
+    source: str,
+    pdf_dir: str = _DEFAULT_PDF_DIR,
+    resolution: int = 300,
+) -> list[PDFTableImage]:
+    """Render full pages that contain tables as images using pdfplumber.
+
+    Detects pages with table structures and renders the full page as an image.
+    Full-page rendering avoids issues with table bounding boxes that miss columns.
+
+    Args:
+        source: Local file path or a DOI string.
+        pdf_dir: Directory for caching downloaded PDFs.
+        resolution: DPI for rendering page images.
+
+    Returns:
+        List of PDFTableImage, one per page that contains a table.
+    """
+    import io
+    import pdfplumber
+
+    if _DOI_PATTERN.match(source):
+        path = _download_pdf_from_doi(source, dest_dir=pdf_dir)
+    else:
+        path = source
+
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f"PDF not found: {path}")
+
+    table_images = []
+    seen_pages = set()
+    pdf = pdfplumber.open(path)
+    for i, page in enumerate(pdf.pages):
+        if i in seen_pages:
+            continue
+        tables = page.find_tables()
+        if tables:
+            seen_pages.add(i)
+            img = page.to_image(resolution=resolution)
+            buf = io.BytesIO()
+            img.save(buf, format="PNG")
+            table_images.append(PDFTableImage(
+                page_number=i + 1,
+                table_index=0,
+                image_bytes=buf.getvalue(),
+            ))
+    pdf.close()
+    return table_images
 
 
 def download_all_dois(

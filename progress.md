@@ -255,11 +255,80 @@ All models benchmarked with few-shot + normalize + corrected grading scheme dete
 
 ---
 
+## 2026-03-06: Vision-Based Table Extraction for NI9RV3E7
+
+### Problem
+
+NI9RV3E7 (80-page ERS pulmonary hypertension guideline, 217 GT recs) had 0% extraction with all text-based approaches. Investigation revealed:
+
+- All 217 recommendations live in **tables rendered as vector graphics**
+- PyPDF, Docling, and pdfplumber all detect table bounding boxes but extract **zero characters** from within them
+- The table cell text simply doesn't exist in the PDF text layer — it's drawn as paths/glyphs
+
+### Approach: Page Image → Vision LLM
+
+1. **pdfplumber** detects which pages contain tables (35 of 80 pages)
+2. Full pages rendered as PNG images at 300 DPI
+3. **gemma3:27b** (vision-capable) reads each page image and extracts recommendations
+4. Results parsed, deduplicated, and optionally combined with text-based extraction
+
+### Implementation
+
+#### New: `extraction/pdf_loader.py`
+- `PDFTableImage` dataclass: page_number, table_index, image_bytes
+- `load_pdf_table_images()`: uses pdfplumber to find table pages, renders full page as PNG
+- Installed: `pdfplumber`, `pytesseract` (tesseract OCR tested but inferior to vision LLM)
+
+#### New: `extraction/vision_extractor.py`
+- `extract_tables_with_vision()`: sends page images to vision LLM, parses pipe-delimited output
+- `vision_extract_guideline()`: combines vision table extraction with optional text-based extraction
+- `_build_vision_prompt()`: scheme-aware prompt with Class/Level value hints
+- `_parse_vision_response()`: handles markdown lists, bold, label prefixes
+
+#### Updated: `run_benchmark.py`
+- New flags: `--vision`, `--vision-model <model>`
+- Vision mode uses `vision_extract_guideline()` instead of `extract_guideline()`
+
+### Results on NI9RV3E7
+
+| Approach | Extracted | F1 | P | R | Grade | Level |
+|----------|-----------|------|------|------|-------|-------|
+| Text only (best: deepseek-r1:32b) | 62 | 0.16 | 0.35 | 0.10 | 0.68 | 0.18 |
+| **Vision (gemma3:27b)** | **209** | **0.27** | **0.27** | **0.26** | **0.84** | **0.83** |
+| Vision @0.50 threshold | 209 | 0.43 | 0.44 | 0.42 | 0.69 | — |
+| Vision @0.40 threshold | 209 | 0.52 | 0.53 | 0.50 | 0.62 | — |
+
+### Analysis
+
+- Vision extracts 209 recs (vs 217 GT) — nearly complete count
+- Grade/level accuracy on matched recs is excellent (0.84/0.83)
+- **Low F1 at standard threshold (0.65)** is due to text wording differences:
+  - Vision: "RHC is recommended to confirm the diagnosis" (abbreviated from table)
+  - GT: "RHC is recommended to confirm the diagnosis of pulmonary arterial hypertension (group 1) and to support treatment decisions" (full text)
+- Class distribution mismatch: vision extracts 91 Class III vs GT's 20 (misreads some table structures)
+- 3209 raw recs before dedup → 209 after (heavy duplication from overlapping table content)
+
+### Environment Changes
+
+- Installed: `docling` (2.69.1), `pdfplumber` (0.11.8), `pytesseract` (0.3.13), `onnxruntime` (1.19.2)
+- Removed: `tensorflow` (2.8.0) — incompatible with upgraded numpy/transformers from docling
+- Upgraded: `scikit-learn` (1.1.0 → 1.6.1), `pandas` (1.4.1 → 2.3.3), `transformers` (4.40.0 → 4.57.6)
+
+### What was tried but didn't work
+
+- **Docling** (IBM): Detected 35 tables but extracted 0 cell content (same vector graphics problem)
+- **pdfplumber table extraction**: Detected table grids but all cells empty
+- **Tesseract OCR**: Got text from images but lost table structure, garbled on colored backgrounds
+- **RapidOCR**: Chinese-optimized, failed to detect any English text
+- **Table bbox cropping**: pdfplumber detects partial bounding boxes that cut off recommendation text columns — had to switch to full-page rendering
+
+---
+
 ## Pending / Not Yet Benchmarked
 
+- [ ] Improve vision extraction prompt to reduce class distribution mismatch
+- [ ] Post-processing to expand abbreviated vision-extracted recommendations
 - [ ] Multi-page chunking (`--pages-per-chunk 3`) — tested but hurt precision on ACP
 - [ ] JSON structured output (`--json`)
 - [ ] Two-pass extraction (`--two-pass`)
-- [ ] Table-aware PDF extraction for NI9RV3E7 (Docling)
 - [ ] Ensemble/voting across models
-- [ ] Per-guideline model selection (use best model per guideline type)
