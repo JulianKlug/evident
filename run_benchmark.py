@@ -24,7 +24,7 @@ import pandas as pd
 def run_benchmark_unbuffered(
     datasets, models, strategies, similarity_model, similarity_threshold=0.65,
     pages_per_chunk=1, output_format="pipe", normalize=False, two_pass=False,
-    vision=False, vision_model="gemma3:27b",
+    vision=False, vision_model="gemma3:27b", auto_vision=False,
 ):
     """Same as run_full_benchmark but with flushed prints and new options."""
     entries = []
@@ -47,6 +47,17 @@ def run_benchmark_unbuffered(
                             strategy=strategy,
                             client=client,
                             vision_model=vision_model,
+                            normalize=normalize,
+                        )
+                    elif auto_vision:
+                        from extraction.vision_extractor import auto_vision_extract_guideline
+                        result = auto_vision_extract_guideline(
+                            source=ds.doi,
+                            strategy=strategy,
+                            client=client,
+                            vision_model=vision_model,
+                            pages_per_chunk=pages_per_chunk,
+                            output_format=output_format,
                             normalize=normalize,
                         )
                     elif two_pass:
@@ -167,10 +178,14 @@ if __name__ == "__main__":
         print("Two-pass extraction enabled", flush=True)
 
     vision = False
+    auto_vision = False
     vision_model = "gemma3:27b"
     if "--vision" in sys.argv:
         vision = True
         print("Vision-based table extraction enabled", flush=True)
+    if "--auto-vision" in sys.argv:
+        auto_vision = True
+        print("Auto-vision detection enabled", flush=True)
     if "--vision-model" in sys.argv:
         idx = sys.argv.index("--vision-model")
         vision_model = sys.argv[idx + 1]
@@ -193,6 +208,7 @@ if __name__ == "__main__":
         two_pass=two_pass,
         vision=vision,
         vision_model=vision_model,
+        auto_vision=auto_vision,
     )
 
     if not results.empty:

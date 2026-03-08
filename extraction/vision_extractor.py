@@ -12,7 +12,10 @@ from typing import Optional
 
 import pandas as pd
 
-from extraction.pdf_loader import load_pdf_pages, load_pdf_table_images, PDFTableImage
+from extraction.pdf_loader import (
+    load_pdf_pages, load_pdf_table_images, detect_opaque_tables,
+    PDFTableImage,
+)
 from extraction.prompts import PromptStrategy
 from extraction.llm_client import OllamaClient
 from extraction.deduplication import deduplicate_recommendations
@@ -101,6 +104,7 @@ def extract_tables_with_vision(
     strategy: PromptStrategy,
     vision_model: str = "gemma3:27b",
     resolution: int = 300,
+    table_images: Optional[list] = None,
 ) -> list[pd.DataFrame]:
     """Extract recommendations from PDF table images using a vision model.
 
@@ -109,13 +113,15 @@ def extract_tables_with_vision(
         strategy: PromptStrategy with grading scheme info.
         vision_model: Ollama model name with vision capability.
         resolution: DPI for rendering table images.
+        table_images: Pre-loaded PDFTableImage list. If provided, skips loading.
 
     Returns:
         List of DataFrames, one per table that yielded recommendations.
     """
     import ollama
 
-    table_images = load_pdf_table_images(source, resolution=resolution)
+    if table_images is None:
+        table_images = load_pdf_table_images(source, resolution=resolution)
     if not table_images:
         return []
 
@@ -217,4 +223,119 @@ def vision_extract_guideline(
         n_raw_recommendations=n_raw,
         n_final_recommendations=len(final_df),
         per_page_responses=responses,
+    )
+
+
+def auto_vision_extract_guideline(
+    source: str,
+    strategy: PromptStrategy,
+    client: Optional[OllamaClient] = None,
+    vision_model: str = "gemma3:27b",
+    dedup_threshold: float = 0.9,
+    dedup_model=None,
+    pages_per_chunk: int = 1,
+    output_format: str = "pipe",
+    normalize: bool = False,
+    min_text_chars: int = 50,
+) -> ExtractionResult:
+    """Extract recommendations, auto-detecting when vision is needed.
+
+    Scans the PDF for pages with table structures but no extractable text.
+    If found, runs vision extraction on those pages and text extraction on
+    the rest, then merges and deduplicates.
+
+    Args:
+        source: PDF path or DOI.
+        strategy: PromptStrategy with grading scheme.
+        client: OllamaClient for text-based extraction.
+        vision_model: Ollama vision model for table images.
+        dedup_threshold: Similarity threshold for deduplication.
+        dedup_model: Optional similarity model for dedup.
+        pages_per_chunk: Pages per chunk for text extraction.
+        output_format: "pipe" or "json" for text extraction.
+        normalize: Apply grade/level normalization.
+        min_text_chars: Char threshold for opaque table detection.
+
+    Returns:
+        ExtractionResult with combined recommendations.
+    """
+    from extraction.extractor import extract_guideline
+
+    # Detect if vision is needed
+    report = detect_opaque_tables(source, min_text_chars=min_text_chars)
+
+    if not report.needs_vision:
+        print("  [Auto-vision] No opaque tables detected, using text extraction only",
+              flush=True)
+        return extract_guideline(
+            source, strategy, client=client,
+            pages_per_chunk=pages_per_chunk,
+            output_format=output_format,
+            normalize=normalize,
+        )
+
+    print(f"  [Auto-vision] Detected {len(report.opaque_table_pages)} opaque table pages: "
+          f"{report.opaque_table_pages[:10]}{'...' if len(report.opaque_table_pages) > 10 else ''}",
+          flush=True)
+
+    all_dfs = []
+    n_pages = 0
+    responses = []
+    vision_pages = []
+
+    # Text extraction (handles text-extractable pages automatically)
+    text_result = extract_guideline(
+        source, strategy, client=client,
+        pages_per_chunk=pages_per_chunk,
+        output_format=output_format,
+        normalize=False,  # normalize after merge
+    )
+    n_pages = text_result.n_pages
+    responses = text_result.per_page_responses
+    if not text_result.recommendations_df.empty:
+        all_dfs.append(text_result.recommendations_df)
+        print(f"  [Auto-vision] Text extraction: {len(text_result.recommendations_df)} recs",
+              flush=True)
+
+    # Vision extraction on opaque table pages only
+    print(f"  [Auto-vision] Running vision on {len(report.opaque_table_pages)} pages "
+          f"with {vision_model}...", flush=True)
+    images = load_pdf_table_images(
+        source, page_numbers=report.opaque_table_pages,
+    )
+    table_dfs = extract_tables_with_vision(
+        source, strategy, vision_model=vision_model, table_images=images,
+    )
+    n_vision_recs = sum(len(df) for df in table_dfs)
+    print(f"  [Auto-vision] Vision extraction: {n_vision_recs} recs from "
+          f"{len(table_dfs)} pages", flush=True)
+    all_dfs.extend(table_dfs)
+    vision_pages = report.opaque_table_pages
+
+    # Merge and deduplicate
+    if all_dfs:
+        raw_df = pd.concat(all_dfs, ignore_index=True)
+    else:
+        raw_df = pd.DataFrame(columns=["recommendation", "class", "LOE"])
+
+    n_raw = len(raw_df)
+
+    final_df = deduplicate_recommendations(
+        raw_df,
+        similarity_threshold=dedup_threshold,
+        similarity_model=dedup_model,
+    )
+
+    if normalize and not final_df.empty:
+        from extraction.postprocessing import normalize_extracted_grades
+        final_df = normalize_extracted_grades(final_df, strategy.scheme)
+
+    return ExtractionResult(
+        recommendations_df=final_df,
+        n_pages=n_pages + len(report.opaque_table_pages),
+        n_pages_with_recs=text_result.n_pages_with_recs + len(table_dfs),
+        n_raw_recommendations=n_raw,
+        n_final_recommendations=len(final_df),
+        per_page_responses=responses,
+        vision_pages=vision_pages,
     )

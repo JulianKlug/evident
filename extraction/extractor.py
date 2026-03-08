@@ -48,6 +48,7 @@ class ExtractionResult:
     n_raw_recommendations: int
     n_final_recommendations: int
     per_page_responses: list[LLMResponse] = field(default_factory=list)
+    vision_pages: list = field(default_factory=list)  # pages processed by vision
 
 
 def _chunk_pages(

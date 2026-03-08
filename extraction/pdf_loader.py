@@ -9,7 +9,8 @@ import json
 import os
 import re
 import ssl
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import List, Optional
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 
@@ -31,6 +32,15 @@ class PDFTableImage:
     image_bytes: bytes
 
 
+@dataclass
+class VisionNeedReport:
+    """Report on which pages need vision-based extraction."""
+    needs_vision: bool
+    opaque_table_pages: List[int]  # 1-indexed page numbers with tables but no text
+    text_pages: List[int]          # 1-indexed page numbers with extractable text
+    total_pages: int
+
+
 _DOI_PATTERN = re.compile(r"^10\.\d{4,}/")
 _DEFAULT_PDF_DIR = "/tmp/evident_pdfs"
 _UNPAYWALL_EMAIL = "evident.project@gmail.com"
@@ -39,6 +49,17 @@ _UNPAYWALL_EMAIL = "evident.project@gmail.com"
 _LENIENT_SSL = ssl.create_default_context()
 _LENIENT_SSL.check_hostname = False
 _LENIENT_SSL.verify_mode = ssl.CERT_NONE
+
+
+def _resolve_source(source: str, pdf_dir: str = _DEFAULT_PDF_DIR) -> str:
+    """Resolve a source (DOI or path) to a local file path."""
+    if _DOI_PATTERN.match(source):
+        path = _download_pdf_from_doi(source, dest_dir=pdf_dir)
+    else:
+        path = source
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f"PDF not found: {path}")
+    return path
 
 
 def load_pdf_pages(source: str, pdf_dir: str = _DEFAULT_PDF_DIR) -> list[PDFPage]:
@@ -53,14 +74,7 @@ def load_pdf_pages(source: str, pdf_dir: str = _DEFAULT_PDF_DIR) -> list[PDFPage
     Returns:
         List of PDFPage with page number and extracted text.
     """
-    if _DOI_PATTERN.match(source):
-        path = _download_pdf_from_doi(source, dest_dir=pdf_dir)
-    else:
-        path = source
-
-    if not os.path.isfile(path):
-        raise FileNotFoundError(f"PDF not found: {path}")
-
+    path = _resolve_source(source, pdf_dir)
     reader = PdfReader(path)
     pages = []
     for i, page in enumerate(reader.pages):
@@ -68,6 +82,78 @@ def load_pdf_pages(source: str, pdf_dir: str = _DEFAULT_PDF_DIR) -> list[PDFPage
         if text.strip():
             pages.append(PDFPage(page_number=i + 1, text=text))
     return pages
+
+
+def detect_opaque_tables(
+    source: str,
+    pdf_dir: str = _DEFAULT_PDF_DIR,
+    min_cell_fill: float = 0.1,
+) -> VisionNeedReport:
+    """Detect PDF pages with table structures but no extractable cell text.
+
+    Uses pdfplumber to find tables and checks if the table cells contain
+    extractable text. Pages with tables where <min_cell_fill of cells have
+    text are considered "opaque" and need vision-based extraction.
+
+    Args:
+        source: Local file path or DOI.
+        pdf_dir: Directory for caching downloaded PDFs.
+        min_cell_fill: Minimum fraction of non-empty cells for a table to be
+            considered text-extractable (default 0.1 = 10%).
+
+    Returns:
+        VisionNeedReport indicating which pages need vision extraction.
+    """
+    import pdfplumber
+
+    path = _resolve_source(source, pdf_dir)
+    reader = PdfReader(path)
+    pdf = pdfplumber.open(path)
+
+    opaque_table_pages = []
+    text_pages = []
+    total_pages = len(reader.pages)
+
+    for i in range(total_pages):
+        page = pdf.pages[i]
+        tables = page.find_tables()
+
+        if not tables:
+            # No tables — classify by text presence
+            text = reader.pages[i].extract_text() or ""
+            if text.strip():
+                text_pages.append(i + 1)
+            continue
+
+        # Check if table cells have extractable text
+        has_opaque_table = False
+        for table in tables:
+            extracted = table.extract()
+            total_cells = sum(len(row) for row in extracted)
+            if total_cells == 0:
+                has_opaque_table = True
+                break
+            non_empty = sum(
+                1 for row in extracted for cell in row
+                if cell and cell.strip()
+            )
+            if non_empty / total_cells < min_cell_fill:
+                has_opaque_table = True
+                break
+
+        if has_opaque_table:
+            opaque_table_pages.append(i + 1)
+        else:
+            text_pages.append(i + 1)
+
+    pdf.close()
+
+    return VisionNeedReport(
+        needs_vision=len(opaque_table_pages) > 0,
+        opaque_table_pages=opaque_table_pages,
+        text_pages=text_pages,
+        total_pages=total_pages,
+    )
 
 
 def _doi_to_filename(doi: str) -> str:
@@ -210,6 +296,7 @@ def load_pdf_table_images(
     source: str,
     pdf_dir: str = _DEFAULT_PDF_DIR,
     resolution: int = 300,
+    page_numbers: Optional[List[int]] = None,
 ) -> list[PDFTableImage]:
     """Render full pages that contain tables as images using pdfplumber.
 
@@ -220,6 +307,8 @@ def load_pdf_table_images(
         source: Local file path or a DOI string.
         pdf_dir: Directory for caching downloaded PDFs.
         resolution: DPI for rendering page images.
+        page_numbers: If provided, render only these 1-indexed pages (skip table
+            detection). Useful when detection was already done upstream.
 
     Returns:
         List of PDFTableImage, one per page that contains a table.
@@ -227,31 +316,42 @@ def load_pdf_table_images(
     import io
     import pdfplumber
 
-    if _DOI_PATTERN.match(source):
-        path = _download_pdf_from_doi(source, dest_dir=pdf_dir)
-    else:
-        path = source
-
-    if not os.path.isfile(path):
-        raise FileNotFoundError(f"PDF not found: {path}")
+    path = _resolve_source(source, pdf_dir)
 
     table_images = []
-    seen_pages = set()
     pdf = pdfplumber.open(path)
-    for i, page in enumerate(pdf.pages):
-        if i in seen_pages:
-            continue
-        tables = page.find_tables()
-        if tables:
-            seen_pages.add(i)
-            img = page.to_image(resolution=resolution)
-            buf = io.BytesIO()
-            img.save(buf, format="PNG")
-            table_images.append(PDFTableImage(
-                page_number=i + 1,
-                table_index=0,
-                image_bytes=buf.getvalue(),
-            ))
+
+    if page_numbers is not None:
+        # Render specific pages (already identified as needing vision)
+        for page_num in page_numbers:
+            idx = page_num - 1
+            if 0 <= idx < len(pdf.pages):
+                img = pdf.pages[idx].to_image(resolution=resolution)
+                buf = io.BytesIO()
+                img.save(buf, format="PNG")
+                table_images.append(PDFTableImage(
+                    page_number=page_num,
+                    table_index=0,
+                    image_bytes=buf.getvalue(),
+                ))
+    else:
+        # Scan all pages for tables
+        seen_pages = set()
+        for i, page in enumerate(pdf.pages):
+            if i in seen_pages:
+                continue
+            tables = page.find_tables()
+            if tables:
+                seen_pages.add(i)
+                img = page.to_image(resolution=resolution)
+                buf = io.BytesIO()
+                img.save(buf, format="PNG")
+                table_images.append(PDFTableImage(
+                    page_number=i + 1,
+                    table_index=0,
+                    image_bytes=buf.getvalue(),
+                ))
+
     pdf.close()
     return table_images
 
