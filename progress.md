@@ -326,9 +326,111 @@ NI9RV3E7 (80-page ERS pulmonary hypertension guideline, 217 GT recs) had 0% extr
 
 ## Pending / Not Yet Benchmarked
 
-- [ ] Improve vision extraction prompt to reduce class distribution mismatch
-- [ ] Post-processing to expand abbreviated vision-extracted recommendations
-- [ ] Multi-page chunking (`--pages-per-chunk 3`) — tested but hurt precision on ACP
-- [ ] JSON structured output (`--json`)
-- [ ] Two-pass extraction (`--two-pass`)
-- [ ] Ensemble/voting across models
+- [x] JSON structured output (`--json`) — CLOSED: significantly worse (see below)
+- [x] Two-pass extraction (`--two-pass`) — CLOSED: mixed results, net negative (see below)
+- [x] Ensemble/voting across models — CLOSED: worse F1 due to precision loss (see below)
+- [x] Multi-page chunking (`--pages-per-chunk 3`) — CLOSED: tested, hurt ACP precision (too many false positives), no benefit
+- [x] Vision model comparison — DONE: mistral-small3.2:24b best vision model (see below)
+- [x] Improve vision extraction prompt — DONE: anti-hallucination rules + tighter generation params
+- [ ] Post-processing to expand abbreviated vision-extracted recommendations — NOT NEEDED (vision text not expandable from PDF text layer)
+
+---
+
+## 2026-03-08: Benchmark Batch — JSON, Two-Pass, Ensemble, Vision Models
+
+### Step 1: JSON Structured Output (`--json`)
+
+**Command:** `python run_benchmark.py --model qwen3:14b --few-shot-only --json --normalize`
+
+| Guideline | Baseline F1 | JSON F1 | Delta | Extracted | GT | Grade | Level |
+|-----------|------------|---------|-------|-----------|-----|-------|-------|
+| ACP:XLMXNL32 | **0.92** | 0.40 | -0.52 | 24 | 6 | 1.00 | 1.00 |
+| ACP:8J2P9MD8 | **0.89** | 0.67 | -0.22 | 8 | 4 | 1.00 | 1.00 |
+| ACP:8V9WED94 | 0.67 | 0.29 | -0.38 | 11 | 3 | 0.50 | 1.00 |
+| ERS:NI9RV3E7 | 0.00 | 0.16 | +0.16 | 90 | 217 | 0.44 | 0.28 |
+| ERS:CMCZFLU4 | **0.87** | 0.69 | -0.18 | 20 | 12 | 0.73 | 0.91 |
+| ERS:BDYDTUHA | **0.68** | 0.64 | -0.04 | 47 | 60 | 0.94 | 0.94 |
+| **Average** | **0.83** | **0.47** | **-0.36** | | | 0.77 | 0.86 |
+
+**Verdict: NEGATIVE.** JSON output causes massive over-extraction (e.g., 24 recs for 6 GT on XLMXNL32). The structured format appears to encourage the model to hallucinate more recommendations. Average F1 drops from 0.83 to 0.47.
+
+### Step 2: Two-Pass Extraction (`--two-pass`)
+
+**Command:** `python run_benchmark.py --model qwen3:14b --few-shot-only --two-pass --normalize`
+
+| Guideline | Baseline F1 | Two-Pass F1 | Delta | Extracted | GT | Grade | Level |
+|-----------|------------|------------|-------|-----------|-----|-------|-------|
+| ACP:XLMXNL32 | **0.92** | 0.00 | -0.92 | 6 | 6 | 0.00 | 0.00 |
+| ACP:8J2P9MD8 | 0.89 | 0.89 | 0.00 | 5 | 4 | 0.75 | 1.00 |
+| ACP:8V9WED94 | 0.67 | 0.67 | 0.00 | 3 | 3 | 0.50 | 1.00 |
+| ERS:NI9RV3E7 | 0.00 | 0.00 | 0.00 | 0 | 217 | 0.00 | 0.00 |
+| ERS:CMCZFLU4 | 0.87 | **0.91** | +0.04 | 10 | 12 | 1.00 | 1.00 |
+| ERS:BDYDTUHA | **0.68** | 0.34 | -0.34 | 16 | 60 | 1.00 | 1.00 |
+| **Average** | **0.83** | **0.47** | **-0.36** | | | 0.54 | 0.67 |
+
+**Verdict: NEGATIVE.** The llama3.2 page classifier is too conservative — it filters out pages containing recommendations on XLMXNL32 (F1=0.00 despite extracting 6 recs) and BDYDTUHA (only 16/60 found). CMCZFLU4 improved slightly (F1=0.91 with perfect grade/level). The 3-page chunking in pass 2 may also contribute to issues. Two-pass needs a better classifier to be viable.
+
+### Step 3: Multi-Page Chunking
+
+Already tested previously: hurt ACP precision. Closed, no further work needed.
+
+### Step 4: Ensemble (qwen3:14b + deepseek-r1:32b)
+
+**Command:** `python run_benchmark.py --model qwen3:14b --few-shot-only --ensemble --normalize`
+
+| Guideline | Baseline F1 | Ensemble F1 | Delta | Extracted | GT | Grade | Level |
+|-----------|------------|------------|-------|-----------|-----|-------|-------|
+| ACP:XLMXNL32 | **0.92** | 0.55 | -0.37 | 16 | 6 | 1.00 | 0.83 |
+| ACP:8J2P9MD8 | **0.89** | 0.32 | -0.57 | 21 | 4 | 1.00 | 1.00 |
+| ACP:8V9WED94 | 0.67 | 0.40 | -0.27 | 7 | 3 | 1.00 | 1.00 |
+| ERS:NI9RV3E7 | 0.00 | 0.11 | +0.11 | 46 | 217 | 0.57 | 0.29 |
+| ERS:CMCZFLU4 | **0.87** | 0.50 | -0.37 | 28 | 12 | 0.80 | 1.00 |
+| ERS:BDYDTUHA | 0.68 | 0.63 | -0.05 | 109 | 60 | 0.96 | 0.87 |
+| **Average** | **0.83** | **0.42** | **-0.41** | | | 0.89 | 0.83 |
+
+**Verdict: NEGATIVE.** Ensemble achieves perfect recall on ACP but terrible precision — deepseek-r1:32b adds many false positives that exact+semantic dedup can't remove (they're genuinely different wrong recommendations). Grade accuracy is excellent (0.89 avg) when matches are found, but the low F1 makes this impractical. Would need voting/agreement filtering instead of union+dedup.
+
+### Step 5: Vision Model Comparison on NI9RV3E7
+
+**Improved vision prompt:** Added anti-hallucination rules ("Only extract rows VISIBLE in the table", "Do NOT generate recommendations not shown", "Do NOT abbreviate") and tighter generation params (top_p=0.1, repeat_penalty=1.1).
+
+#### NI9RV3E7 Results (auto-vision, text model: qwen3:14b)
+
+| Vision Model | Size | Extracted | Raw | F1 | P | R | Grade | Level | Time |
+|-------------|------|-----------|-----|------|------|------|-------|-------|------|
+| **mistral-small3.2:24b** | 15GB | **151** | 213 | **0.65** | **0.79** | 0.55 | **0.94** | **0.97** | 731s |
+| gemma3:27b | 17GB | 79 | 995 | 0.30 | 0.57 | 0.21 | 0.69 | 0.84 | 1120s |
+| qwen2.5vl:7b | 4.7GB | CRASH | — | — | — | — | — | — | — |
+
+#### Full ERS Results (auto-vision with each vision model)
+
+| Vision Model | NI9RV3E7 F1 | CMCZFLU4 F1 | BDYDTUHA F1 | ERS Avg F1 | ERS Avg Grade |
+|-------------|-------------|-------------|-------------|------------|---------------|
+| **mistral-small3.2:24b** | **0.65** | 0.74 | 0.68 | **0.69** | **0.95** |
+| gemma3:27b | 0.30 | 0.59 | 0.68 | 0.52 | 0.83 |
+| qwen2.5vl:7b | ERROR | 0.48 | 0.68 | N/A | N/A |
+
+**Key findings:**
+- **mistral-small3.2:24b is the best vision model** — dramatically better than gemma3:27b on NI9RV3E7
+  - 2.2x better F1 (0.65 vs 0.30)
+  - 3.8x better precision (0.79 vs 0.57) — much less hallucination
+  - Only 213 raw recs vs gemma3's 995 (much more focused)
+  - Grade accuracy 0.94 vs 0.69
+- qwen2.5vl:7b crashes with GGML assertion error on vision inference (Ollama backend incompatibility)
+- Improved prompt + generation params contributed to better results vs previous gemma3 baseline (0.30 vs 0.27)
+- CMCZFLU4 and BDYDTUHA use text-only extraction (no opaque tables detected)
+
+### Summary of All Experiments
+
+| Approach | Avg F1 (excl NI9RV3E7) | Best For |
+|----------|----------------------|----------|
+| **Baseline (qwen3:14b few-shot + normalize)** | **0.83** | Overall best |
+| JSON output | 0.47 | Nothing (over-extracts) |
+| Two-pass | 0.47 | CMCZFLU4 only (F1=0.91) |
+| Ensemble | 0.42 | Grade accuracy (0.89) |
+| Auto-vision (mistral) | 0.69 (all ERS) | NI9RV3E7 (F1=0.65) |
+
+**Recommended configuration:**
+- Text extraction: `qwen3:14b --few-shot-only --normalize` (baseline, avg F1=0.83)
+- Vision-capable PDFs: add `--auto-vision --vision-model mistral-small3.2:24b`
+- NI9RV3E7 specifically: F1 improved from 0.00 (text-only) to 0.65 (auto-vision with mistral)

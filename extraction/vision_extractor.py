@@ -27,10 +27,12 @@ Look at this page from a clinical guideline. If there is a table with clinical r
 Each table row contains: Recommendation text, Class ({grade_label}), Level ({level_label}).
 
 Rules:
-- Extract EVERY row from the recommendation table
+- First, count the number of visible recommendation rows in the table
+- Extract ONLY rows that are VISIBLE in the table — do NOT generate or infer recommendations that are not shown
 - If multiple recommendations share a Class or Level cell, list each separately
 - Use the EXACT Class and Level values shown in the table
 - Do NOT extract table headers, footnotes, or running text outside the table
+- Do NOT paraphrase or abbreviate — copy the recommendation text as written
 
 Output one recommendation per line as: recommendation text | Class | Level
 
@@ -133,7 +135,12 @@ def extract_tables_with_vision(
             model=vision_model,
             prompt=prompt,
             images=[timg.image_bytes],
-            options={"temperature": 0, "num_ctx": 4096},
+            options={
+                "temperature": 0,
+                "num_ctx": 4096,
+                "top_p": 0.1,
+                "repeat_penalty": 1.1,
+            },
         )
 
         df = _parse_vision_response(response["response"])
@@ -236,7 +243,6 @@ def auto_vision_extract_guideline(
     pages_per_chunk: int = 1,
     output_format: str = "pipe",
     normalize: bool = False,
-    min_text_chars: int = 50,
 ) -> ExtractionResult:
     """Extract recommendations, auto-detecting when vision is needed.
 
@@ -254,7 +260,6 @@ def auto_vision_extract_guideline(
         pages_per_chunk: Pages per chunk for text extraction.
         output_format: "pipe" or "json" for text extraction.
         normalize: Apply grade/level normalization.
-        min_text_chars: Char threshold for opaque table detection.
 
     Returns:
         ExtractionResult with combined recommendations.
@@ -262,7 +267,7 @@ def auto_vision_extract_guideline(
     from extraction.extractor import extract_guideline
 
     # Detect if vision is needed
-    report = detect_opaque_tables(source, min_text_chars=min_text_chars)
+    report = detect_opaque_tables(source)
 
     if not report.needs_vision:
         print("  [Auto-vision] No opaque tables detected, using text extraction only",

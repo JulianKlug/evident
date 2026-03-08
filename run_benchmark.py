@@ -25,6 +25,7 @@ def run_benchmark_unbuffered(
     datasets, models, strategies, similarity_model, similarity_threshold=0.65,
     pages_per_chunk=1, output_format="pipe", normalize=False, two_pass=False,
     vision=False, vision_model="gemma3:27b", auto_vision=False,
+    ensemble=False, ensemble_models=None,
 ):
     """Same as run_full_benchmark but with flushed prints and new options."""
     entries = []
@@ -40,7 +41,17 @@ def run_benchmark_unbuffered(
 
                 start = time.time()
                 try:
-                    if vision:
+                    if ensemble:
+                        from extraction.ensemble import ensemble_extract
+                        result = ensemble_extract(
+                            source=ds.doi,
+                            strategy=strategy,
+                            models=ensemble_models,
+                            pages_per_chunk=pages_per_chunk,
+                            output_format=output_format,
+                            normalize=normalize,
+                        )
+                    elif vision:
                         from extraction.vision_extractor import vision_extract_guideline
                         result = vision_extract_guideline(
                             source=ds.doi,
@@ -177,6 +188,16 @@ if __name__ == "__main__":
         two_pass = True
         print("Two-pass extraction enabled", flush=True)
 
+    ensemble = False
+    ensemble_models = None
+    if "--ensemble" in sys.argv:
+        ensemble = True
+        print("Ensemble extraction enabled", flush=True)
+    if "--ensemble-models" in sys.argv:
+        idx = sys.argv.index("--ensemble-models")
+        ensemble_models = sys.argv[idx + 1].split(",")
+        print(f"Ensemble models: {ensemble_models}", flush=True)
+
     vision = False
     auto_vision = False
     vision_model = "gemma3:27b"
@@ -209,6 +230,8 @@ if __name__ == "__main__":
         vision=vision,
         vision_model=vision_model,
         auto_vision=auto_vision,
+        ensemble=ensemble,
+        ensemble_models=ensemble_models,
     )
 
     if not results.empty:
