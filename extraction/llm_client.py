@@ -44,15 +44,16 @@ class OllamaClient:
     def has_thinking(self) -> bool:
         return self.model_info.get("has_thinking", False)
 
-    def generate(self, prompt: str, num_ctx: int | None = None) -> LLMResponse:
-        """Generate a completion from the model with temperature=0.
+    def generate(self, prompt: str, num_ctx: int | None = None, temperature: float = 0) -> LLMResponse:
+        """Generate a completion from the model.
 
         Args:
             prompt: The prompt text.
             num_ctx: Context window size. Only passed to Ollama when explicitly set,
                      otherwise uses the model's default context window.
+            temperature: Sampling temperature (0 = deterministic).
         """
-        options: dict = {"temperature": 0}
+        options: dict = {"temperature": temperature}
         if num_ctx is not None:
             options["num_ctx"] = num_ctx
         start = time.time()

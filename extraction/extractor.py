@@ -94,6 +94,8 @@ def extract_guideline(
     pages_per_chunk: int = 1,
     output_format: str = "pipe",
     normalize: bool = False,
+    verify: bool = False,
+    verify_threshold: float = 0.5,
 ) -> ExtractionResult:
     """Extract recommendations from a guideline PDF.
 
@@ -108,6 +110,8 @@ def extract_guideline(
         pages_per_chunk: Number of pages per LLM call (1 = original per-page behavior).
         output_format: "pipe" for pipe-delimited or "json" for structured JSON output.
         normalize: If True, normalize extracted grades/levels against the grading scheme.
+        verify: If True, filter out recommendations not grounded in source text.
+        verify_threshold: Minimum token overlap fraction for verification (default 0.5).
 
     Returns:
         ExtractionResult with deduplicated recommendations and metadata.
@@ -158,6 +162,13 @@ def extract_guideline(
         similarity_threshold=dedup_threshold,
         similarity_model=dedup_model,
     )
+
+    # Post-extraction verification
+    if verify and not final_df.empty:
+        from extraction.verification import verify_recommendations
+        final_df = verify_recommendations(
+            final_df, chunks, min_token_overlap=verify_threshold,
+        )
 
     # Post-extraction normalization
     if normalize and not final_df.empty:

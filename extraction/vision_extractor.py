@@ -159,6 +159,8 @@ def vision_extract_guideline(
     dedup_model=None,
     normalize: bool = False,
     text_extraction: bool = True,
+    verify: bool = False,
+    verify_threshold: float = 0.5,
 ) -> ExtractionResult:
     """Extract recommendations using both text and vision-based table extraction.
 
@@ -197,6 +199,8 @@ def vision_extract_guideline(
         text_result = extract_guideline(
             source, strategy, client=client,
             normalize=False,  # normalize after merge
+            verify=verify,
+            verify_threshold=verify_threshold,
         )
         n_pages = text_result.n_pages
         responses = text_result.per_page_responses
@@ -243,6 +247,8 @@ def auto_vision_extract_guideline(
     pages_per_chunk: int = 1,
     output_format: str = "pipe",
     normalize: bool = False,
+    verify: bool = False,
+    verify_threshold: float = 0.5,
 ) -> ExtractionResult:
     """Extract recommendations, auto-detecting when vision is needed.
 
@@ -277,6 +283,8 @@ def auto_vision_extract_guideline(
             pages_per_chunk=pages_per_chunk,
             output_format=output_format,
             normalize=normalize,
+            verify=verify,
+            verify_threshold=verify_threshold,
         )
 
     print(f"  [Auto-vision] Detected {len(report.opaque_table_pages)} opaque table pages: "
@@ -294,6 +302,8 @@ def auto_vision_extract_guideline(
         pages_per_chunk=pages_per_chunk,
         output_format=output_format,
         normalize=False,  # normalize after merge
+        verify=verify,
+        verify_threshold=verify_threshold,
     )
     n_pages = text_result.n_pages
     responses = text_result.per_page_responses

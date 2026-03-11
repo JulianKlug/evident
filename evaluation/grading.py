@@ -64,6 +64,8 @@ ESC_ERS = GradingScheme(
         "class 3": "III",
         "ii a": "IIa",
         "ii b": "IIb",
+        "class ii": "IIa",
+        "ii": "IIa",
     },
     level_aliases={
         "level a": "A",
@@ -101,6 +103,11 @@ ABCD_123 = GradingScheme(
         "iit": "2",
         "++": "1",
         "+": "2",
+        "1++": "1",
+        "1+": "1",
+        "2+": "2",
+        "2++": "2",
+        "3+": "3",
     },
 )
 
@@ -145,6 +152,7 @@ GRADE = GradingScheme(
         "very low certainty": "Very Low",
         # Truncation artifacts in GT data
         "igh-certainty evidence": "High",
+        "insufficient": "Very Low",
         # Slash-separated levels (take the lower)
         "moderate/low-certainty evidence": "Low",
         # Confidence-style (used by some ERS guidelines)

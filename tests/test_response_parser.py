@@ -49,6 +49,13 @@ class TestRemoveBoilerplate:
         result = _remove_boilerplate(text)
         assert "rec1 | A | 1" in result
 
+    def test_single_pipe_triggers_table(self):
+        """Even a single pipe triggers table mode (kept for backwards compat)."""
+        text = "Class I or IIa | see guidelines\nrec1 | A | 1\nrec2 | B | 2"
+        result = _remove_boilerplate(text)
+        assert "rec1 | A | 1" in result
+        assert "rec2 | B | 2" in result
+
 
 class TestParsePipeDelimited:
     def test_basic_pipe_parsing(self):
@@ -86,11 +93,47 @@ class TestParsePipeDelimited:
         assert _parse_pipe_delimited("") == []
         assert _parse_pipe_delimited("   \n  \n") == []
 
-    def test_wrong_field_count(self):
+    def test_two_field_recovery(self):
+        """2-field lines are recovered with empty LOE instead of dropped."""
         text = "only two fields | here\nrec1 | A | 1"
         records = _parse_pipe_delimited(text)
+        assert len(records) == 2
+        assert records[0]["recommendation"] == "only two fields"
+        assert records[0]["class"] == "here"
+        assert records[0]["LOE"] == ""
+        assert records[1]["recommendation"] == "rec1"
+
+    def test_pipe_in_recommendation_text(self):
+        """Pipes in recommendation text don't break parsing — last 2 fields are grade/LOE."""
+        text = "Use A or B | Strong | High"
+        records = _parse_pipe_delimited(text)
         assert len(records) == 1
-        assert records[0]["recommendation"] == "rec1"
+        assert records[0]["recommendation"] == "Use A or B"
+        assert records[0]["class"] == "Strong"
+        assert records[0]["LOE"] == "High"
+
+    def test_markdown_bold_stripped(self):
+        text = "**Use ACE inhibitors** | Strong | High"
+        records = _parse_pipe_delimited(text)
+        assert len(records) == 1
+        assert records[0]["recommendation"] == "Use ACE inhibitors"
+
+    def test_markdown_bullet_stripped(self):
+        text = "- Use beta-blockers | A | 1\n* Use ACE inhibitors | B | 2"
+        records = _parse_pipe_delimited(text)
+        assert len(records) == 2
+        assert records[0]["recommendation"] == "Use beta-blockers"
+        assert records[1]["recommendation"] == "Use ACE inhibitors"
+
+    def test_markdown_table_4_columns(self):
+        """Markdown table with row number column parses correctly."""
+        text = "| 1 | Rec text | A | 1 |\n| 2 | Another rec | B | 2 |"
+        records = _parse_pipe_delimited(text)
+        assert len(records) == 2
+        # After stripping leading/trailing pipes and row numbers: "1 | Rec text | A | 1"
+        # Last two fields: grade=A, LOE=1, rec = rest joined
+        assert records[0]["class"] == "A"
+        assert records[0]["LOE"] == "1"
 
 
 class TestFallbackCSVParse:
@@ -128,6 +171,18 @@ class TestParseLLMResponse:
     def test_no_recommendations_sentinel(self):
         text = "NO_RECOMMENDATIONS_FOUND"
         df = parse_llm_response(text)
+        assert df.empty
+
+    def test_no_recommendations_sentinel_lowercase(self):
+        df = parse_llm_response("no_recommendations_found")
+        assert df.empty
+
+    def test_no_recommendations_sentinel_natural(self):
+        df = parse_llm_response("No recommendations found")
+        assert df.empty
+
+    def test_no_recommendations_sentinel_in_sentence(self):
+        df = parse_llm_response("After reviewing, no recommendations found in this section.")
         assert df.empty
 
     def test_empty_input(self):

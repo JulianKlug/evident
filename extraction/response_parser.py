@@ -16,8 +16,6 @@ _HEADER_PATTERN = re.compile(
     r"^\s*(recommendation|#|no\.?|number)\s*\|",
     re.IGNORECASE,
 )
-_PIPE_LINE_PATTERN = re.compile(r"^(.+?)\|(.+?)\|(.+)$")
-
 NO_RECOMMENDATIONS_SENTINEL = "NO_RECOMMENDATIONS_FOUND"
 
 
@@ -30,12 +28,12 @@ def parse_llm_response(raw_text: str, has_thinking: bool = False) -> pd.DataFram
         return pd.DataFrame(columns=["recommendation", "class", "LOE"])
 
     text = raw_text
-    if has_thinking:
-        text = _strip_thinking_tags(text)
+    text = _strip_thinking_tags(text)
 
     text = _remove_boilerplate(text)
 
-    if NO_RECOMMENDATIONS_SENTINEL in text:
+    text_lower = text.lower().strip()
+    if "no_recommendations_found" in text_lower or "no recommendations found" in text_lower:
         return pd.DataFrame(columns=["recommendation", "class", "LOE"])
 
     # Try pipe-delimited first
@@ -77,9 +75,17 @@ def _remove_boilerplate(text: str) -> str:
     return "\n".join(cleaned)
 
 
+def _strip_markdown(text: str) -> str:
+    """Remove common markdown formatting artifacts from text."""
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)  # **bold** -> bold
+    text = re.sub(r'^\s*[-*\u2022]\s*', '', text)  # bullet points
+    return text.strip()
+
+
 def _parse_pipe_delimited(text: str) -> list[dict]:
     """Parse lines in format: recommendation | class | LOE."""
     records = []
+    n_candidate_lines = 0
     for line in text.strip().split("\n"):
         stripped = line.strip()
         if not stripped:
@@ -101,17 +107,32 @@ def _parse_pipe_delimited(text: str) -> list[dict]:
         if stripped.endswith("|"):
             stripped = stripped[:-1]
 
-        match = _PIPE_LINE_PATTERN.match(stripped)
-        if match:
-            rec = match.group(1).strip()
-            grade = match.group(2).strip()
-            loe = match.group(3).strip()
+        parts = stripped.split("|")
+        if len(parts) >= 3:
+            n_candidate_lines += 1
+            loe = parts[-1].strip()
+            grade = parts[-2].strip()
+            rec = _strip_markdown("|".join(parts[:-2]).strip())
             if rec and grade and loe:
                 records.append({
                     "recommendation": rec,
                     "class": grade,
                     "LOE": loe,
                 })
+        elif len(parts) == 2:
+            n_candidate_lines += 1
+            rec = _strip_markdown(parts[0].strip())
+            grade = parts[1].strip()
+            if rec and grade:
+                records.append({
+                    "recommendation": rec,
+                    "class": grade,
+                    "LOE": "",
+                })
+
+    n_dropped = n_candidate_lines - len(records)
+    if n_dropped > 0:
+        print(f"  [Parser] Parsed {len(records)} recs, dropped {n_dropped} malformed lines", flush=True)
     return records
 
 

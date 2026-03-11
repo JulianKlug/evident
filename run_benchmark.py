@@ -26,6 +26,8 @@ def run_benchmark_unbuffered(
     pages_per_chunk=1, output_format="pipe", normalize=False, two_pass=False,
     vision=False, vision_model="gemma3:27b", auto_vision=False,
     ensemble=False, ensemble_models=None,
+    self_consistency=False, n_samples=3, sc_temperature=0.3, consensus=2,
+    verify=False, verify_threshold=0.5,
 ):
     """Same as run_full_benchmark but with flushed prints and new options."""
     entries = []
@@ -41,7 +43,21 @@ def run_benchmark_unbuffered(
 
                 start = time.time()
                 try:
-                    if ensemble:
+                    if self_consistency:
+                        from extraction.self_consistency import self_consistency_extract
+                        result = self_consistency_extract(
+                            source=ds.doi,
+                            strategy=strategy,
+                            client=client,
+                            similarity_model=similarity_model,
+                            n_samples=n_samples,
+                            temperature=sc_temperature,
+                            consensus_threshold=consensus,
+                            pages_per_chunk=pages_per_chunk,
+                            output_format=output_format,
+                            normalize=normalize,
+                        )
+                    elif ensemble:
                         from extraction.ensemble import ensemble_extract
                         result = ensemble_extract(
                             source=ds.doi,
@@ -59,6 +75,8 @@ def run_benchmark_unbuffered(
                             client=client,
                             vision_model=vision_model,
                             normalize=normalize,
+                            verify=verify,
+                            verify_threshold=verify_threshold,
                         )
                     elif auto_vision:
                         from extraction.vision_extractor import auto_vision_extract_guideline
@@ -70,6 +88,8 @@ def run_benchmark_unbuffered(
                             pages_per_chunk=pages_per_chunk,
                             output_format=output_format,
                             normalize=normalize,
+                            verify=verify,
+                            verify_threshold=verify_threshold,
                         )
                     elif two_pass:
                         from extraction.two_pass import two_pass_extract
@@ -89,6 +109,8 @@ def run_benchmark_unbuffered(
                             pages_per_chunk=pages_per_chunk,
                             output_format=output_format,
                             normalize=normalize,
+                            verify=verify,
+                            verify_threshold=verify_threshold,
                         )
                 except Exception as e:
                     print(f"  ERROR: {e}", flush=True)
@@ -137,7 +159,7 @@ def run_benchmark_unbuffered(
 
                 # Save intermediate results
                 pd.DataFrame([vars(e) for e in entries]).to_csv(
-                    "benchmark_results_partial.csv", index=False
+                    "docs/benchmark_results_partial.csv", index=False
                 )
 
     return pd.DataFrame([vars(e) for e in entries]) if entries else pd.DataFrame()
@@ -198,6 +220,26 @@ if __name__ == "__main__":
         ensemble_models = sys.argv[idx + 1].split(",")
         print(f"Ensemble models: {ensemble_models}", flush=True)
 
+    self_consistency = False
+    n_samples = 3
+    sc_temperature = 0.3
+    consensus = 2
+    if "--self-consistency" in sys.argv:
+        self_consistency = True
+        print("Self-consistency voting enabled", flush=True)
+    if "--n-samples" in sys.argv:
+        idx = sys.argv.index("--n-samples")
+        n_samples = int(sys.argv[idx + 1])
+        print(f"Self-consistency samples: {n_samples}", flush=True)
+    if "--sc-temperature" in sys.argv:
+        idx = sys.argv.index("--sc-temperature")
+        sc_temperature = float(sys.argv[idx + 1])
+        print(f"Self-consistency temperature: {sc_temperature}", flush=True)
+    if "--consensus" in sys.argv:
+        idx = sys.argv.index("--consensus")
+        consensus = int(sys.argv[idx + 1])
+        print(f"Consensus threshold: {consensus}", flush=True)
+
     vision = False
     auto_vision = False
     vision_model = "gemma3:27b"
@@ -211,6 +253,16 @@ if __name__ == "__main__":
         idx = sys.argv.index("--vision-model")
         vision_model = sys.argv[idx + 1]
         print(f"Vision model: {vision_model}", flush=True)
+
+    verify = False
+    verify_threshold = 0.5
+    if "--verify" in sys.argv:
+        verify = True
+        print("Post-extraction verification enabled", flush=True)
+    if "--verify-threshold" in sys.argv:
+        idx = sys.argv.index("--verify-threshold")
+        verify_threshold = float(sys.argv[idx + 1])
+        print(f"Verify threshold: {verify_threshold}", flush=True)
 
     n_combos = len(available) * len(models) * len(strategies)
     print(f"\nRunning {n_combos} benchmark combinations "
@@ -232,11 +284,17 @@ if __name__ == "__main__":
         auto_vision=auto_vision,
         ensemble=ensemble,
         ensemble_models=ensemble_models,
+        self_consistency=self_consistency,
+        n_samples=n_samples,
+        sc_temperature=sc_temperature,
+        consensus=consensus,
+        verify=verify,
+        verify_threshold=verify_threshold,
     )
 
     if not results.empty:
         print_benchmark_summary(results)
-        results.to_csv("benchmark_results.csv", index=False)
+        results.to_csv("docs/benchmark_results.csv", index=False)
         print("\nResults saved to benchmark_results.csv", flush=True)
     else:
         print("No results to summarize.", flush=True)

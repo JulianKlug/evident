@@ -1,6 +1,6 @@
 # Best Model Configuration
 
-Last updated: 2026-03-08
+Last updated: 2026-03-11
 
 ## Recommended Command
 
@@ -38,7 +38,7 @@ python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --auto-vis
 | ACP:8J2P9MD8 | GRADE | 0.89 | 0.80 | 1.00 | 1.00 | 1.00 |
 | ACP:8V9WED94 | GRADE | 0.80 | 1.00 | 0.67 | 0.50 | 1.00 |
 | ERS:CMCZFLU4 | GRADE | 0.87 | 0.77 | 1.00 | 0.80 | 1.00 |
-| ERS:BDYDTUHA | ABCD_123 | 0.68 | 0.81 | 0.58 | 0.91 | 0.80 |
+| ERS:BDYDTUHA | ABCD_123 | 0.74 | 0.81 | 0.68 | 0.98 | 0.80 |
 
 ## Vision Extraction (for opaque-table PDFs)
 
@@ -57,15 +57,27 @@ python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --auto-vis
 | Recall | 0.55 |
 | Grade Accuracy | 0.94 |
 | Level Accuracy | 0.97 |
-| Extracted / GT | 151 / 217 |
+
+## Active Enhancements (zero-cost, kept in pipeline)
+
+| Enhancement | Impact | Flag |
+|-------------|--------|------|
+| Cross-scheme few-shot fallback | BDYDTUHA F1 +0.06 | automatic |
+| Parser hardening | defensive, no regression | automatic |
+| Token overlap verification | safety net (+0.001 P) | `--verify` |
 
 ## Approaches Tested and Rejected
 
 | Approach | Avg F1 | Why Rejected |
 |----------|--------|-------------|
+| Stratified few-shot selection | 0.65 | Specific examples matter more than diversity |
+| Negative prompt examples | 0.63 | Over-conservatism, kills recall |
+| Self-consistency voting (3 runs) | 0.78 | Runs too similar, consensus hurts BDYDTUHA |
 | JSON structured output | 0.47 | Over-extracts (hallucinated recs) |
 | Two-pass (llama3.2 classifier) | 0.47 | Classifier too conservative, kills recall |
 | Ensemble (qwen3:14b + deepseek-r1:32b) | 0.42 | Union adds too many false positives |
 | 3-page chunking | < baseline | Hurt ACP precision |
+| CoT prompt | < baseline | Model overthinks, causes regressions |
+| Token overlap verification | 0.83 (+0.001) | FPs are real text, not hallucinations |
 | gemma3:27b vision | 0.30 (NI9RV3E7) | Heavy hallucination (995 raw recs) |
 | qwen2.5vl:7b vision | N/A | Crashes (GGML assertion error) |
