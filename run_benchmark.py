@@ -188,6 +188,9 @@ if __name__ == "__main__":
     if "--ers-only" in sys.argv:
         available = [ds for ds in available if ds.dataset_name == "ERS"]
         print(f"Filtering to ERS only: {len(available)} datasets", flush=True)
+    if "--icu-only" in sys.argv:
+        available = [ds for ds in available if ds.dataset_name == "ICU"]
+        print(f"Filtering to ICU only: {len(available)} datasets", flush=True)
     if "--model" in sys.argv:
         idx = sys.argv.index("--model")
         models = [sys.argv[idx + 1]]

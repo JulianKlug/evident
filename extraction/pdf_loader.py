@@ -42,7 +42,7 @@ class VisionNeedReport:
 
 
 _DOI_PATTERN = re.compile(r"^10\.\d{4,}/")
-_DEFAULT_PDF_DIR = "/tmp/evident_pdfs"
+_DEFAULT_PDF_DIR = "/mnt/data1/klug/datasets/evidence_extraction/pdfs"
 _UNPAYWALL_EMAIL = "evident.project@gmail.com"
 
 # Lenient SSL context for Sci-Hub mirrors

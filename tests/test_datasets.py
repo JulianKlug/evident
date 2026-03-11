@@ -6,6 +6,7 @@ import pandas as pd
 from extraction.datasets import (
     load_acp_datasets,
     load_ers_datasets,
+    load_icu_datasets,
     load_all_datasets,
     get_few_shot_examples,
     GuidelineDataset,
@@ -55,12 +56,38 @@ class TestLoadERSDatasets:
                     f"Roman numeral LOE not normalized: '{loe}' in {ds.key}"
 
 
+class TestLoadICUDatasets:
+    def test_loads_datasets(self):
+        datasets = load_icu_datasets()
+        assert len(datasets) > 0
+        for ds in datasets:
+            assert ds.dataset_name == "ICU"
+            assert ds.grading_scheme is GRADE
+            assert isinstance(ds.ground_truth_df, pd.DataFrame)
+            assert set(ds.ground_truth_df.columns) >= {"recommendation", "class", "LOE"}
+            assert len(ds.ground_truth_df) > 0
+            assert ds.key
+            assert ds.doi
+
+    def test_normalizes_class_values(self):
+        datasets = load_icu_datasets()
+        for ds in datasets:
+            classes = ds.ground_truth_df["class"].unique()
+            for c in classes:
+                assert c == c.strip(), f"Class not stripped: '{c}'"
+                assert c not in ("0.0", "nan", ""), f"Invalid class: '{c}'"
+                # No raw "conditional recommendation" variants should remain
+                assert "conditional recommendation" not in c.lower(), \
+                    f"Unnormalized grade: '{c}' in {ds.key}"
+
+
 class TestLoadAllDatasets:
-    def test_returns_both(self):
+    def test_returns_all(self):
         datasets = load_all_datasets()
         names = {ds.dataset_name for ds in datasets}
         assert "ACP" in names
         assert "ERS" in names
+        assert "ICU" in names
 
 
 class TestGetFewShotExamples:

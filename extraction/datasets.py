@@ -1,4 +1,4 @@
-"""Ground truth dataset loading for ACP and ERS guidelines."""
+"""Ground truth dataset loading for ACP, ERS, and ICU guidelines."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from evaluation.grading import GradingScheme, GRADE, ABCD_123, ESC_ERS
 _DATA_ROOT = "/mnt/data1/klug/datasets/evidence_extraction"
 _ACP_DIR = os.path.join(_DATA_ROOT, "General internal medicine", "ACP")
 _ERS_DIR = os.path.join(_DATA_ROOT, "Pneumology", "ERS_guidelines")
+_ICU_DIR = os.path.join(_DATA_ROOT, "intensive_care_medicine")
 
 
 @dataclass
@@ -24,7 +25,7 @@ class GuidelineDataset:
     doi: str
     ground_truth_df: pd.DataFrame  # columns: recommendation, class, LOE
     grading_scheme: GradingScheme
-    dataset_name: str  # "ACP" or "ERS"
+    dataset_name: str  # "ACP", "ERS", or "ICU"
 
 
 def _load_extraction_xlsx(path: str) -> pd.DataFrame:
@@ -152,9 +153,53 @@ def load_ers_datasets() -> list[GuidelineDataset]:
     return datasets
 
 
+def load_icu_datasets() -> list[GuidelineDataset]:
+    """Load ICU guideline datasets (GRADE scheme)."""
+    if not os.path.isdir(_ICU_DIR):
+        return []
+    xlsx_files = [f for f in os.listdir(_ICU_DIR) if f.endswith('.xlsx')]
+    if not xlsx_files:
+        return []
+
+    path = os.path.join(_ICU_DIR, xlsx_files[0])
+    df = pd.read_excel(path)
+
+    # Forward-fill Key/Title/DOI (only on first row of each group)
+    df["Key"] = df["Key"].ffill()
+    df["Title"] = df["Title"].ffill()
+    df["DOI"] = df["DOI"].ffill()
+
+    datasets = []
+    for doi, group in df.groupby("DOI"):
+        gt_df = group[["recommendation", "class", "LOE"]].copy()
+        gt_df = gt_df.dropna(subset=["recommendation"])
+        gt_df["class"] = gt_df["class"].astype(str).str.strip().str.rstrip(";,.")
+        gt_df["LOE"] = gt_df["LOE"].astype(str).str.strip().str.rstrip(";,.")
+        # Normalize comma-separated direction: "Conditional Recommendation, For" → "Conditional Recommendation For"
+        gt_df["class"] = gt_df["class"].str.replace(r",\s*(For|Against)\s*$", r" \1", regex=True)
+        gt_df["class"] = gt_df["class"].apply(lambda x: GRADE.normalize_grade(x) or x)
+        # Normalize verbose LOE: "low certainty of evidence" / "low certainty evidence" → "low certainty"
+        gt_df["LOE"] = gt_df["LOE"].str.replace(r"\s+certainty\s+(?:of\s+)?evidence", " certainty", regex=True)
+        gt_df["LOE"] = gt_df["LOE"].apply(lambda x: GRADE.normalize_level(x) or x)
+        gt_df = gt_df[~gt_df["class"].isin(["0.0", "nan", ""])].reset_index(drop=True)
+
+        title = group["Title"].iloc[0]
+        key = str(doi).replace("/", "_").replace(".", "_")
+
+        datasets.append(GuidelineDataset(
+            key=key,
+            title=str(title),
+            doi=str(doi),
+            ground_truth_df=gt_df,
+            grading_scheme=GRADE,
+            dataset_name="ICU",
+        ))
+    return datasets
+
+
 def load_all_datasets() -> list[GuidelineDataset]:
-    """Load all ACP and ERS datasets."""
-    return load_acp_datasets() + load_ers_datasets()
+    """Load all ACP, ERS, and ICU datasets."""
+    return load_acp_datasets() + load_ers_datasets() + load_icu_datasets()
 
 
 def get_few_shot_examples(
@@ -175,7 +220,7 @@ def get_few_shot_examples(
             from the recommendation text to illustrate input→output mapping.
     """
     if scheme.name == "grade":
-        datasets = load_acp_datasets()
+        datasets = load_acp_datasets() + load_icu_datasets()
     elif scheme.name in ("abcd_123", "esc_ers"):
         datasets = [ds for ds in load_ers_datasets() if ds.grading_scheme.name == scheme.name]
     else:
