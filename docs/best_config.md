@@ -29,8 +29,8 @@ python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --auto-vis
 
 | Config | Avg F1 | Avg P | Avg R | Avg Grade | Avg Level |
 |--------|--------|-------|-------|-----------|-----------|
-| **SC Adaptive** | **0.783** | 0.788 | 0.841 | **0.892** | — |
-| SC Fixed (consensus=2) | 0.750 | **0.820** | 0.766 | 0.891 | — |
+| **SC Adaptive** | **0.783** | 0.788 | 0.841 | **0.892** | 0.966 |
+| SC Fixed (consensus=2) | 0.750 | **0.820** | 0.766 | 0.891 | 0.923 |
 | Baseline | 0.707 | 0.608 | **0.936** | 0.881 | 0.940 |
 
 ### Per-Guideline Breakdown (Baseline)
@@ -94,5 +94,6 @@ python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --auto-vis
 | Two-pass (llama3.2 classifier) | 0.47 (5ds) | Classifier too conservative, kills recall |
 | Ensemble (union+dedup) | 0.42 (5ds) | Union adds too many false positives |
 | CoT prompt | < baseline (5ds) | Model overthinks, causes regressions |
+| Grading oracle (deepseek-r1:32b) | 0.676 (-0.031) | Overwrites correct grades/levels without source context; level acc -0.101 |
 | gemma3:27b vision | 0.30 (NI9RV3E7) | Heavy hallucination (995 raw recs) |
 | qwen2.5vl:7b vision | N/A | Crashes (GGML assertion error) |

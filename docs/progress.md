@@ -392,6 +392,7 @@ Expanded from 5-6 guidelines to **15 datasets** (9 ACP + 3 ERS + 3 ICU, all with
 | CoT prompt | < baseline | — | negative | CLOSED |
 | JSON schema enforcement | — | 0.498 (-0.209) | negative | CLOSED |
 | Post-extraction filter (qwen3:8b) | — | 0.699 (-0.008) | negative | CLOSED |
+| Grading oracle (deepseek-r1:32b) | — | 0.676 (-0.031) | negative | CLOSED |
 | **Adaptive self-consistency** | — | **0.783 (+0.076)** | **positive** | **BEST** |
 
 ---
@@ -441,3 +442,45 @@ Replaces fixed consensus=2/3 with cluster-count-adaptive thresholds:
 | Avg Grade | 0.881 | 0.891 | 0.892 | +0.011 |
 
 **Verdict: NEW BEST CONFIG.** F1=0.783 (+0.076 over baseline, +0.033 over fixed SC). Better recall than fixed SC (0.841 vs 0.766) while maintaining most of the precision gain.
+
+---
+
+## 2026-03-13: Grading Oracle (CLOSED)
+
+### Hypothesis
+
+deepseek-r1:32b had 0.98 grade accuracy as primary extractor (but poor precision). Use it as a post-extraction re-grading step: after qwen3:14b extracts recommendations, send each to deepseek-r1:32b to verify/correct the grade and level. Expected to improve grade accuracy from 0.881→0.95+ without affecting F1.
+
+### Implementation
+
+New module `extraction/grading_oracle.py`:
+- `regrade_recommendations(df, scheme, model)` — iterates rows, prompts oracle with recommendation text + current grade/level + valid values, parses response (stripping `<think>` tags), validates against scheme, updates only when valid.
+- Fail-safe: keeps original values if parsing fails or value is invalid.
+- Pipeline position: after normalization (last step).
+- CLI: `--grading-oracle`, `--oracle-model`
+- A/B configs: `grading_oracle` (priority=15), `sc_adaptive_oracle` (priority=16)
+
+### Results (15-dataset benchmark, baseline + oracle)
+
+| Metric | Baseline | Oracle | Delta |
+|--------|----------|--------|-------|
+| Avg F1 | 0.707 | 0.676 | **-0.031** |
+| Avg P | 0.608 | 0.552 | -0.056 |
+| Avg R | 0.936 | 0.949 | +0.013 |
+| Avg Grade | 0.881 | 0.874 | **-0.007** |
+| Avg Level | 0.940 | 0.839 | **-0.101** |
+
+### Per-Guideline Detail
+
+| Guideline | Base F1 | Oracle F1 | ΔF1 | Base Grade | Oracle Grade | ΔGrade |
+|-----------|---------|-----------|-----|------------|--------------|--------|
+| ACP:XK8ZAXYM | 1.000 | 0.750 | -0.250 | 1.000 | 1.000 | 0.000 |
+| ACP:PAEHSPH3 | 0.857 | 0.667 | -0.190 | 1.000 | 1.000 | 0.000 |
+| ACP:XLMXNL32 | 0.750 | 0.632 | -0.118 | 0.833 | 1.000 | +0.167 |
+| ERS:BDYDTUHA | 0.699 | 0.797 | +0.098 | 0.972 | 0.809 | -0.164 |
+| ACP:8J2P9MD8 | 0.667 | 0.727 | +0.061 | 1.000 | 1.000 | 0.000 |
+| ERS:CMCZFLU4 | 0.690 | 0.690 | 0.000 | 0.700 | 0.600 | -0.100 |
+
+**Verdict: CLOSED.** The oracle confidently overwrites correct values. Without source text in the prompt, deepseek-r1:32b guesses based on recommendation text alone — it changed 13 grades and 25 levels across 15 guidelines, making more wrong than right. Level accuracy dropped catastrophically (-0.101). The hypothesis that deepseek-r1:32b's high grade accuracy as extractor would transfer to a re-grading role was not validated — its accuracy came from reading the source PDF, not from domain knowledge about what grades recommendations "should" have.
+
+**Key insight:** Grade accuracy as an extractor ≠ grade accuracy as a re-grader. The model needs source context to assign grades correctly.

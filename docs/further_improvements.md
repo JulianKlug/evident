@@ -52,14 +52,19 @@ The LLM-based post-filter (qwen3:8b) failed because it said YES to everything. A
 - **Expected impact:** Medium — precision-focused by design, but untested on medical recommendation semantics
 - **Effort:** Medium (on Ollama, but needs prompt adaptation to its template format)
 
-### 5. deepseek-r1:32b as Grading Oracle
+### 5. Context-Aware Grading Oracle (deepseek-r1:32b)
 
-deepseek-r1:32b has the best grade accuracy (0.98) but worst precision. Use it as a second pass: qwen3:14b extracts recommendations, deepseek-r1:32b re-grades them.
+The context-free grading oracle (2026-03-13) failed because deepseek-r1:32b had no source text — it guessed grades from recommendation text alone, confidently overwriting correct values (level acc -0.101). However, deepseek-r1:32b achieved 0.98 grade accuracy as a primary extractor *with* source context. A context-aware variant could recover that accuracy.
 
-- **Expected impact:** +0.05–0.10 grade accuracy (especially CMCZFLU4: 0.70→0.90+)
-- **VRAM:** 19GB, must swap with qwen3:14b (sequential, not parallel)
-- **Speed:** Adds ~5–10 min per guideline
-- **Effort:** Medium (~50 lines, pipeline two model calls)
+**Two approaches:**
+- **Provenance tracking:** Tag each recommendation with its source chunk during extraction, carry through dedup/normalization, pass chunk text to the oracle. More plumbing but gives exact context.
+- **Similarity retrieval:** For each recommendation, use BioLORD to find the most similar page chunk(s) from the PDF, include as context. Simpler but approximate.
+
+- **Expected impact:** +0.03–0.06 grade accuracy (0.892→0.93–0.95), F1 unchanged
+- **VRAM:** 19GB (deepseek-r1:32b), must swap with qwen3:14b sequentially
+- **Speed:** ~20-40s per rec with thinking mode, ~8-12 min per guideline
+- **Risk:** Small absolute gain (grade accuracy already 0.892 with SC Adaptive). Precision gap (F1=0.783) is the bigger problem. Provenance tracking adds pipeline complexity.
+- **Effort:** Medium (provenance approach ~100 lines across extractor/dedup/oracle; retrieval approach ~50 lines)
 
 ### 6. DSPy Prompt Optimization
 
@@ -129,12 +134,13 @@ Fine-tune on 10–15 guideline examples to learn domain-specific recommendation 
 | — | Two-pass extraction | **CLOSED** | llama3.2 classifier too conservative |
 | — | Ensemble (union+dedup) | **CLOSED** | Too many false positives (avg F1=0.42) |
 | — | 3-page chunking | **CLOSED** | Δ=-0.029 on 15ds, pathologically slow on ICU (2.8hr/guideline) |
+| — | Grading oracle (deepseek-r1:32b) | **CLOSED** | F1=0.676 (-0.031), level acc -0.101. Overwrites correct values without source context. |
 | — | Alias expansion | **DONE** | Included in grading scheme fix |
 | — | Logprob confidence filtering | **SKIP** | FPs are real text, not hallucinations — model is "confident" about wrong classifications |
 
 ## Key Insight: The Precision Gap
 
-qwen3:14b's false positives are real text from the PDF (background statements, evidence summaries) misclassified as recommendations — not hallucinations. This is fundamentally a **classification problem**, not a grounding problem. Approaches that verify source text (token overlap, logprobs) don't help. The most promising fix is a dedicated post-extraction classifier (Phase 1, items 1A/1B).
+qwen3:14b's false positives are real text from the PDF (background statements, evidence summaries) misclassified as recommendations — not hallucinations. This is fundamentally a **classification problem**, not a grounding problem. Approaches that verify source text (token overlap, logprobs) don't help. Similarly, re-grading without source context (grading oracle) fails because grade accuracy depends on reading the source PDF, not domain knowledge alone. The most promising fix is a dedicated post-extraction classifier (Phase 1, item 1).
 
 ---
 

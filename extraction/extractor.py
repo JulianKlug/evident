@@ -99,6 +99,8 @@ def extract_guideline(
     verify_threshold: float = 0.5,
     post_filter: bool = False,
     filter_model: str = "qwen3:8b",
+    grading_oracle: bool = False,
+    oracle_model: str = "deepseek-r1:32b",
 ) -> ExtractionResult:
     """Extract recommendations from a guideline PDF.
 
@@ -117,6 +119,8 @@ def extract_guideline(
         verify_threshold: Minimum token overlap fraction for verification (default 0.5).
         post_filter: If True, apply binary classification filter to remove non-recommendations.
         filter_model: Model to use for post-filter classification (default qwen3:8b).
+        grading_oracle: If True, re-grade recommendations using a reasoning model.
+        oracle_model: Model to use for grading oracle (default deepseek-r1:32b).
 
     Returns:
         ExtractionResult with deduplicated recommendations and metadata.
@@ -185,6 +189,11 @@ def extract_guideline(
     if normalize and not final_df.empty:
         from extraction.postprocessing import normalize_extracted_grades
         final_df = normalize_extracted_grades(final_df, strategy.scheme)
+
+    # Post-extraction grading oracle
+    if grading_oracle and not final_df.empty:
+        from extraction.grading_oracle import regrade_recommendations
+        final_df = regrade_recommendations(final_df, strategy.scheme, model=oracle_model)
 
     return ExtractionResult(
         recommendations_df=final_df,

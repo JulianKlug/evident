@@ -251,6 +251,8 @@ def auto_vision_extract_guideline(
     verify_threshold: float = 0.5,
     post_filter: bool = False,
     filter_model: str = "qwen3:8b",
+    grading_oracle: bool = False,
+    oracle_model: str = "deepseek-r1:32b",
 ) -> ExtractionResult:
     """Extract recommendations, auto-detecting when vision is needed.
 
@@ -270,6 +272,8 @@ def auto_vision_extract_guideline(
         normalize: Apply grade/level normalization.
         post_filter: If True, apply binary classification filter.
         filter_model: Model to use for post-filter classification.
+        grading_oracle: If True, re-grade recommendations using a reasoning model.
+        oracle_model: Model to use for grading oracle.
 
     Returns:
         ExtractionResult with combined recommendations.
@@ -291,6 +295,8 @@ def auto_vision_extract_guideline(
             verify_threshold=verify_threshold,
             post_filter=post_filter,
             filter_model=filter_model,
+            grading_oracle=grading_oracle,
+            oracle_model=oracle_model,
         )
 
     print(f"  [Auto-vision] Detected {len(report.opaque_table_pages)} opaque table pages: "
@@ -356,6 +362,10 @@ def auto_vision_extract_guideline(
     if normalize and not final_df.empty:
         from extraction.postprocessing import normalize_extracted_grades
         final_df = normalize_extracted_grades(final_df, strategy.scheme)
+
+    if grading_oracle and not final_df.empty:
+        from extraction.grading_oracle import regrade_recommendations
+        final_df = regrade_recommendations(final_df, strategy.scheme, model=oracle_model)
 
     return ExtractionResult(
         recommendations_df=final_df,

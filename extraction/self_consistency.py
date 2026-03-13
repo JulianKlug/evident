@@ -100,6 +100,8 @@ def self_consistency_extract(
     adaptive_threshold: bool = False,
     post_filter: bool = False,
     filter_model: str = "qwen3:8b",
+    grading_oracle: bool = False,
+    oracle_model: str = "deepseek-r1:32b",
 ) -> ExtractionResult:
     """Extract recommendations using self-consistency voting.
 
@@ -122,6 +124,8 @@ def self_consistency_extract(
         adaptive_threshold: If True, use adaptive consensus based on cluster count.
         post_filter: If True, apply binary classification filter after consensus.
         filter_model: Model to use for post-filter classification.
+        grading_oracle: If True, re-grade recommendations using a reasoning model.
+        oracle_model: Model to use for grading oracle (default deepseek-r1:32b).
 
     Returns:
         ExtractionResult with consensus-filtered recommendations.
@@ -241,6 +245,11 @@ def self_consistency_extract(
     if normalize and not final_df.empty:
         from extraction.postprocessing import normalize_extracted_grades
         final_df = normalize_extracted_grades(final_df, strategy.scheme)
+
+    # Post-extraction grading oracle
+    if grading_oracle and not final_df.empty:
+        from extraction.grading_oracle import regrade_recommendations
+        final_df = regrade_recommendations(final_df, strategy.scheme, model=oracle_model)
 
     return ExtractionResult(
         recommendations_df=final_df,

@@ -30,6 +30,8 @@ def run_benchmark_unbuffered(
     verify=False, verify_threshold=0.5,
     post_filter=False, filter_model="qwen3:8b",
     adaptive_threshold=False,
+    grading_oracle=False,
+    oracle_model="deepseek-r1:32b",
 ):
     """Same as run_full_benchmark but with flushed prints and new options."""
     entries = []
@@ -61,6 +63,8 @@ def run_benchmark_unbuffered(
                             adaptive_threshold=adaptive_threshold,
                             post_filter=post_filter,
                             filter_model=filter_model,
+                            grading_oracle=grading_oracle,
+                            oracle_model=oracle_model,
                         )
                     elif ensemble:
                         from extraction.ensemble import ensemble_extract
@@ -95,6 +99,8 @@ def run_benchmark_unbuffered(
                             normalize=normalize,
                             verify=verify,
                             verify_threshold=verify_threshold,
+                            grading_oracle=grading_oracle,
+                            oracle_model=oracle_model,
                         )
                     elif two_pass:
                         from extraction.two_pass import two_pass_extract
@@ -118,6 +124,8 @@ def run_benchmark_unbuffered(
                             verify_threshold=verify_threshold,
                             post_filter=post_filter,
                             filter_model=filter_model,
+                            grading_oracle=grading_oracle,
+                            oracle_model=oracle_model,
                         )
                 except Exception as e:
                     print(f"  ERROR: {e}", flush=True)
@@ -289,6 +297,16 @@ if __name__ == "__main__":
         adaptive_threshold = True
         print("Adaptive self-consistency threshold enabled", flush=True)
 
+    grading_oracle = False
+    oracle_model = "deepseek-r1:32b"
+    if "--grading-oracle" in sys.argv:
+        grading_oracle = True
+        print("Grading oracle enabled", flush=True)
+    if "--oracle-model" in sys.argv:
+        idx = sys.argv.index("--oracle-model")
+        oracle_model = sys.argv[idx + 1]
+        print(f"Oracle model: {oracle_model}", flush=True)
+
     n_combos = len(available) * len(models) * len(strategies)
     print(f"\nRunning {n_combos} benchmark combinations "
           f"({len(models)} models x {len(strategies)} strategies x {len(available)} guidelines)",
@@ -318,6 +336,8 @@ if __name__ == "__main__":
         post_filter=post_filter,
         filter_model=filter_model,
         adaptive_threshold=adaptive_threshold,
+        grading_oracle=grading_oracle,
+        oracle_model=oracle_model,
     )
 
     if not results.empty:

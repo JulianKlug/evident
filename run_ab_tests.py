@@ -62,6 +62,8 @@ class ABTestConfig:
     post_filter: bool = False
     filter_model: str = "qwen3:8b"
     adaptive_threshold: bool = False
+    grading_oracle: bool = False
+    oracle_model: str = "deepseek-r1:32b"
 
 
 # ── Test Registry ──────────────────────────────────────────────────────────
@@ -190,6 +192,24 @@ AB_TESTS = [
         post_filter=True,
         filter_model="qwen3:8b",
     ),
+    ABTestConfig(
+        name="grading_oracle",
+        description="Baseline + deepseek-r1 grading oracle",
+        priority=15,
+        prior_conclusion="New — expected grade accuracy 0.89→0.95+, F1 unchanged",
+        grading_oracle=True,
+    ),
+    ABTestConfig(
+        name="sc_adaptive_oracle",
+        description="Adaptive SC + grading oracle",
+        priority=16,
+        prior_conclusion="New — best F1 config + oracle for grade accuracy",
+        self_consistency=True,
+        n_samples=3,
+        sc_temperature=0.3,
+        adaptive_threshold=True,
+        grading_oracle=True,
+    ),
 ]
 
 
@@ -283,6 +303,8 @@ def run_single_test(config, datasets, similarity_model):
                     adaptive_threshold=config.adaptive_threshold,
                     post_filter=config.post_filter,
                     filter_model=config.filter_model,
+                    grading_oracle=config.grading_oracle,
+                    oracle_model=config.oracle_model,
                 )
             elif config.ensemble:
                 from extraction.ensemble import ensemble_extract
@@ -308,6 +330,8 @@ def run_single_test(config, datasets, similarity_model):
                     verify_threshold=config.verify_threshold,
                     post_filter=config.post_filter,
                     filter_model=config.filter_model,
+                    grading_oracle=config.grading_oracle,
+                    oracle_model=config.oracle_model,
                 )
             elif config.two_pass:
                 from extraction.two_pass import two_pass_extract
@@ -331,6 +355,8 @@ def run_single_test(config, datasets, similarity_model):
                     verify_threshold=config.verify_threshold,
                     post_filter=config.post_filter,
                     filter_model=config.filter_model,
+                    grading_oracle=config.grading_oracle,
+                    oracle_model=config.oracle_model,
                 )
         except Exception as e:
             print(f"ERROR: {e}", flush=True)
