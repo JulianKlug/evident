@@ -345,20 +345,99 @@ Defensive improvements to `extraction/response_parser.py`: fuzzy sentinel detect
 
 ---
 
+## 2026-03-12: A/B Validation on 15-Dataset Benchmark
+
+Expanded from 5-6 guidelines to **15 datasets** (9 ACP + 3 ERS + 3 ICU, all with PDFs). Ran 7 A/B tests comparing each feature variant against the baseline on all 15 guidelines.
+
+### Results (excluding NI9RV3E7)
+
+| Test | Avg F1 | ΔF1 | Avg P | Avg R | Avg Grade | Prior (5-6 ds) | Validated? |
+|------|--------|-----|-------|-------|-----------|-----------------|------------|
+| **baseline** | **0.707** | — | 0.608 | 0.936 | 0.881 | 0.83 | — |
+| self_consistency | **0.750** | +0.043 | 0.820 | 0.766 | 0.891 | 0.78 (-0.05) | **Reversed** |
+| no_normalize | 0.726 | +0.019 | 0.639 | 0.936 | 0.860 | — | ✓ (trades grade for F1) |
+| zero_shot | 0.697 | -0.010 | 0.600 | 0.936 | 0.784 | worse | Marginal |
+| verify | 0.694 | -0.013 | 0.590 | 0.924 | 0.897 | neutral | ✓ |
+| chunking_3page | 0.678 | -0.029 | 0.577 | 0.917 | 0.948 | negative | ✓ |
+| auto_vision | 0.663 | -0.045 | 0.562 | 0.931 | 0.872 | neutral | ✗ (hurts text guidelines) |
+
+### Key Findings
+
+1. **Baseline F1 dropped from 0.83 → 0.71** when expanding from 5 to 15 guidelines. The new ACP/ICU guidelines have lower precision (many false positives). ICU guidelines especially tough: P=0.17–0.50.
+
+2. **Self-consistency reversed from -0.05 to +0.04.** On 15 datasets, the precision boost (0.61→0.82) outweighs the recall loss (0.94→0.77). Previously tested on 5 guidelines where the best ones (XK8ZAXYM, 48AJE2AR) got hurt; on 15 datasets the many imprecise guidelines benefit more.
+
+3. **Auto-vision hurts text-only guidelines** (Δ=-0.045 excl NI9RV3E7). Some text guidelines trigger false table detection, degrading results. NI9RV3E7 itself: F1=0.00→0.65 confirmed.
+
+4. **Normalization trades F1 for grade accuracy**: no_normalize has +0.019 F1 but -0.021 grade. CMCZFLU4 loses 0.30 grade accuracy without normalization.
+
+---
+
 ## Summary of All Approaches
 
-| Approach | Avg F1 | vs Baseline | Status |
-|----------|--------|-------------|--------|
-| **Baseline (qwen3:14b few-shot + normalize)** | **0.83** | — | **BEST** |
-| Cross-scheme few-shot fallback | +0.06 BDYDTUHA | positive | **KEPT** |
-| Parser hardening | 0.00 | neutral | **KEPT** (defensive) |
-| Token overlap verification | +0.001 | neutral | **KEPT** (safety net) |
-| Auto-vision (mistral, NI9RV3E7 only) | 0.65 | N/A (was 0.00) | **KEPT** |
-| Self-consistency voting | 0.78 | -0.05 | CLOSED |
-| Stratified few-shot selection | 0.65 | -0.18 | CLOSED |
-| Negative prompt examples | 0.63 | -0.20 | CLOSED |
-| JSON structured output | 0.47 | -0.36 | CLOSED |
-| Two-pass extraction | 0.47 | -0.36 | CLOSED |
-| Ensemble (union+dedup) | 0.42 | -0.41 | CLOSED |
-| 3-page chunking | < baseline | negative | CLOSED |
-| CoT prompt | < baseline | negative | CLOSED |
+| Approach | Avg F1 (5ds) | Avg F1 (15ds) | vs Baseline | Status |
+|----------|-------------|--------------|-------------|--------|
+| **Self-consistency voting** | 0.78 | **0.750** | **+0.043** | **RE-OPENED (best)** |
+| **Baseline (few-shot + normalize)** | **0.83** | **0.707** | — | **BEST (simple)** |
+| Cross-scheme few-shot fallback | +0.06 BDYDTUHA | included | positive | **KEPT** |
+| Parser hardening | 0.00 | included | neutral | **KEPT** (defensive) |
+| Token overlap verification | +0.001 | -0.013 | neutral | **KEPT** (safety net) |
+| Auto-vision (mistral, NI9RV3E7 only) | 0.65 NI9RV3E7 | 0.65 NI9RV3E7 | helps NI9RV3E7 | **KEPT** (vision only) |
+| Stratified few-shot selection | 0.65 | — | negative | CLOSED |
+| Negative prompt examples | 0.63 | — | negative | CLOSED |
+| JSON structured output | 0.47 | — | negative | CLOSED |
+| Two-pass extraction | 0.47 | — | negative | CLOSED |
+| Ensemble (union+dedup) | 0.42 | — | negative | CLOSED |
+| 3-page chunking | < baseline | 0.678 (-0.029) | negative | CLOSED |
+| CoT prompt | < baseline | — | negative | CLOSED |
+| JSON schema enforcement | — | 0.498 (-0.209) | negative | CLOSED |
+| Post-extraction filter (qwen3:8b) | — | 0.699 (-0.008) | negative | CLOSED |
+| **Adaptive self-consistency** | — | **0.783 (+0.076)** | **positive** | **BEST** |
+
+---
+
+## 2026-03-13: Phase 1 Improvements Evaluation
+
+Implemented and tested 3 new features on the full 15-dataset benchmark.
+
+### 1. JSON Schema Enforcement (re-test)
+
+Previous JSON result (F1=0.47) predated Ollama's `format=schema` enforcement. Re-tested with `additionalProperties: false` in the JSON schema.
+
+| Metric | Baseline | JSON Schema | Delta |
+|--------|----------|-------------|-------|
+| Avg F1 | 0.707 | 0.498 | **-0.209** |
+| Avg P | 0.608 | 0.378 | -0.230 |
+| Avg R | 0.936 | 0.939 | +0.003 |
+| Avg Grade | 0.881 | 0.903 | +0.022 |
+
+**Verdict: CLOSED.** Schema enforcement doesn't fix the core problem — qwen3:14b still massively over-extracts with JSON output (P=0.38). Worse than the original JSON test.
+
+### 2. Post-Extraction Classification Filter
+
+Binary YES/NO classifier using qwen3:8b to filter each extracted candidate as "recommendation" or "not recommendation."
+
+| Metric | Baseline | Post-Filter | Delta |
+|--------|----------|-------------|-------|
+| Avg F1 | 0.707 | 0.699 | **-0.008** |
+| Avg P | 0.608 | 0.630 | +0.022 |
+| Avg R | 0.936 | 0.883 | -0.053 |
+| Avg Grade | 0.881 | 0.901 | +0.020 |
+
+**Verdict: CLOSED.** qwen3:8b said YES to everything for 9/14 guidelines (0 removed). When it did filter (BDYDTUHA: removed 12/43), recall dropped aggressively. Additionally 6× slower due to qwen3:8b's thinking mode (~30-60s per classification call).
+
+### 3. Adaptive Self-Consistency Thresholds (NEW BEST)
+
+Replaces fixed consensus=2/3 with cluster-count-adaptive thresholds:
+- ≤5 clusters: threshold=1 (prevents stochastic deletion on small datasets)
+- 6–30 clusters: threshold=ceil(n_samples × 0.5) (moderate, same as default)
+- >30 clusters: threshold=ceil(n_samples × 0.34) (lenient for large datasets)
+
+| Metric | Baseline | SC Fixed | SC Adaptive | Δ vs Baseline |
+|--------|----------|----------|-------------|---------------|
+| Avg F1 | 0.707 | 0.750 | **0.783** | **+0.076** |
+| Avg P | 0.608 | 0.820 | 0.788 | +0.180 |
+| Avg R | 0.936 | 0.766 | 0.841 | -0.095 |
+| Avg Grade | 0.881 | 0.891 | 0.892 | +0.011 |
+
+**Verdict: NEW BEST CONFIG.** F1=0.783 (+0.076 over baseline, +0.033 over fixed SC). Better recall than fixed SC (0.841 vs 0.766) while maintaining most of the precision gain.

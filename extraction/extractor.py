@@ -32,6 +32,7 @@ _EXTRACTION_SCHEMA = {
                     "level": {"type": "string"},
                 },
                 "required": ["text", "grade", "level"],
+                "additionalProperties": False,
             },
         },
     },
@@ -96,6 +97,8 @@ def extract_guideline(
     normalize: bool = False,
     verify: bool = False,
     verify_threshold: float = 0.5,
+    post_filter: bool = False,
+    filter_model: str = "qwen3:8b",
 ) -> ExtractionResult:
     """Extract recommendations from a guideline PDF.
 
@@ -112,6 +115,8 @@ def extract_guideline(
         normalize: If True, normalize extracted grades/levels against the grading scheme.
         verify: If True, filter out recommendations not grounded in source text.
         verify_threshold: Minimum token overlap fraction for verification (default 0.5).
+        post_filter: If True, apply binary classification filter to remove non-recommendations.
+        filter_model: Model to use for post-filter classification (default qwen3:8b).
 
     Returns:
         ExtractionResult with deduplicated recommendations and metadata.
@@ -169,6 +174,12 @@ def extract_guideline(
         final_df = verify_recommendations(
             final_df, chunks, min_token_overlap=verify_threshold,
         )
+
+    # Post-extraction classification filter
+    if post_filter and not final_df.empty:
+        from extraction.classification_filter import classify_recommendations
+        filter_client = OllamaClient(model=filter_model)
+        final_df = classify_recommendations(final_df, filter_client, strategy.scheme)
 
     # Post-extraction normalization
     if normalize and not final_df.empty:

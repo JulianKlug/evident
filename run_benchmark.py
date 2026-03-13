@@ -28,6 +28,8 @@ def run_benchmark_unbuffered(
     ensemble=False, ensemble_models=None,
     self_consistency=False, n_samples=3, sc_temperature=0.3, consensus=2,
     verify=False, verify_threshold=0.5,
+    post_filter=False, filter_model="qwen3:8b",
+    adaptive_threshold=False,
 ):
     """Same as run_full_benchmark but with flushed prints and new options."""
     entries = []
@@ -56,6 +58,9 @@ def run_benchmark_unbuffered(
                             pages_per_chunk=pages_per_chunk,
                             output_format=output_format,
                             normalize=normalize,
+                            adaptive_threshold=adaptive_threshold,
+                            post_filter=post_filter,
+                            filter_model=filter_model,
                         )
                     elif ensemble:
                         from extraction.ensemble import ensemble_extract
@@ -111,6 +116,8 @@ def run_benchmark_unbuffered(
                             normalize=normalize,
                             verify=verify,
                             verify_threshold=verify_threshold,
+                            post_filter=post_filter,
+                            filter_model=filter_model,
                         )
                 except Exception as e:
                     print(f"  ERROR: {e}", flush=True)
@@ -267,6 +274,21 @@ if __name__ == "__main__":
         verify_threshold = float(sys.argv[idx + 1])
         print(f"Verify threshold: {verify_threshold}", flush=True)
 
+    post_filter = False
+    filter_model = "qwen3:8b"
+    if "--post-filter" in sys.argv:
+        post_filter = True
+        print("Post-extraction classification filter enabled", flush=True)
+    if "--filter-model" in sys.argv:
+        idx = sys.argv.index("--filter-model")
+        filter_model = sys.argv[idx + 1]
+        print(f"Filter model: {filter_model}", flush=True)
+
+    adaptive_threshold = False
+    if "--adaptive-threshold" in sys.argv:
+        adaptive_threshold = True
+        print("Adaptive self-consistency threshold enabled", flush=True)
+
     n_combos = len(available) * len(models) * len(strategies)
     print(f"\nRunning {n_combos} benchmark combinations "
           f"({len(models)} models x {len(strategies)} strategies x {len(available)} guidelines)",
@@ -293,6 +315,9 @@ if __name__ == "__main__":
         consensus=consensus,
         verify=verify,
         verify_threshold=verify_threshold,
+        post_filter=post_filter,
+        filter_model=filter_model,
+        adaptive_threshold=adaptive_threshold,
     )
 
     if not results.empty:

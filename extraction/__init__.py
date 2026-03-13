@@ -7,6 +7,7 @@ from extraction.datasets import (
     GuidelineDataset,
     load_acp_datasets,
     load_ers_datasets,
+    load_icu_datasets,
     load_all_datasets,
     get_few_shot_examples,
 )

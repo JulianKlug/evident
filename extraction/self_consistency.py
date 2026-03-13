@@ -69,6 +69,22 @@ def _majority_vote(values: list[str]) -> str:
     return counts.most_common(1)[0][0]
 
 
+def _adaptive_consensus(n_clusters: int, n_samples: int) -> int:
+    """Compute adaptive consensus threshold.
+
+    - n_clusters <= 5:  threshold=1 (prevent stochastic deletion on small sets)
+    - n_clusters > 30:  threshold=max(1, ceil(n_samples * 0.34)) (lenient for large sets)
+    - otherwise:        threshold=max(1, ceil(n_samples * 0.5)) (moderate, ~default behavior)
+    """
+    import math
+    if n_clusters <= 5:
+        return 1
+    elif n_clusters > 30:
+        return max(1, math.ceil(n_samples * 0.34))
+    else:
+        return max(1, math.ceil(n_samples * 0.5))
+
+
 def self_consistency_extract(
     source: str,
     strategy: PromptStrategy,
@@ -81,6 +97,9 @@ def self_consistency_extract(
     pages_per_chunk: int = 1,
     output_format: str = "pipe",
     normalize: bool = False,
+    adaptive_threshold: bool = False,
+    post_filter: bool = False,
+    filter_model: str = "qwen3:8b",
 ) -> ExtractionResult:
     """Extract recommendations using self-consistency voting.
 
@@ -100,6 +119,9 @@ def self_consistency_extract(
         pages_per_chunk: Number of pages per LLM call.
         output_format: "pipe" for pipe-delimited output.
         normalize: If True, normalize grades/levels post-extraction.
+        adaptive_threshold: If True, use adaptive consensus based on cluster count.
+        post_filter: If True, apply binary classification filter after consensus.
+        filter_model: Model to use for post-filter classification.
 
     Returns:
         ExtractionResult with consensus-filtered recommendations.
@@ -173,7 +195,12 @@ def self_consistency_extract(
         sample_indices = set(pooled_df.iloc[cluster_indices]["sample_idx"])
         n_votes = len(sample_indices)
 
-        if n_votes < consensus_threshold:
+        effective_threshold = (
+            _adaptive_consensus(len(clusters), n_samples)
+            if adaptive_threshold
+            else consensus_threshold
+        )
+        if n_votes < effective_threshold:
             continue
 
         # Pick representative: longest text in the cluster
@@ -196,8 +223,19 @@ def self_consistency_extract(
     else:
         final_df = pd.DataFrame(columns=["recommendation", "class", "LOE"])
 
-    print(f"  [SC] Consensus: {len(final_df)} recs from {len(clusters)} clusters "
-          f"(threshold={consensus_threshold}/{n_samples})", flush=True)
+    if adaptive_threshold:
+        eff_thr = _adaptive_consensus(len(clusters), n_samples)
+        print(f"  [SC] Consensus: {len(final_df)} recs from {len(clusters)} clusters "
+              f"(adaptive threshold={eff_thr}/{n_samples}, clusters={len(clusters)})", flush=True)
+    else:
+        print(f"  [SC] Consensus: {len(final_df)} recs from {len(clusters)} clusters "
+              f"(threshold={consensus_threshold}/{n_samples})", flush=True)
+
+    # Post-extraction classification filter
+    if post_filter and not final_df.empty:
+        from extraction.classification_filter import classify_recommendations
+        filter_client = OllamaClient(model=filter_model)
+        final_df = classify_recommendations(final_df, filter_client, strategy.scheme)
 
     # Post-extraction normalization
     if normalize and not final_df.empty:

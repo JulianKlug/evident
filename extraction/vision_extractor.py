@@ -249,6 +249,8 @@ def auto_vision_extract_guideline(
     normalize: bool = False,
     verify: bool = False,
     verify_threshold: float = 0.5,
+    post_filter: bool = False,
+    filter_model: str = "qwen3:8b",
 ) -> ExtractionResult:
     """Extract recommendations, auto-detecting when vision is needed.
 
@@ -266,6 +268,8 @@ def auto_vision_extract_guideline(
         pages_per_chunk: Pages per chunk for text extraction.
         output_format: "pipe" or "json" for text extraction.
         normalize: Apply grade/level normalization.
+        post_filter: If True, apply binary classification filter.
+        filter_model: Model to use for post-filter classification.
 
     Returns:
         ExtractionResult with combined recommendations.
@@ -285,6 +289,8 @@ def auto_vision_extract_guideline(
             normalize=normalize,
             verify=verify,
             verify_threshold=verify_threshold,
+            post_filter=post_filter,
+            filter_model=filter_model,
         )
 
     print(f"  [Auto-vision] Detected {len(report.opaque_table_pages)} opaque table pages: "
@@ -340,6 +346,12 @@ def auto_vision_extract_guideline(
         similarity_threshold=dedup_threshold,
         similarity_model=dedup_model,
     )
+
+    if post_filter and not final_df.empty:
+        from extraction.classification_filter import classify_recommendations
+        from extraction.llm_client import OllamaClient as _OllamaClient
+        filter_client = _OllamaClient(model=filter_model)
+        final_df = classify_recommendations(final_df, filter_client, strategy.scheme)
 
     if normalize and not final_df.empty:
         from extraction.postprocessing import normalize_extracted_grades
