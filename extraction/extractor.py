@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 import pandas as pd
 
@@ -97,6 +97,10 @@ def extract_guideline(
     normalize: bool = False,
     verify: bool = False,
     verify_threshold: float = 0.5,
+    ml_filter: bool = False,
+    classifier_path: Optional[str] = None,
+    ml_similarity_model: SimilarityModel | None = None,
+    ml_filter_threshold: float = 0.3,
     post_filter: bool = False,
     filter_model: str = "qwen3:8b",
     grading_oracle: bool = False,
@@ -117,6 +121,9 @@ def extract_guideline(
         normalize: If True, normalize extracted grades/levels against the grading scheme.
         verify: If True, filter out recommendations not grounded in source text.
         verify_threshold: Minimum token overlap fraction for verification (default 0.5).
+        ml_filter: If True, apply ML-based classification filter using BioLORD + LR.
+        classifier_path: Path to trained classifier (default artifacts/classifier/rec_classifier.joblib).
+        ml_similarity_model: Pre-loaded BioLORD model for embeddings (avoids double-loading).
         post_filter: If True, apply binary classification filter to remove non-recommendations.
         filter_model: Model to use for post-filter classification (default qwen3:8b).
         grading_oracle: If True, re-grade recommendations using a reasoning model.
@@ -178,6 +185,14 @@ def extract_guideline(
         final_df = verify_recommendations(
             final_df, chunks, min_token_overlap=verify_threshold,
         )
+
+    # ML-based classification filter
+    if ml_filter and not final_df.empty:
+        from extraction.recommendation_classifier import ml_filter_recommendations, load_classifier
+        from extraction.benchmark import _BioLORDSimilarityModel
+        _clf = load_classifier(classifier_path or "artifacts/classifier/rec_classifier.joblib")
+        _sim = ml_similarity_model or _BioLORDSimilarityModel()
+        final_df = ml_filter_recommendations(final_df, _clf, _sim, threshold=ml_filter_threshold)
 
     # Post-extraction classification filter
     if post_filter and not final_df.empty:

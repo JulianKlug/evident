@@ -28,6 +28,7 @@ def run_benchmark_unbuffered(
     ensemble=False, ensemble_models=None,
     self_consistency=False, n_samples=3, sc_temperature=0.3, consensus=2,
     verify=False, verify_threshold=0.5,
+    ml_filter=False, classifier_path=None, ml_filter_threshold=0.3,
     post_filter=False, filter_model="qwen3:8b",
     adaptive_threshold=False,
     grading_oracle=False,
@@ -61,6 +62,10 @@ def run_benchmark_unbuffered(
                             output_format=output_format,
                             normalize=normalize,
                             adaptive_threshold=adaptive_threshold,
+                            ml_filter=ml_filter,
+                            classifier_path=classifier_path,
+                            ml_similarity_model=similarity_model if ml_filter else None,
+                            ml_filter_threshold=ml_filter_threshold,
                             post_filter=post_filter,
                             filter_model=filter_model,
                             grading_oracle=grading_oracle,
@@ -99,6 +104,10 @@ def run_benchmark_unbuffered(
                             normalize=normalize,
                             verify=verify,
                             verify_threshold=verify_threshold,
+                            ml_filter=ml_filter,
+                            classifier_path=classifier_path,
+                            ml_similarity_model=similarity_model if ml_filter else None,
+                            ml_filter_threshold=ml_filter_threshold,
                             grading_oracle=grading_oracle,
                             oracle_model=oracle_model,
                         )
@@ -122,6 +131,10 @@ def run_benchmark_unbuffered(
                             normalize=normalize,
                             verify=verify,
                             verify_threshold=verify_threshold,
+                            ml_filter=ml_filter,
+                            classifier_path=classifier_path,
+                            ml_similarity_model=similarity_model if ml_filter else None,
+                            ml_filter_threshold=ml_filter_threshold,
                             post_filter=post_filter,
                             filter_model=filter_model,
                             grading_oracle=grading_oracle,
@@ -297,6 +310,21 @@ if __name__ == "__main__":
         adaptive_threshold = True
         print("Adaptive self-consistency threshold enabled", flush=True)
 
+    ml_filter = False
+    classifier_path = None
+    if "--ml-filter" in sys.argv:
+        ml_filter = True
+        print("ML classification filter enabled", flush=True)
+    if "--classifier-path" in sys.argv:
+        idx = sys.argv.index("--classifier-path")
+        classifier_path = sys.argv[idx + 1]
+        print(f"Classifier path: {classifier_path}", flush=True)
+    ml_filter_threshold = 0.3
+    if "--ml-filter-threshold" in sys.argv:
+        idx = sys.argv.index("--ml-filter-threshold")
+        ml_filter_threshold = float(sys.argv[idx + 1])
+        print(f"ML filter threshold: {ml_filter_threshold}", flush=True)
+
     grading_oracle = False
     oracle_model = "deepseek-r1:32b"
     if "--grading-oracle" in sys.argv:
@@ -333,6 +361,9 @@ if __name__ == "__main__":
         consensus=consensus,
         verify=verify,
         verify_threshold=verify_threshold,
+        ml_filter=ml_filter,
+        classifier_path=classifier_path,
+        ml_filter_threshold=ml_filter_threshold,
         post_filter=post_filter,
         filter_model=filter_model,
         adaptive_threshold=adaptive_threshold,

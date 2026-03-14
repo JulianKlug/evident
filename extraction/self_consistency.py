@@ -98,6 +98,10 @@ def self_consistency_extract(
     output_format: str = "pipe",
     normalize: bool = False,
     adaptive_threshold: bool = False,
+    ml_filter: bool = False,
+    classifier_path: Optional[str] = None,
+    ml_similarity_model=None,
+    ml_filter_threshold: float = 0.3,
     post_filter: bool = False,
     filter_model: str = "qwen3:8b",
     grading_oracle: bool = False,
@@ -122,6 +126,9 @@ def self_consistency_extract(
         output_format: "pipe" for pipe-delimited output.
         normalize: If True, normalize grades/levels post-extraction.
         adaptive_threshold: If True, use adaptive consensus based on cluster count.
+        ml_filter: If True, apply ML-based classification filter.
+        classifier_path: Path to trained classifier model.
+        ml_similarity_model: Pre-loaded BioLORD model for embeddings.
         post_filter: If True, apply binary classification filter after consensus.
         filter_model: Model to use for post-filter classification.
         grading_oracle: If True, re-grade recommendations using a reasoning model.
@@ -234,6 +241,14 @@ def self_consistency_extract(
     else:
         print(f"  [SC] Consensus: {len(final_df)} recs from {len(clusters)} clusters "
               f"(threshold={consensus_threshold}/{n_samples})", flush=True)
+
+    # ML-based classification filter
+    if ml_filter and not final_df.empty:
+        from extraction.recommendation_classifier import ml_filter_recommendations, load_classifier
+        from extraction.benchmark import _BioLORDSimilarityModel
+        _clf = load_classifier(classifier_path or "artifacts/classifier/rec_classifier.joblib")
+        _sim = ml_similarity_model or _BioLORDSimilarityModel()
+        final_df = ml_filter_recommendations(final_df, _clf, _sim, threshold=ml_filter_threshold)
 
     # Post-extraction classification filter
     if post_filter and not final_df.empty:

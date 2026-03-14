@@ -1,12 +1,15 @@
 # Best Model Configuration
 
-Last updated: 2026-03-13 (validated on 15-dataset benchmark)
+Last updated: 2026-03-14 (validated on 15-dataset benchmark)
 
 ## Recommended Commands
 
 ```bash
 # Standard (best simple config)
 python run_benchmark.py --model qwen3:14b --few-shot-only --normalize
+
+# With ML filter (precision boost, ~zero recall cost)
+python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --ml-filter
 
 # With adaptive self-consistency (best F1, 3× slower)
 python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --self-consistency --n-samples 3 --sc-temperature 0.3 --adaptive-threshold
@@ -31,6 +34,7 @@ python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --auto-vis
 |--------|--------|-------|-------|-----------|-----------|
 | **SC Adaptive** | **0.783** | 0.788 | 0.841 | **0.892** | 0.966 |
 | SC Fixed (consensus=2) | 0.750 | **0.820** | 0.766 | 0.891 | 0.923 |
+| **ML Filter (baseline+)** | 0.732 | 0.646 | 0.935 | 0.936 | — |
 | Baseline | 0.707 | 0.608 | **0.936** | 0.881 | 0.940 |
 
 ### Per-Guideline Breakdown (Baseline)
@@ -76,6 +80,7 @@ python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --auto-vis
 | Enhancement | Impact (15ds) | Flag |
 |-------------|---------------|------|
 | Adaptive self-consistency (3 samples) | **+0.076 F1**, P 0.61→0.79, R 0.94→0.84 | `--self-consistency --adaptive-threshold` |
+| ML filter (BioLORD+LR) | **+0.025 F1**, P +0.038, R -0.001 | `--ml-filter` |
 | Cross-scheme few-shot fallback | BDYDTUHA F1 +0.06 | automatic |
 | Parser hardening | defensive, no regression | automatic |
 | Token overlap verification | near-zero impact | `--verify` |

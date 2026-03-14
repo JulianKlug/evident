@@ -62,6 +62,9 @@ class ABTestConfig:
     post_filter: bool = False
     filter_model: str = "qwen3:8b"
     adaptive_threshold: bool = False
+    ml_filter: bool = False
+    classifier_path: Optional[str] = None
+    ml_filter_threshold: float = 0.3
     grading_oracle: bool = False
     oracle_model: str = "deepseek-r1:32b"
 
@@ -210,6 +213,24 @@ AB_TESTS = [
         adaptive_threshold=True,
         grading_oracle=True,
     ),
+    ABTestConfig(
+        name="ml_filter",
+        description="BioLORD + LR classification filter",
+        priority=17,
+        prior_conclusion="New — expected precision boost, small recall cost",
+        ml_filter=True,
+    ),
+    ABTestConfig(
+        name="sc_adaptive_ml_filter",
+        description="Adaptive SC + ML precision filter",
+        priority=18,
+        prior_conclusion="New — best F1 config + ML precision filter",
+        self_consistency=True,
+        n_samples=3,
+        sc_temperature=0.3,
+        adaptive_threshold=True,
+        ml_filter=True,
+    ),
 ]
 
 
@@ -301,6 +322,10 @@ def run_single_test(config, datasets, similarity_model):
                     output_format=config.output_format,
                     normalize=normalize,
                     adaptive_threshold=config.adaptive_threshold,
+                    ml_filter=config.ml_filter,
+                    classifier_path=config.classifier_path,
+                    ml_similarity_model=similarity_model if config.ml_filter else None,
+                    ml_filter_threshold=config.ml_filter_threshold,
                     post_filter=config.post_filter,
                     filter_model=config.filter_model,
                     grading_oracle=config.grading_oracle,
@@ -328,6 +353,10 @@ def run_single_test(config, datasets, similarity_model):
                     normalize=normalize,
                     verify=config.verify,
                     verify_threshold=config.verify_threshold,
+                    ml_filter=config.ml_filter,
+                    classifier_path=config.classifier_path,
+                    ml_similarity_model=similarity_model if config.ml_filter else None,
+                    ml_filter_threshold=config.ml_filter_threshold,
                     post_filter=config.post_filter,
                     filter_model=config.filter_model,
                     grading_oracle=config.grading_oracle,
@@ -353,6 +382,10 @@ def run_single_test(config, datasets, similarity_model):
                     normalize=normalize,
                     verify=config.verify,
                     verify_threshold=config.verify_threshold,
+                    ml_filter=config.ml_filter,
+                    classifier_path=config.classifier_path,
+                    ml_similarity_model=similarity_model if config.ml_filter else None,
+                    ml_filter_threshold=config.ml_filter_threshold,
                     post_filter=config.post_filter,
                     filter_model=config.filter_model,
                     grading_oracle=config.grading_oracle,

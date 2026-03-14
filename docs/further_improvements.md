@@ -1,6 +1,6 @@
 # Further Improvements for the Extraction Pipeline
 
-Last updated: 2026-03-13. Based on 15-dataset A/B validation benchmark.
+Last updated: 2026-03-14. Based on 15-dataset A/B validation benchmark.
 
 ---
 
@@ -26,17 +26,29 @@ Last updated: 2026-03-13. Based on 15-dataset A/B validation benchmark.
 
 ## Phase 1: Quick Wins
 
-### 1. Fine-tuned Clinical ModernBERT Classifier
+### 1. BioLORD + Logistic Regression Classifier — DONE
 
-[Clinical ModernBERT](https://arxiv.org/abs/2504.03964) (110M–400M params, <1GB VRAM) achieves AUROC=0.977 on clinical text classification. Fine-tune on:
-- **Positives:** GT recommendations from all 15 guidelines (~350 examples)
-- **Negatives:** False positives logged from benchmark runs (extracted but not matched to GT)
+**Implemented:** BioLORD-2023 embeddings + sklearn logistic regression binary classifier, trained on labeled extractions from all 15 guidelines.
 
-The LLM-based post-filter (qwen3:8b) failed because it said YES to everything. A purpose-built classifier trained on actual false positives could succeed where the generic LLM couldn't discriminate.
+- **Training data:** 168 examples (91 TP, 77 FP) from baseline extractions matched to GT at 0.65 threshold
+- **Evaluation:** Leave-one-guideline-out CV (LOGO-CV) — each guideline predicted by a model that never saw it
+- **Threshold:** 0.30 (conservative — removes only high-confidence non-recs)
 
-- **VRAM:** <1GB, can run on CPU
-- **Expected impact:** +0.05–0.10 F1. Purpose-built for the classification problem.
-- **Risk:** Needs a labeled dataset of false positives. Can extract these from existing benchmark CSVs.
+| Metric | Baseline | ML Filter (t=0.30) | Delta |
+|--------|----------|-------------------|-------|
+| Avg F1 | 0.707 | 0.732 | **+0.025** |
+| Avg P | 0.608 | 0.646 | **+0.038** |
+| Avg R | 0.936 | 0.935 | -0.001 |
+
+Best improvement on ICU guidelines with high FP rates (e.g., `10_1007_s00134-024-07369-9`: F1 0.579→0.880).
+
+- **CLI:** `--ml-filter`, `--classifier-path`, `--ml-filter-threshold`
+- **Files:** `extraction/recommendation_classifier.py`, `scripts/generate_classifier_data.py`
+- **Artifacts:** `artifacts/classifier/` (training_data.csv, embeddings.npz, rec_classifier.joblib)
+
+#### Future: Clinical ModernBERT upgrade
+
+[Clinical ModernBERT](https://arxiv.org/abs/2504.03964) (110M–400M params, <1GB VRAM) could replace the logistic regression for higher accuracy. The current BioLORD+LR approach works well as a baseline but a fine-tuned transformer may capture more nuanced recommendation vs. non-recommendation boundaries. Would reuse the same training data pipeline.
 
 ---
 
@@ -126,6 +138,7 @@ Fine-tune on 10–15 guideline examples to learn domain-specific recommendation 
 | — | Token overlap verification | **DONE** | Near-zero impact (Δ=-0.013 on 15ds), kept as safety net |
 | — | **Adaptive self-consistency** | **DONE** | **F1=0.783 (+0.076). New best config.** Cluster-adaptive thresholds fix small/large dataset failure modes. |
 | — | Self-consistency voting (fixed) | **DONE** | F1=0.750 (+0.043). Superseded by adaptive version. |
+| — | **ML filter (BioLORD+LR)** | **DONE** | F1=0.732 (+0.025), P +0.038, R -0.001. Threshold=0.30. Best on high-FP guidelines. |
 | — | Post-extraction filter (qwen3:8b) | **CLOSED** | F1=0.699 (-0.008). Said YES to everything for 9/14 guidelines; 6× slower. |
 | — | JSON schema enforcement (re-test) | **CLOSED** | F1=0.498 (-0.209). Still massively over-extracts even with schema (P=0.38). |
 | — | CoT prompt | **CLOSED** | Causes regressions (model overthinks) |

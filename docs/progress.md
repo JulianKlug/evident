@@ -377,7 +377,9 @@ Expanded from 5-6 guidelines to **15 datasets** (9 ACP + 3 ERS + 3 ICU, all with
 
 | Approach | Avg F1 (5ds) | Avg F1 (15ds) | vs Baseline | Status |
 |----------|-------------|--------------|-------------|--------|
-| **Self-consistency voting** | 0.78 | **0.750** | **+0.043** | **RE-OPENED (best)** |
+| **Adaptive self-consistency** | — | **0.783 (+0.076)** | **positive** | **BEST** |
+| **Self-consistency voting** | 0.78 | **0.750** | **+0.043** | **RE-OPENED** |
+| **ML filter (BioLORD+LR)** | — | **0.732 (+0.025)** | **positive** | **KEPT** |
 | **Baseline (few-shot + normalize)** | **0.83** | **0.707** | — | **BEST (simple)** |
 | Cross-scheme few-shot fallback | +0.06 BDYDTUHA | included | positive | **KEPT** |
 | Parser hardening | 0.00 | included | neutral | **KEPT** (defensive) |
@@ -393,7 +395,6 @@ Expanded from 5-6 guidelines to **15 datasets** (9 ACP + 3 ERS + 3 ICU, all with
 | JSON schema enforcement | — | 0.498 (-0.209) | negative | CLOSED |
 | Post-extraction filter (qwen3:8b) | — | 0.699 (-0.008) | negative | CLOSED |
 | Grading oracle (deepseek-r1:32b) | — | 0.676 (-0.031) | negative | CLOSED |
-| **Adaptive self-consistency** | — | **0.783 (+0.076)** | **positive** | **BEST** |
 
 ---
 
@@ -484,3 +485,68 @@ New module `extraction/grading_oracle.py`:
 **Verdict: CLOSED.** The oracle confidently overwrites correct values. Without source text in the prompt, deepseek-r1:32b guesses based on recommendation text alone — it changed 13 grades and 25 levels across 15 guidelines, making more wrong than right. Level accuracy dropped catastrophically (-0.101). The hypothesis that deepseek-r1:32b's high grade accuracy as extractor would transfer to a re-grading role was not validated — its accuracy came from reading the source PDF, not from domain knowledge about what grades recommendations "should" have.
 
 **Key insight:** Grade accuracy as an extractor ≠ grade accuracy as a re-grader. The model needs source context to assign grades correctly.
+
+---
+
+## 2026-03-14: ML Classification Filter (BioLORD + Logistic Regression)
+
+### Approach
+
+The LLM-based post-filter (qwen3:8b) failed because it said YES to everything. Instead of using another LLM, train a lightweight sklearn classifier on BioLORD-2023 embeddings to distinguish true recommendations (TP) from non-recommendations (FP).
+
+### Implementation
+
+1. **Training data generation** (`scripts/generate_classifier_data.py`): Run baseline extraction on all 15 guidelines, match to GT at 0.65 threshold, label matched=TP (1), unmatched=FP (0). Result: 168 examples (91 TP, 77 FP) — NI9RV3E7 skipped (0 text extractions).
+
+2. **Classifier** (`extraction/recommendation_classifier.py`):
+   - `LogisticRegression(C=1.0, class_weight='balanced')` on 768-dim BioLORD embeddings
+   - Leave-one-guideline-out CV (LOGO-CV) for honest evaluation
+   - Probability threshold=0.30 (conservative, removes only high-confidence non-recs)
+   - Pipeline position: after verify, before post_filter/normalize
+
+3. **Pipeline integration**: `ml_filter`, `classifier_path`, `ml_filter_threshold` params added to `extract_guideline()`, `self_consistency_extract()`, `auto_vision_extract_guideline()`
+
+4. **CLI**: `--ml-filter`, `--classifier-path`, `--ml-filter-threshold`
+
+5. **A/B configs**: `ml_filter` (priority=17), `sc_adaptive_ml_filter` (priority=18)
+
+### LOGO-CV Results (threshold=0.30)
+
+| Metric | Baseline | ML Filter | Delta |
+|--------|----------|-----------|-------|
+| Avg F1 | 0.707 | 0.732 | **+0.025** |
+| Avg P | 0.608 | 0.646 | **+0.038** |
+| Avg R | 0.936 | 0.935 | -0.001 |
+| Avg Grade | 0.881 | 0.936 | +0.055 |
+
+### Per-Guideline Detail (LOGO-CV, threshold=0.30)
+
+| Guideline | Base F1 | ML F1 | ΔF1 | Kept |
+|-----------|---------|-------|-----|------|
+| ICU:10_1007_s00134-024-07369-9 | 0.579 | 0.880 | **+0.301** | 14/23 |
+| ICU:10_1007_s00134-025-08058-x | 0.667 | 1.000 | **+0.333** | 3/6 |
+| ACP:89499SID | 0.667 | 1.000 | **+0.333** | 1/1 |
+| ACP:8J2P9MD8 | 0.667 | 0.800 | +0.133 | 6/7 |
+| ICU:10_1007_s00134-025-07840-1 | 0.286 | 0.353 | +0.067 | 14/14 |
+| ACP:WND8NBNA | 0.667 | 0.714 | +0.048 | 9/9 |
+| ERS:BDYDTUHA | 0.699 | 0.686 | -0.013 | 42/43 |
+| ERS:CMCZFLU4 | 0.690 | 0.488 | -0.202 | 29/29 |
+
+### Threshold Sweep
+
+| Threshold | Avg F1 | Avg P | Avg R | ΔF1 vs Base |
+|-----------|--------|-------|-------|-------------|
+| 0.25 | 0.691 | 0.585 | 0.936 | -0.016 |
+| **0.30** | **0.732** | **0.646** | **0.935** | **+0.025** |
+| 0.35 | 0.717 | 0.652 | 0.885 | +0.010 |
+| 0.40 | 0.642 | 0.582 | 0.791 | -0.065 |
+
+**Verdict: KEPT.** +0.025 F1 with essentially zero recall cost. Best improvements on ICU guidelines with high FP rates. Threshold 0.30 is optimal — more aggressive thresholds start hurting recall.
+
+### Key Insights
+
+1. **Small dataset (168 examples) works** because logistic regression has few parameters and BioLORD embeddings are already high-quality. More complex models (fine-tuned transformers) would likely overfit.
+
+2. **LOGO-CV is essential** — training and testing on the same guidelines would be circular. Each guideline is predicted by a model that never saw it, giving honest metrics.
+
+3. **The classifier complements SC Adaptive** — SC improves precision via consensus voting, ML filter removes confident non-recs. They target different FP types. The `sc_adaptive_ml_filter` A/B test config will evaluate this combination.

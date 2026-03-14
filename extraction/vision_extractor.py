@@ -249,6 +249,10 @@ def auto_vision_extract_guideline(
     normalize: bool = False,
     verify: bool = False,
     verify_threshold: float = 0.5,
+    ml_filter: bool = False,
+    classifier_path: Optional[str] = None,
+    ml_similarity_model=None,
+    ml_filter_threshold: float = 0.3,
     post_filter: bool = False,
     filter_model: str = "qwen3:8b",
     grading_oracle: bool = False,
@@ -270,6 +274,9 @@ def auto_vision_extract_guideline(
         pages_per_chunk: Pages per chunk for text extraction.
         output_format: "pipe" or "json" for text extraction.
         normalize: Apply grade/level normalization.
+        ml_filter: If True, apply ML-based classification filter.
+        classifier_path: Path to trained classifier model.
+        ml_similarity_model: Pre-loaded BioLORD model for embeddings.
         post_filter: If True, apply binary classification filter.
         filter_model: Model to use for post-filter classification.
         grading_oracle: If True, re-grade recommendations using a reasoning model.
@@ -293,6 +300,10 @@ def auto_vision_extract_guideline(
             normalize=normalize,
             verify=verify,
             verify_threshold=verify_threshold,
+            ml_filter=ml_filter,
+            classifier_path=classifier_path,
+            ml_similarity_model=ml_similarity_model,
+            ml_filter_threshold=ml_filter_threshold,
             post_filter=post_filter,
             filter_model=filter_model,
             grading_oracle=grading_oracle,
@@ -352,6 +363,13 @@ def auto_vision_extract_guideline(
         similarity_threshold=dedup_threshold,
         similarity_model=dedup_model,
     )
+
+    if ml_filter and not final_df.empty:
+        from extraction.recommendation_classifier import ml_filter_recommendations, load_classifier
+        from extraction.benchmark import _BioLORDSimilarityModel
+        _clf = load_classifier(classifier_path or "artifacts/classifier/rec_classifier.joblib")
+        _sim = ml_similarity_model or _BioLORDSimilarityModel()
+        final_df = ml_filter_recommendations(final_df, _clf, _sim, threshold=ml_filter_threshold)
 
     if post_filter and not final_df.empty:
         from extraction.classification_filter import classify_recommendations
