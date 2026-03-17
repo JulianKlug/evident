@@ -377,10 +377,12 @@ Expanded from 5-6 guidelines to **15 datasets** (9 ACP + 3 ERS + 3 ICU, all with
 
 | Approach | Avg F1 (5ds) | Avg F1 (15ds) | vs Baseline | Status |
 |----------|-------------|--------------|-------------|--------|
-| **Adaptive self-consistency** | — | **0.783 (+0.076)** | **positive** | **BEST** |
+| **SC Adaptive + ML filter** | — | **0.860 (+0.153)** | **positive** | **BEST** |
+| **Adaptive self-consistency** | — | **0.783 (+0.076)** | **positive** | **KEPT** |
 | **Self-consistency voting** | 0.78 | **0.750** | **+0.043** | **RE-OPENED** |
 | **ML filter (BioLORD+LR)** | — | **0.732 (+0.025)** | **positive** | **KEPT** |
 | **Baseline (few-shot + normalize)** | **0.83** | **0.707** | — | **BEST (simple)** |
+| Context-aware oracle (deepseek-r1:32b) | — | 0.690 (-0.017) | grade +0.006 | CLOSED |
 | Cross-scheme few-shot fallback | +0.06 BDYDTUHA | included | positive | **KEPT** |
 | Parser hardening | 0.00 | included | neutral | **KEPT** (defensive) |
 | Token overlap verification | +0.001 | -0.013 | neutral | **KEPT** (safety net) |
@@ -543,6 +545,52 @@ The LLM-based post-filter (qwen3:8b) failed because it said YES to everything. I
 
 **Verdict: KEPT.** +0.025 F1 with essentially zero recall cost. Best improvements on ICU guidelines with high FP rates. Threshold 0.30 is optimal — more aggressive thresholds start hurting recall.
 
+---
+
+## 2026-03-15: SC Adaptive + ML Filter Combination (NEW BEST)
+
+### Hypothesis
+
+SC Adaptive (F1=0.783) and ML filter (F1=0.732) target different FP types — consensus voting vs. embedding-based classification. Combining them could be additive.
+
+### Results (15-dataset benchmark, excluding NI9RV3E7)
+
+| Metric | Baseline | SC Adaptive | **SC + ML Filter** | Δ vs SC | Δ vs Baseline |
+|--------|----------|-------------|-------------------|---------|---------------|
+| Avg F1 | 0.707 | 0.783 | **0.860** | **+0.077** | **+0.153** |
+| Avg P | 0.608 | 0.788 | **0.937** | +0.149 | +0.329 |
+| Avg R | 0.936 | 0.841 | 0.818 | -0.023 | -0.118 |
+| Avg Grade | 0.881 | 0.892 | 0.861 | -0.031 | -0.020 |
+
+### Per-Guideline Comparison (SC Adaptive vs SC+ML)
+
+| Guideline | SC F1 | SC+ML F1 | ΔF1 | ML Removed | Key Change |
+|-----------|-------|----------|-----|------------|------------|
+| ICU:10_1007_s00134-025-07840-1 | 0.333 | 0.857 | **+0.524** | 3/7 | P: 0.22→0.75 |
+| ACP:89499SID | 0.667 | 1.000 | +0.333 | 0/1 | SC sampling |
+| ACP:48AJE2AR | 0.667 | 1.000 | +0.333 | 0/2 | SC sampling |
+| ACP:PAEHSPH3 | 0.857 | 1.000 | +0.143 | 1/4 | Filter removed 1 FP |
+| ICU:10_1007_s00134-025-08058-x | 0.857 | 1.000 | +0.143 | 2/5 | P: 0.75→1.00 |
+| ACP:WND8NBNA | 0.889 | 1.000 | +0.111 | 0/5 | SC sampling |
+| ERS:CMCZFLU4 | 0.690 | 0.800 | +0.110 | 2/15 | P: 0.59→0.77 |
+| ICU:10_1007_s00134-024-07369-9 | 0.692 | 0.778 | +0.086 | 5/12 | P: 0.60→1.00 |
+| ERS:BDYDTUHA | 0.592 | 0.604 | +0.012 | 0/36 | Minimal change |
+| ACP:8V9WED94 | 0.800 | 0.800 | 0.000 | 0/2 | No change |
+| ACP:8J2P9MD8 | 1.000 | 1.000 | 0.000 | 0/4 | No change |
+| ACP:XLMXNL32 | 0.923 | 0.727 | -0.196 | 0/5 | SC sampling variance |
+| ACP:XK8ZAXYM | 1.000 | 0.800 | -0.200 | 0/2 | SC sampling variance |
+| ACP:XBAJSPZE | 1.000 | 0.667 | -0.333 | 0/1 | SC sampling variance |
+
+### Analysis
+
+**ML filter impact is clearest on ICU guidelines** where it removed 5/12, 3/7, and 2/5 candidates — all with precision jumps to 0.75–1.00. These high-FP guidelines benefit most from the BioLORD+LR classifier.
+
+**SC stochastic variance** is significant. Guidelines where ML removed 0 recs still show F1 changes (e.g., 48AJE2AR +0.333, XBAJSPZE -0.333) — these are purely from different SC samples at temp=0.3. On small guidelines (1-3 GT recs), a single rec gained or lost changes F1 dramatically.
+
+**Grade accuracy dropped** from 0.892 to 0.861 (-0.031). The ML filter doesn't change grades, so this is SC sampling variance — different consensus-selected recs may have different grade assignments.
+
+**Verdict: NEW BEST CONFIG.** F1=0.860 (+0.077 over SC Adaptive alone, +0.153 over baseline). Precision 0.937 is near-ceiling. The combination is clearly additive — SC removes FPs via consensus, ML filter removes remaining FPs via embedding classification.
+
 ### Key Insights
 
 1. **Small dataset (168 examples) works** because logistic regression has few parameters and BioLORD embeddings are already high-quality. More complex models (fine-tuned transformers) would likely overfit.
@@ -550,3 +598,52 @@ The LLM-based post-filter (qwen3:8b) failed because it said YES to everything. I
 2. **LOGO-CV is essential** — training and testing on the same guidelines would be circular. Each guideline is predicted by a model that never saw it, giving honest metrics.
 
 3. **The classifier complements SC Adaptive** — SC improves precision via consensus voting, ML filter removes confident non-recs. They target different FP types. The `sc_adaptive_ml_filter` A/B test config will evaluate this combination.
+
+---
+
+## 2026-03-15: Context-Aware Grading Oracle (CLOSED)
+
+### Hypothesis
+
+The context-free grading oracle (2026-03-13) failed because deepseek-r1:32b had no source text. Fix: use BioLORD similarity to retrieve the top-2 most relevant source pages for each recommendation, then pass them as context to the oracle. Conservative prompt: "keep current values" when unsure.
+
+### Implementation
+
+New function `regrade_with_context()` in `extraction/grading_oracle.py`:
+- Encodes all PDF pages with BioLORD (once per guideline)
+- For each recommendation: cosine similarity → top-2 pages → assemble context → prompt deepseek-r1:32b
+- Parses response with existing `_parse_regrade_response()`, only updates valid values
+- CLI: `--context-oracle` flag (mutually exclusive with `--grading-oracle`)
+- A/B configs: `context_oracle` (priority=19), `sc_adaptive_context_oracle` (priority=20)
+
+### Results (15-dataset benchmark, excluding NI9RV3E7)
+
+| Metric | Baseline | Context Oracle | SC Adaptive | SC + Context Oracle |
+|--------|----------|---------------|-------------|---------------------|
+| Avg F1 | 0.707 | 0.690 (-0.017) | **0.783** | 0.773 (-0.010) |
+| Avg P | 0.608 | 0.571 | 0.788 | **0.836** |
+| Avg R | 0.936 | **0.949** | 0.841 | 0.783 |
+| Avg Grade | 0.881 | **0.887 (+0.006)** | 0.892 | 0.877 (-0.015) |
+| Avg Level | 0.940 | 0.919 | 0.966 | 0.899 |
+
+### Per-Guideline Detail (context_oracle)
+
+| Guideline | Base F1 | Ctx F1 | ΔF1 | Base Grade | Ctx Grade | ΔGrade |
+|-----------|---------|--------|-----|------------|-----------|--------|
+| ERS:CMCZFLU4 | 0.690 | 0.741 | +0.051 | 0.700 | **0.800** | **+0.100** |
+| ERS:BDYDTUHA | 0.699 | 0.797 | +0.098 | 0.972 | 0.957 | -0.015 |
+| ACP:XLMXNL32 | 0.750 | 0.667 | -0.083 | 0.833 | 0.833 | 0.000 |
+| ICU:10_1007_s00134-024-07369-9 | 0.579 | 0.917 | +0.338 | 1.000 | 1.000 | 0.000 |
+
+### Per-Guideline Detail (sc_adaptive + context_oracle)
+
+| Guideline | SC F1 | SC+Ctx F1 | ΔF1 | SC Grade | SC+Ctx Grade | ΔGrade |
+|-----------|-------|-----------|-----|----------|--------------|--------|
+| ERS:CMCZFLU4 | 0.870 | 0.818 | -0.052 | 0.900 | 0.778 | -0.122 |
+| ERS:BDYDTUHA | 0.674 | 0.559 | -0.115 | 0.944 | 0.923 | -0.021 |
+| ACP:WND8NBNA | 0.667 | 0.889 | +0.222 | 1.000 | 0.750 | -0.250 |
+| ACP:89499SID | 1.000 | 1.000 | 0.000 | 1.000 | 1.000 | 0.000 |
+
+**Verdict: CLOSED.** The context oracle produced mixed results. Standalone, it improved CMCZFLU4 grade (0.70→0.80, the target) and F1 on some guidelines, but overall grade accuracy only improved marginally (+0.006) and F1 dropped (-0.017). When combined with SC Adaptive, the oracle hurt both F1 (-0.010) and grade accuracy (-0.015) — it overwrites correct SC-voted grades with worse ones.
+
+**Key insight:** Adding source context helped CMCZFLU4 grades specifically, but deepseek-r1:32b still has poor calibration across grading schemes. The oracle occasionally overwrites correct values even with context. SC Adaptive alone (F1=0.783, Grade=0.892) remains the best overall config. Grade accuracy as an extractor (0.98) does not reliably transfer to a re-grading role.

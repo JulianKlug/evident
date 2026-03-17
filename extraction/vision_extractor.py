@@ -257,6 +257,8 @@ def auto_vision_extract_guideline(
     filter_model: str = "qwen3:8b",
     grading_oracle: bool = False,
     oracle_model: str = "deepseek-r1:32b",
+    context_oracle: bool = False,
+    context_similarity_model=None,
 ) -> ExtractionResult:
     """Extract recommendations, auto-detecting when vision is needed.
 
@@ -281,6 +283,8 @@ def auto_vision_extract_guideline(
         filter_model: Model to use for post-filter classification.
         grading_oracle: If True, re-grade recommendations using a reasoning model.
         oracle_model: Model to use for grading oracle.
+        context_oracle: If True, re-grade using context-aware oracle with BioLORD retrieval.
+        context_similarity_model: Pre-loaded BioLORD model for context retrieval.
 
     Returns:
         ExtractionResult with combined recommendations.
@@ -308,6 +312,8 @@ def auto_vision_extract_guideline(
             filter_model=filter_model,
             grading_oracle=grading_oracle,
             oracle_model=oracle_model,
+            context_oracle=context_oracle,
+            context_similarity_model=context_similarity_model,
         )
 
     print(f"  [Auto-vision] Detected {len(report.opaque_table_pages)} opaque table pages: "
@@ -384,6 +390,17 @@ def auto_vision_extract_guideline(
     if grading_oracle and not final_df.empty:
         from extraction.grading_oracle import regrade_recommendations
         final_df = regrade_recommendations(final_df, strategy.scheme, model=oracle_model)
+
+    if context_oracle and not final_df.empty:
+        from extraction.grading_oracle import regrade_with_context
+        from extraction.benchmark import _BioLORDSimilarityModel
+        _ctx_sim = context_similarity_model or _BioLORDSimilarityModel()
+        pages = load_pdf_pages(source)
+        page_texts = [p.text for p in pages]
+        final_df = regrade_with_context(
+            final_df, strategy.scheme, page_texts,
+            similarity_model=_ctx_sim, model=oracle_model,
+        )
 
     return ExtractionResult(
         recommendations_df=final_df,

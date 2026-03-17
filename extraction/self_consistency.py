@@ -106,6 +106,8 @@ def self_consistency_extract(
     filter_model: str = "qwen3:8b",
     grading_oracle: bool = False,
     oracle_model: str = "deepseek-r1:32b",
+    context_oracle: bool = False,
+    context_similarity_model=None,
 ) -> ExtractionResult:
     """Extract recommendations using self-consistency voting.
 
@@ -133,10 +135,15 @@ def self_consistency_extract(
         filter_model: Model to use for post-filter classification.
         grading_oracle: If True, re-grade recommendations using a reasoning model.
         oracle_model: Model to use for grading oracle (default deepseek-r1:32b).
+        context_oracle: If True, re-grade using context-aware oracle with BioLORD retrieval.
+        context_similarity_model: Pre-loaded BioLORD model for context retrieval.
 
     Returns:
         ExtractionResult with consensus-filtered recommendations.
     """
+    if grading_oracle and context_oracle:
+        raise ValueError("Cannot use both --grading-oracle and --context-oracle")
+
     pages = load_pdf_pages(source)
     chunks = _chunk_pages(pages, pages_per_chunk=pages_per_chunk)
 
@@ -265,6 +272,17 @@ def self_consistency_extract(
     if grading_oracle and not final_df.empty:
         from extraction.grading_oracle import regrade_recommendations
         final_df = regrade_recommendations(final_df, strategy.scheme, model=oracle_model)
+
+    # Context-aware grading oracle
+    if context_oracle and not final_df.empty:
+        from extraction.grading_oracle import regrade_with_context
+        from extraction.benchmark import _BioLORDSimilarityModel
+        _ctx_sim = context_similarity_model or _BioLORDSimilarityModel()
+        page_texts = [p.text for p in pages]
+        final_df = regrade_with_context(
+            final_df, strategy.scheme, page_texts,
+            similarity_model=_ctx_sim, model=oracle_model,
+        )
 
     return ExtractionResult(
         recommendations_df=final_df,

@@ -67,6 +67,7 @@ class ABTestConfig:
     ml_filter_threshold: float = 0.3
     grading_oracle: bool = False
     oracle_model: str = "deepseek-r1:32b"
+    context_oracle: bool = False
 
 
 # ── Test Registry ──────────────────────────────────────────────────────────
@@ -231,6 +232,36 @@ AB_TESTS = [
         adaptive_threshold=True,
         ml_filter=True,
     ),
+    ABTestConfig(
+        name="sc_adaptive_ml_filter_sc",
+        description="Adaptive SC + ML filter retrained on SC outputs",
+        priority=21,
+        prior_conclusion="New — SC-retrained classifier may better match SC output distribution",
+        self_consistency=True,
+        n_samples=3,
+        sc_temperature=0.3,
+        adaptive_threshold=True,
+        ml_filter=True,
+        classifier_path="artifacts/classifier_sc/rec_classifier.joblib",
+    ),
+    ABTestConfig(
+        name="context_oracle",
+        description="Baseline + context-aware grading oracle",
+        priority=19,
+        prior_conclusion="New — context-aware re-grading with BioLORD retrieval",
+        context_oracle=True,
+    ),
+    ABTestConfig(
+        name="sc_adaptive_context_oracle",
+        description="Adaptive SC + context-aware oracle",
+        priority=20,
+        prior_conclusion="New — best F1 + context-aware oracle",
+        self_consistency=True,
+        n_samples=3,
+        sc_temperature=0.3,
+        adaptive_threshold=True,
+        context_oracle=True,
+    ),
 ]
 
 
@@ -330,6 +361,8 @@ def run_single_test(config, datasets, similarity_model):
                     filter_model=config.filter_model,
                     grading_oracle=config.grading_oracle,
                     oracle_model=config.oracle_model,
+                    context_oracle=config.context_oracle,
+                    context_similarity_model=similarity_model if config.context_oracle else None,
                 )
             elif config.ensemble:
                 from extraction.ensemble import ensemble_extract
@@ -361,6 +394,8 @@ def run_single_test(config, datasets, similarity_model):
                     filter_model=config.filter_model,
                     grading_oracle=config.grading_oracle,
                     oracle_model=config.oracle_model,
+                    context_oracle=config.context_oracle,
+                    context_similarity_model=similarity_model if config.context_oracle else None,
                 )
             elif config.two_pass:
                 from extraction.two_pass import two_pass_extract
@@ -390,6 +425,8 @@ def run_single_test(config, datasets, similarity_model):
                     filter_model=config.filter_model,
                     grading_oracle=config.grading_oracle,
                     oracle_model=config.oracle_model,
+                    context_oracle=config.context_oracle,
+                    context_similarity_model=similarity_model if config.context_oracle else None,
                 )
         except Exception as e:
             print(f"ERROR: {e}", flush=True)

@@ -105,6 +105,8 @@ def extract_guideline(
     filter_model: str = "qwen3:8b",
     grading_oracle: bool = False,
     oracle_model: str = "deepseek-r1:32b",
+    context_oracle: bool = False,
+    context_similarity_model: SimilarityModel | None = None,
 ) -> ExtractionResult:
     """Extract recommendations from a guideline PDF.
 
@@ -128,10 +130,15 @@ def extract_guideline(
         filter_model: Model to use for post-filter classification (default qwen3:8b).
         grading_oracle: If True, re-grade recommendations using a reasoning model.
         oracle_model: Model to use for grading oracle (default deepseek-r1:32b).
+        context_oracle: If True, re-grade using context-aware oracle with BioLORD retrieval.
+        context_similarity_model: Pre-loaded BioLORD model for context retrieval.
 
     Returns:
         ExtractionResult with deduplicated recommendations and metadata.
     """
+    if grading_oracle and context_oracle:
+        raise ValueError("Cannot use both --grading-oracle and --context-oracle")
+
     if client is None:
         client = OllamaClient()
 
@@ -209,6 +216,17 @@ def extract_guideline(
     if grading_oracle and not final_df.empty:
         from extraction.grading_oracle import regrade_recommendations
         final_df = regrade_recommendations(final_df, strategy.scheme, model=oracle_model)
+
+    # Context-aware grading oracle
+    if context_oracle and not final_df.empty:
+        from extraction.grading_oracle import regrade_with_context
+        from extraction.benchmark import _BioLORDSimilarityModel
+        _ctx_sim = context_similarity_model or _BioLORDSimilarityModel()
+        page_texts = [p.text for p in pages]
+        final_df = regrade_with_context(
+            final_df, strategy.scheme, page_texts,
+            similarity_model=_ctx_sim, model=oracle_model,
+        )
 
     return ExtractionResult(
         recommendations_df=final_df,

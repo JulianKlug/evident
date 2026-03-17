@@ -1,6 +1,6 @@
 # Further Improvements for the Extraction Pipeline
 
-Last updated: 2026-03-14. Based on 15-dataset A/B validation benchmark.
+Last updated: 2026-03-15. Based on 15-dataset A/B validation benchmark (incl. SC+ML filter combo).
 
 ---
 
@@ -10,11 +10,12 @@ Last updated: 2026-03-14. Based on 15-dataset A/B validation benchmark.
 
 | Config | Avg F1 | Avg P | Avg R | Avg Grade |
 |--------|--------|-------|-------|-----------|
-| **SC Adaptive (best F1)** | **0.783** | 0.788 | 0.841 | 0.892 |
+| **SC Adaptive + ML Filter (best F1)** | **0.860** | **0.937** | 0.818 | 0.861 |
+| SC Adaptive | 0.783 | 0.788 | 0.841 | 0.892 |
 | SC Fixed (consensus=2) | 0.750 | 0.820 | 0.766 | 0.891 |
 | Baseline (few-shot+norm) | 0.707 | 0.608 | 0.936 | 0.881 |
 
-**Core problem:** Precision is the bottleneck. ~40% of baseline extractions are false positives — real PDF text (background statements, evidence summaries) misclassified as recommendations. Adaptive self-consistency helps precision (+30%) with modest recall trade (-10%).
+**Core problem:** Precision is the bottleneck. ~40% of baseline extractions are false positives — real PDF text (background statements, evidence summaries) misclassified as recommendations. SC Adaptive + ML filter achieves 93.7% precision (+33% over baseline) with modest recall trade (-12%).
 
 **Worst performers:**
 - ICU guidelines: P=0.17–0.41 (2–6× over-extraction), perfect recall
@@ -64,21 +65,7 @@ Best improvement on ICU guidelines with high FP rates (e.g., `10_1007_s00134-024
 - **Expected impact:** Medium — precision-focused by design, but untested on medical recommendation semantics
 - **Effort:** Medium (on Ollama, but needs prompt adaptation to its template format)
 
-### 5. Context-Aware Grading Oracle (deepseek-r1:32b)
-
-The context-free grading oracle (2026-03-13) failed because deepseek-r1:32b had no source text — it guessed grades from recommendation text alone, confidently overwriting correct values (level acc -0.101). However, deepseek-r1:32b achieved 0.98 grade accuracy as a primary extractor *with* source context. A context-aware variant could recover that accuracy.
-
-**Two approaches:**
-- **Provenance tracking:** Tag each recommendation with its source chunk during extraction, carry through dedup/normalization, pass chunk text to the oracle. More plumbing but gives exact context.
-- **Similarity retrieval:** For each recommendation, use BioLORD to find the most similar page chunk(s) from the PDF, include as context. Simpler but approximate.
-
-- **Expected impact:** +0.03–0.06 grade accuracy (0.892→0.93–0.95), F1 unchanged
-- **VRAM:** 19GB (deepseek-r1:32b), must swap with qwen3:14b sequentially
-- **Speed:** ~20-40s per rec with thinking mode, ~8-12 min per guideline
-- **Risk:** Small absolute gain (grade accuracy already 0.892 with SC Adaptive). Precision gap (F1=0.783) is the bigger problem. Provenance tracking adds pipeline complexity.
-- **Effort:** Medium (provenance approach ~100 lines across extractor/dedup/oracle; retrieval approach ~50 lines)
-
-### 6. DSPy Prompt Optimization
+### 5. DSPy Prompt Optimization
 
 [DSPy](https://dspy.ai/) automates prompt engineering. Uses MIPROv2 optimizer to search for better prompt formulations against your F1 metric. Works with Ollama via LiteLLM (`dspy.LM('ollama_chat/qwen3:14b')`).
 
@@ -92,7 +79,7 @@ Your benchmark infrastructure (GT + F1 scoring) maps directly to DSPy's evaluati
 
 ## Phase 3: High Effort (1+ week each)
 
-### 7. Vision Table Extraction Improvements (NI9RV3E7 — current F1=0.65)
+### 6. Vision Table Extraction Improvements (NI9RV3E7 — current F1=0.65)
 
 NI9RV3E7 (217 GT recs) uses vector-rendered tables. Current best: mistral-small3.2:24b (F1=0.65, P=0.79, R=0.55).
 
@@ -115,13 +102,13 @@ NI9RV3E7 (217 GT recs) uses vector-rendered tables. Current best: mistral-small3
 | minicpm-v:8b | 4.9GB | MiniCPM-V 2.6: excellent table extraction in benchmarks |
 | llava:13b | 7.4GB | Established vision-language model, less hallucination-prone |
 
-### 8. Better PDF Text Extraction (Marker)
+### 7. Better PDF Text Extraction (Marker)
 
 [Marker](https://github.com/datalab-to/marker) converts PDF to Markdown+JSON with high accuracy. Python 3.9 compatible (unlike Docling which requires 3.10+). Has `--use_llm` mode for highest accuracy. ~2GB VRAM.
 
 Won't fix the precision problem (false positives are correctly extracted text) but could improve grade/level accuracy where it drops to 0.50–0.67 due to table parsing failures.
 
-### 9. Fine-Tuning qwen3:14b
+### 8. Fine-Tuning qwen3:14b
 
 Fine-tune on 10–15 guideline examples to learn domain-specific recommendation boundaries. Highest potential impact but requires data preparation, LoRA setup, and careful validation to avoid overfitting on small dataset.
 
@@ -136,7 +123,9 @@ Fine-tune on 10–15 guideline examples to learn domain-specific recommendation 
 | — | Cross-scheme few-shot fallback | **DONE** | BDYDTUHA F1 +0.06 |
 | — | Parser hardening | **DONE** | Zero-cost defensive improvement |
 | — | Token overlap verification | **DONE** | Near-zero impact (Δ=-0.013 on 15ds), kept as safety net |
-| — | **Adaptive self-consistency** | **DONE** | **F1=0.783 (+0.076). New best config.** Cluster-adaptive thresholds fix small/large dataset failure modes. |
+| — | **SC Adaptive + ML filter** | **DONE** | **F1=0.860 (+0.153). NEW BEST CONFIG.** SC consensus + BioLORD+LR filter. P=0.937, R=0.818, Grade=0.861. |
+| — | SC + SC-retrained ML filter | **CLOSED** | F1=0.762. Only 23 FP training examples from SC outputs → classifier too weak (removed 1 rec total). Baseline-trained classifier generalizes better. |
+| — | **Adaptive self-consistency** | **DONE** | F1=0.783 (+0.076). Superseded by SC+ML combo. |
 | — | Self-consistency voting (fixed) | **DONE** | F1=0.750 (+0.043). Superseded by adaptive version. |
 | — | **ML filter (BioLORD+LR)** | **DONE** | F1=0.732 (+0.025), P +0.038, R -0.001. Threshold=0.30. Best on high-FP guidelines. |
 | — | Post-extraction filter (qwen3:8b) | **CLOSED** | F1=0.699 (-0.008). Said YES to everything for 9/14 guidelines; 6× slower. |
@@ -148,6 +137,7 @@ Fine-tune on 10–15 guideline examples to learn domain-specific recommendation 
 | — | Ensemble (union+dedup) | **CLOSED** | Too many false positives (avg F1=0.42) |
 | — | 3-page chunking | **CLOSED** | Δ=-0.029 on 15ds, pathologically slow on ICU (2.8hr/guideline) |
 | — | Grading oracle (deepseek-r1:32b) | **CLOSED** | F1=0.676 (-0.031), level acc -0.101. Overwrites correct values without source context. |
+| — | Context-aware oracle (deepseek-r1:32b) | **CLOSED** | F1=0.690 (-0.017), grade acc 0.887 (+0.006). Marginal grade improvement; SC+context combo (F1=0.773, grade=0.877) worse than SC alone. Oracle overwrites correct SC-voted grades. |
 | — | Alias expansion | **DONE** | Included in grading scheme fix |
 | — | Logprob confidence filtering | **SKIP** | FPs are real text, not hallucinations — model is "confident" about wrong classifications |
 

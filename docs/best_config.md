@@ -1,6 +1,6 @@
 # Best Model Configuration
 
-Last updated: 2026-03-14 (validated on 15-dataset benchmark)
+Last updated: 2026-03-15 (validated on 15-dataset benchmark)
 
 ## Recommended Commands
 
@@ -11,8 +11,11 @@ python run_benchmark.py --model qwen3:14b --few-shot-only --normalize
 # With ML filter (precision boost, ~zero recall cost)
 python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --ml-filter
 
-# With adaptive self-consistency (best F1, 3× slower)
+# With adaptive self-consistency (3× slower)
 python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --self-consistency --n-samples 3 --sc-temperature 0.3 --adaptive-threshold
+
+# With adaptive SC + ML filter (best F1, 3× slower)
+python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --self-consistency --n-samples 3 --sc-temperature 0.3 --adaptive-threshold --ml-filter
 
 # With auto-vision for opaque-table PDFs (e.g., NI9RV3E7)
 python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --auto-vision --vision-model mistral-small3.2:24b
@@ -32,9 +35,10 @@ python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --auto-vis
 
 | Config | Avg F1 | Avg P | Avg R | Avg Grade | Avg Level |
 |--------|--------|-------|-------|-----------|-----------|
-| **SC Adaptive** | **0.783** | 0.788 | 0.841 | **0.892** | 0.966 |
-| SC Fixed (consensus=2) | 0.750 | **0.820** | 0.766 | 0.891 | 0.923 |
-| **ML Filter (baseline+)** | 0.732 | 0.646 | 0.935 | 0.936 | — |
+| **SC Adaptive + ML Filter** | **0.860** | **0.937** | 0.818 | 0.861 | — |
+| SC Adaptive | 0.783 | 0.788 | 0.841 | **0.892** | 0.966 |
+| SC Fixed (consensus=2) | 0.750 | 0.820 | 0.766 | 0.891 | 0.923 |
+| ML Filter (baseline+) | 0.732 | 0.646 | 0.935 | 0.936 | — |
 | Baseline | 0.707 | 0.608 | **0.936** | 0.881 | 0.940 |
 
 ### Per-Guideline Breakdown (Baseline)
@@ -79,8 +83,9 @@ python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --auto-vis
 
 | Enhancement | Impact (15ds) | Flag |
 |-------------|---------------|------|
-| Adaptive self-consistency (3 samples) | **+0.076 F1**, P 0.61→0.79, R 0.94→0.84 | `--self-consistency --adaptive-threshold` |
-| ML filter (BioLORD+LR) | **+0.025 F1**, P +0.038, R -0.001 | `--ml-filter` |
+| **SC Adaptive + ML filter (combined)** | **+0.153 F1**, P 0.61→0.94, R 0.94→0.82 | `--self-consistency --adaptive-threshold --ml-filter` |
+| Adaptive self-consistency (3 samples) | +0.076 F1, P 0.61→0.79, R 0.94→0.84 | `--self-consistency --adaptive-threshold` |
+| ML filter (BioLORD+LR) | +0.025 F1, P +0.038, R -0.001 | `--ml-filter` |
 | Cross-scheme few-shot fallback | BDYDTUHA F1 +0.06 | automatic |
 | Parser hardening | defensive, no regression | automatic |
 | Token overlap verification | near-zero impact | `--verify` |
@@ -100,5 +105,6 @@ python run_benchmark.py --model qwen3:14b --few-shot-only --normalize --auto-vis
 | Ensemble (union+dedup) | 0.42 (5ds) | Union adds too many false positives |
 | CoT prompt | < baseline (5ds) | Model overthinks, causes regressions |
 | Grading oracle (deepseek-r1:32b) | 0.676 (-0.031) | Overwrites correct grades/levels without source context; level acc -0.101 |
+| Context-aware oracle (deepseek-r1:32b) | 0.690 (-0.017) | Marginal grade improvement (+0.006) doesn't justify F1 drop; oracle overwrites correct SC-voted grades |
 | gemma3:27b vision | 0.30 (NI9RV3E7) | Heavy hallucination (995 raw recs) |
 | qwen2.5vl:7b vision | N/A | Crashes (GGML assertion error) |

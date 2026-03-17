@@ -33,6 +33,8 @@ def run_benchmark_unbuffered(
     adaptive_threshold=False,
     grading_oracle=False,
     oracle_model="deepseek-r1:32b",
+    context_oracle=False,
+    context_similarity_model=None,
 ):
     """Same as run_full_benchmark but with flushed prints and new options."""
     entries = []
@@ -70,6 +72,8 @@ def run_benchmark_unbuffered(
                             filter_model=filter_model,
                             grading_oracle=grading_oracle,
                             oracle_model=oracle_model,
+                            context_oracle=context_oracle,
+                            context_similarity_model=context_similarity_model,
                         )
                     elif ensemble:
                         from extraction.ensemble import ensemble_extract
@@ -110,6 +114,8 @@ def run_benchmark_unbuffered(
                             ml_filter_threshold=ml_filter_threshold,
                             grading_oracle=grading_oracle,
                             oracle_model=oracle_model,
+                            context_oracle=context_oracle,
+                            context_similarity_model=context_similarity_model,
                         )
                     elif two_pass:
                         from extraction.two_pass import two_pass_extract
@@ -139,6 +145,8 @@ def run_benchmark_unbuffered(
                             filter_model=filter_model,
                             grading_oracle=grading_oracle,
                             oracle_model=oracle_model,
+                            context_oracle=context_oracle,
+                            context_similarity_model=context_similarity_model,
                         )
                 except Exception as e:
                     print(f"  ERROR: {e}", flush=True)
@@ -327,9 +335,13 @@ if __name__ == "__main__":
 
     grading_oracle = False
     oracle_model = "deepseek-r1:32b"
+    context_oracle = False
     if "--grading-oracle" in sys.argv:
         grading_oracle = True
         print("Grading oracle enabled", flush=True)
+    if "--context-oracle" in sys.argv:
+        context_oracle = True
+        print("Context-aware grading oracle enabled", flush=True)
     if "--oracle-model" in sys.argv:
         idx = sys.argv.index("--oracle-model")
         oracle_model = sys.argv[idx + 1]
@@ -369,6 +381,8 @@ if __name__ == "__main__":
         adaptive_threshold=adaptive_threshold,
         grading_oracle=grading_oracle,
         oracle_model=oracle_model,
+        context_oracle=context_oracle,
+        context_similarity_model=sim_model if context_oracle else None,
     )
 
     if not results.empty:
