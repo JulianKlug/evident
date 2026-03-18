@@ -13,6 +13,7 @@ AVAILABLE_MODELS = {
     "qwen3:8b": {"context_window": 16384, "has_thinking": False},
     "llama3.2:latest": {"context_window": 8192, "has_thinking": False},
     "qwen3:14b": {"context_window": 32768, "has_thinking": False},
+    "qwen3-14b-ft": {"context_window": 4096, "has_thinking": True, "use_chat": True},
     "gemma3:27b": {"context_window": 32768, "has_thinking": False},
     "mistral-small3.2:24b": {"context_window": 32768, "has_thinking": False},
     "qwen3:30b-a3b": {"context_window": 32768, "has_thinking": False},
@@ -44,8 +45,16 @@ class OllamaClient:
     def has_thinking(self) -> bool:
         return self.model_info.get("has_thinking", False)
 
+    @property
+    def use_chat(self) -> bool:
+        """Whether this model requires chat API (ChatML-trained models)."""
+        return self.model_info.get("use_chat", False)
+
     def generate(self, prompt: str, num_ctx: int | None = None, temperature: float = 0) -> LLMResponse:
         """Generate a completion from the model.
+
+        For ChatML-trained models (use_chat=True), automatically splits the prompt
+        into system/user messages and uses the chat API.
 
         Args:
             prompt: The prompt text.
@@ -53,6 +62,9 @@ class OllamaClient:
                      otherwise uses the model's default context window.
             temperature: Sampling temperature (0 = deterministic).
         """
+        if self.use_chat:
+            return self._generate_chat(prompt, num_ctx=num_ctx, temperature=temperature)
+
         options: dict = {"temperature": temperature}
         if num_ctx is not None:
             options["num_ctx"] = num_ctx
@@ -66,6 +78,48 @@ class OllamaClient:
 
         return LLMResponse(
             raw_text=response.get("response", ""),
+            model=self.model,
+            prompt_tokens=response.get("prompt_eval_count", 0),
+            eval_tokens=response.get("eval_count", 0),
+            total_duration_ms=elapsed_ms,
+        )
+
+    def _generate_chat(self, prompt: str, num_ctx: int | None = None, temperature: float = 0) -> LLMResponse:
+        """Generate using chat API for ChatML-trained models.
+
+        Splits the prompt at "--- Guideline Text ---" to separate system instructions
+        from user content.
+        """
+        # Split prompt into system (instructions) and user (guideline text + query)
+        marker = "--- Guideline Text ---"
+        if marker in prompt:
+            idx = prompt.index(marker)
+            system_content = prompt[:idx].rstrip()
+            user_content = prompt[idx:]
+        else:
+            system_content = ""
+            user_content = prompt
+
+        messages = []
+        if system_content:
+            messages.append({"role": "system", "content": system_content})
+        messages.append({"role": "user", "content": user_content})
+
+        options: dict = {"temperature": temperature}
+        if num_ctx is not None:
+            options["num_ctx"] = num_ctx
+
+        start = time.time()
+        response = self._client.chat(
+            model=self.model,
+            messages=messages,
+            options=options,
+        )
+        elapsed_ms = (time.time() - start) * 1000
+
+        msg = response.get("message", {})
+        return LLMResponse(
+            raw_text=msg.get("content", ""),
             model=self.model,
             prompt_tokens=response.get("prompt_eval_count", 0),
             eval_tokens=response.get("eval_count", 0),
