@@ -45,6 +45,28 @@ import ollama
 
 # ── Medical topics for synthetic page generation ──
 
+# ── Scheme-specific density distributions ──
+# Weights for number of recs per synthetic page, reflecting real-world densities.
+# ABCD_123 (BDYDTUHA) has 1-11 recs/page in real data, so we sample up to 8.
+DENSITY_WEIGHTS = {
+    "grade": {1: 5, 2: 3, 3: 2, 4: 1},
+    "esc_ers": {1: 3, 2: 3, 3: 2, 4: 1, 5: 1},
+    "abcd_123": {1: 2, 2: 2, 3: 2, 4: 3, 5: 2, 6: 2, 7: 1, 8: 1},
+}
+
+
+def sample_n_recs(scheme_name: str, rng: random.Random, max_recs: int) -> int:
+    """Sample number of recs from scheme-specific weighted distribution."""
+    weights = DENSITY_WEIGHTS.get(scheme_name, {1: 1, 2: 1, 3: 1})
+    # Filter to respect max_recs cap
+    filtered = {k: v for k, v in weights.items() if k <= max_recs}
+    if not filtered:
+        return 1
+    values = list(filtered.keys())
+    w = list(filtered.values())
+    return rng.choices(values, weights=w, k=1)[0]
+
+
 MEDICAL_TOPICS = {
     "grade": [
         "management of chronic obstructive pulmonary disease exacerbations",
@@ -148,6 +170,7 @@ def generate_synthetic_page(
     n_recs: int,
     seed_recs: List[Tuple[str, str, str]],
     rng: random.Random,
+    model: str = "qwen3:14b",
 ) -> Optional[Tuple[str, List[Tuple[str, str, str]]]]:
     """Generate a synthetic guideline page with embedded recommendations.
 
@@ -244,11 +267,15 @@ def generate_synthetic_page(
             f"Generate the guideline page now:"
         )
 
+    # Use larger context for reasoning models
+    num_ctx = 8192 if "deepseek" in model or "32b" in model else 4096
+    num_predict = 4096 if "deepseek" in model or "32b" in model else 2048
+
     try:
         response = client.generate(
-            model="qwen3:14b",
+            model=model,
             prompt=prompt,
-            options={"temperature": 0.8, "num_ctx": 4096, "num_predict": 2048},
+            options={"temperature": 0.8, "num_ctx": num_ctx, "num_predict": num_predict},
         )
         raw = response.get("response", "")
     except Exception as e:
@@ -311,6 +338,7 @@ def recontextualize_recs(
     scheme_name: str,
     recs: List[Tuple[str, str, str]],
     topic: str,
+    model: str = "qwen3:14b",
 ) -> Optional[Tuple[str, List[Tuple[str, str, str]]]]:
     """Embed existing real GT recs in a new synthetic page context.
 
@@ -341,11 +369,14 @@ def recontextualize_recs(
         f"Generate the guideline page now:"
     )
 
+    num_ctx = 8192 if "deepseek" in model or "32b" in model else 4096
+    num_predict = 4096 if "deepseek" in model or "32b" in model else 2048
+
     try:
         response = client.generate(
-            model="qwen3:14b",
+            model=model,
             prompt=prompt,
-            options={"temperature": 0.7, "num_ctx": 4096, "num_predict": 2048},
+            options={"temperature": 0.7, "num_ctx": num_ctx, "num_predict": num_predict},
         )
         raw = response.get("response", "")
     except Exception as e:
@@ -424,8 +455,10 @@ def main():
                         help="Fraction of examples that are negatives")
     parser.add_argument("--recontextualize-ratio", type=float, default=0.3,
                         help="Fraction of positives using real GT recs in new contexts")
-    parser.add_argument("--max-recs-per-page", type=int, default=3,
+    parser.add_argument("--max-recs-per-page", type=int, default=8,
                         help="Max recommendations per synthetic page")
+    parser.add_argument("--model", default="deepseek-r1:32b",
+                        help="Ollama model for synthetic generation")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--host", default=None, help="Ollama host")
     args = parser.parse_args()
@@ -448,6 +481,8 @@ def main():
     }
 
     client = ollama.Client(**({"host": args.host} if args.host else {}))
+    model = args.model
+    print(f"Using model: {model}")
 
     all_examples = []
     all_stats = defaultdict(lambda: {"positive": 0, "negative": 0, "recontext": 0, "failed": 0})
@@ -478,8 +513,8 @@ def main():
         print(f"\nGenerating {n_fully_synthetic} fully synthetic positives...")
         for i in range(n_fully_synthetic):
             topic = rng.choice(topics)
-            n_recs = rng.randint(1, args.max_recs_per_page)
-            result = generate_synthetic_page(client, scheme_name, topic, n_recs, seeds, rng)
+            n_recs = sample_n_recs(scheme_name, rng, args.max_recs_per_page)
+            result = generate_synthetic_page(client, scheme_name, topic, n_recs, seeds, rng, model=model)
 
             if result is None:
                 stats["failed"] += 1
@@ -509,7 +544,7 @@ def main():
                 n_pick = rng.randint(1, min(2, len(gt_recs)))
                 picked_recs = rng.sample(gt_recs, n_pick)
 
-                result = recontextualize_recs(client, scheme_name, picked_recs, topic)
+                result = recontextualize_recs(client, scheme_name, picked_recs, topic, model=model)
 
                 if result is None:
                     stats["failed"] += 1
@@ -528,7 +563,7 @@ def main():
         print(f"\nGenerating {n_negatives} hard negatives...")
         for i in range(n_negatives):
             topic = rng.choice(topics)
-            result = generate_synthetic_page(client, scheme_name, topic, 0, seeds, rng)
+            result = generate_synthetic_page(client, scheme_name, topic, 0, seeds, rng, model=model)
 
             if result is None:
                 stats["failed"] += 1

@@ -50,6 +50,8 @@ def main():
     parser.add_argument("--output", required=True, help="Output merged JSONL path")
     parser.add_argument("--max-synthetic-ratio", type=float, default=3.0,
                         help="Max ratio of synthetic:real examples per scheme")
+    parser.add_argument("--duplicate-positives", type=int, default=1,
+                        help="Duplicate positive examples N times (N=2 means each positive appears twice)")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -89,6 +91,25 @@ def main():
 
         print(f"  {scheme}: {n_real} real + {n_synth_used} synthetic "
               f"(of {n_synth_available} available) = {n_real + n_synth_used}")
+
+    # Duplicate positive examples for loss weighting
+    if args.duplicate_positives > 1:
+        positives = []
+        for record in merged:
+            msgs = record.get("messages", [])
+            # Check if assistant response is not NO_RECOMMENDATIONS_FOUND
+            assistant_msg = ""
+            for m in msgs:
+                if m.get("role") == "assistant":
+                    assistant_msg = m.get("content", "")
+            if assistant_msg.strip() != "NO_RECOMMENDATIONS_FOUND":
+                positives.append(record)
+
+        n_dupes = len(positives) * (args.duplicate_positives - 1)
+        for _ in range(args.duplicate_positives - 1):
+            merged.extend(positives)
+        print(f"\nPositive duplication ({args.duplicate_positives}x): "
+              f"added {n_dupes} copies of {len(positives)} positive examples")
 
     # Shuffle
     rng.shuffle(merged)
