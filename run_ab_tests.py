@@ -262,7 +262,35 @@ AB_TESTS = [
         adaptive_threshold=True,
         context_oracle=True,
     ),
+    ABTestConfig(
+        name="finetuned_baseline",
+        description="Fine-tuned qwen3-14b, no few-shot",
+        priority=22,
+        prior_conclusion="New — fine-tuned model zero-shot baseline",
+        strategies=["zero_shot"],
+    ),
+    ABTestConfig(
+        name="finetuned_few_shot",
+        description="Fine-tuned qwen3-14b + few-shot",
+        priority=23,
+        prior_conclusion="New — fine-tuned + few-shot (may hurt if overfitting)",
+    ),
+    ABTestConfig(
+        name="finetuned_sc_ml",
+        description="Fine-tuned qwen3-14b + SC adaptive + ML filter",
+        priority=24,
+        prior_conclusion="New — fine-tuned + best pipeline combo",
+        self_consistency=True,
+        n_samples=3,
+        sc_temperature=0.3,
+        adaptive_threshold=True,
+        ml_filter=True,
+    ),
 ]
+
+# Model override for fine-tuned tests
+_FINETUNED_TESTS = {"finetuned_baseline", "finetuned_few_shot", "finetuned_sc_ml"}
+FINETUNED_MODEL = "qwen3-14b-ft"
 
 
 def _get_csv_path(test_name):
@@ -315,7 +343,8 @@ def run_single_test(config, datasets, similarity_model):
     normalize = config.normalize if config.normalize is not None else True
     strategy_name = strategies[0]
 
-    client = OllamaClient(model=DEFAULT_MODEL)
+    model = FINETUNED_MODEL if config.name in _FINETUNED_TESTS else DEFAULT_MODEL
+    client = OllamaClient(model=model)
     entries = []
 
     # Load any previously completed entries
@@ -447,7 +476,7 @@ def run_single_test(config, datasets, similarity_model):
             continue
 
         entry = BenchmarkEntry(
-            model=DEFAULT_MODEL,
+            model=model,
             strategy=strategy_name,
             dataset_name=ds.dataset_name,
             guideline_key=ds.key,
