@@ -43,13 +43,41 @@ _EXTRACTION_SCHEMA = {
 @dataclass
 class ExtractionResult:
     """Result of extracting recommendations from a guideline PDF."""
-    recommendations_df: pd.DataFrame  # columns: recommendation, class, LOE, category
+    recommendations_df: pd.DataFrame  # columns: recommendation, class, LOE, category, page, chunk_id
     n_pages: int
     n_pages_with_recs: int
     n_raw_recommendations: int
     n_final_recommendations: int
     per_page_responses: list[LLMResponse] = field(default_factory=list)
     vision_pages: list = field(default_factory=list)  # pages processed by vision
+
+
+def _chunk_spans(
+    pages: list[PDFPage],
+    pages_per_chunk: int = 3,
+    overlap: int = 1,
+) -> list[tuple[int, str]]:
+    """Group pages into overlapping chunks, keeping each chunk's 1-based start page.
+
+    Example: 3 pages, pages_per_chunk=2, overlap=1 → [(1, "p1 … p2"), (2, "p2 … p3")].
+    """
+    if pages_per_chunk <= 0:
+        raise ValueError("pages_per_chunk must be positive")
+
+    if pages_per_chunk == 1:
+        return [(p.page_number, p.text) for p in pages]
+
+    spans = []
+    step = max(1, pages_per_chunk - overlap)
+    for start in range(0, len(pages), step):
+        end = min(start + pages_per_chunk, len(pages))
+        chunk_pages = pages[start:end]
+        chunk_text = "\n--- Page Break ---\n".join(p.text for p in chunk_pages)
+        spans.append((chunk_pages[0].page_number, chunk_text))
+        if end >= len(pages):
+            break
+
+    return spans
 
 
 def _chunk_pages(
@@ -67,23 +95,7 @@ def _chunk_pages(
     Returns:
         List of concatenated text chunks.
     """
-    if pages_per_chunk <= 0:
-        raise ValueError("pages_per_chunk must be positive")
-
-    if pages_per_chunk == 1:
-        return [p.text for p in pages]
-
-    chunks = []
-    step = max(1, pages_per_chunk - overlap)
-    for start in range(0, len(pages), step):
-        end = min(start + pages_per_chunk, len(pages))
-        chunk_pages = pages[start:end]
-        chunk_text = "\n--- Page Break ---\n".join(p.text for p in chunk_pages)
-        chunks.append(chunk_text)
-        if end >= len(pages):
-            break
-
-    return chunks
+    return [text for _, text in _chunk_spans(pages, pages_per_chunk, overlap)]
 
 
 def extract_guideline(
@@ -143,7 +155,8 @@ def extract_guideline(
         client = OllamaClient()
 
     pages = load_pdf_pages(source)
-    chunks = _chunk_pages(pages, pages_per_chunk=pages_per_chunk)
+    spans = _chunk_spans(pages, pages_per_chunk=pages_per_chunk)
+    chunks = [text for _, text in spans]
 
     all_dfs = []
     responses = []
@@ -154,7 +167,7 @@ def extract_guideline(
     if pages_per_chunk > 1:
         ctx_override = client.model_info.get("context_window", 8192)
 
-    for chunk_text in chunks:
+    for chunk_id, (start_page, chunk_text) in enumerate(spans):
         prompt = build_prompt(chunk_text, strategy, output_format=output_format)
 
         if output_format == "json":
@@ -169,13 +182,16 @@ def extract_guideline(
             chunk_df = parse_llm_response(response.raw_text, has_thinking=client.has_thinking)
 
         if not chunk_df.empty:
+            # Provenance: chunk's start page and index
+            chunk_df["page"] = start_page
+            chunk_df["chunk_id"] = chunk_id
             n_chunks_with_recs += 1
             all_dfs.append(chunk_df)
 
     if all_dfs:
         raw_df = pd.concat(all_dfs, ignore_index=True)
     else:
-        raw_df = pd.DataFrame(columns=["recommendation", "class", "LOE", "category"])
+        raw_df = pd.DataFrame(columns=["recommendation", "class", "LOE", "category", "page", "chunk_id"])
 
     n_raw = len(raw_df)
 

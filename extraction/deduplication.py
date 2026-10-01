@@ -38,10 +38,14 @@ def deduplicate_recommendations(
     df["_norm"] = df["recommendation"].str.strip().str.lower().str.replace(r"\s+", " ", regex=True)
 
     # Group by normalized text, keep the row with the longest original recommendation
+    has_page = "page" in df.columns
     keep_indices = []
     for _, group in df.groupby("_norm"):
         longest_idx = group["recommendation"].str.len().idxmax()
         keep_indices.append(longest_idx)
+        # Provenance: the kept row points to the earliest page it appeared on
+        if has_page:
+            df.loc[longest_idx, "page"] = group["page"].min()
 
     df = df.loc[keep_indices].drop(columns=["_norm"]).reset_index(drop=True)
 
@@ -59,6 +63,7 @@ def _semantic_dedup(
 ) -> pd.DataFrame:
     """Remove semantically similar recommendations, keeping the longer one."""
     texts = df["recommendation"].tolist()
+    pages = df["page"].tolist() if "page" in df.columns else None
     n = len(texts)
     to_remove = set()
 
@@ -70,6 +75,9 @@ def _semantic_dedup(
                 continue
             sim = similarity_model.compute_similarity(texts[i], texts[j])
             if sim >= threshold:
+                # Kept row inherits the earliest page of the pair
+                if pages is not None:
+                    pages[i] = pages[j] = min(pages[i], pages[j])
                 # Keep the longer recommendation
                 if len(texts[i]) >= len(texts[j]):
                     to_remove.add(j)
@@ -78,4 +86,6 @@ def _semantic_dedup(
                     break  # i is removed, stop comparing
 
     keep_indices = [i for i in range(n) if i not in to_remove]
+    if pages is not None:
+        df = df.assign(page=pages)
     return df.iloc[keep_indices].reset_index(drop=True)

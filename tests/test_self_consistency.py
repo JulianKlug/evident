@@ -30,3 +30,14 @@ def test_category_is_majority_vote(monkeypatch):
         f"{_REC} | Strong For | High",
     ])
     assert df["category"].tolist() == ["best_practice"]
+
+
+def test_cluster_keeps_min_page_and_its_chunk(monkeypatch):
+    # 2 pages per sample, rec found on page 2 by two samples and page 1 by one
+    df = _run_sc(monkeypatch, [
+        "NO_RECOMMENDATIONS_FOUND", f"{_REC} | Strong For | High",
+        f"{_REC} | Strong For | High", "NO_RECOMMENDATIONS_FOUND",
+        "NO_RECOMMENDATIONS_FOUND", f"{_REC} | Strong For | High",
+    ], n_pages=2)
+
+    assert df[["page", "chunk_id"]].values.tolist() == [[1, 0]]

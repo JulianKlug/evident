@@ -71,3 +71,24 @@ class TestSemanticDedup:
         result = deduplicate_recommendations(df, similarity_threshold=0.9, similarity_model=None)
         # Without a model, only exact dedup applies; these are different
         assert len(result) == 2
+
+
+class TestPageProvenance:
+    def test_exact_dedup_keeps_min_page(self):
+        df = _make_df(["Use drug X for longer", "use drug x for longer", "Use drug Y"])
+        df["page"] = [5, 2, 1]
+
+        out = deduplicate_recommendations(df)
+
+        assert dict(zip(out["recommendation"].str.lower(), out["page"])) == {
+            "use drug x for longer": 2, "use drug y": 1,
+        }
+
+    def test_semantic_dedup_keeps_min_page(self, fake_similarity_model):
+        df = _make_df(["Use drug X in adults with sepsis", "Use drug X in adults with sepsis now"])
+        df["page"] = [3, 7]
+
+        out = deduplicate_recommendations(df, similarity_threshold=0.8, similarity_model=fake_similarity_model)
+
+        assert out["recommendation"].tolist() == ["Use drug X in adults with sepsis now"]
+        assert out["page"].tolist() == [3]

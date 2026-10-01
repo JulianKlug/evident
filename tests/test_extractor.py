@@ -68,7 +68,7 @@ class TestExtractGuideline:
         assert result.n_raw_recommendations == 2
         assert result.n_final_recommendations == 2
         assert len(result.recommendations_df) == 2
-        assert list(result.recommendations_df.columns) == ["recommendation", "class", "LOE", "category"]
+        assert list(result.recommendations_df.columns) == ["recommendation", "class", "LOE", "category", "page", "chunk_id"]
 
     def test_dedup_across_pages(self, monkeypatch):
         """Same recommendation on two pages should be deduplicated."""
@@ -107,3 +107,41 @@ class TestExtractGuideline:
 
         assert result.n_final_recommendations == 0
         assert result.recommendations_df.empty
+
+
+class TestChunkSpans:
+    @pytest.mark.parametrize("n_pages, pages_per_chunk", [(4, 1), (5, 3), (3, 2), (1, 3)])
+    def test_spans_match_chunk_pages_text(self, n_pages, pages_per_chunk):
+        from extraction.extractor import _chunk_pages, _chunk_spans
+        from extraction.pdf_loader import PDFPage
+        pages = [PDFPage(page_number=i + 1, text=f"text {i + 1}") for i in range(n_pages)]
+
+        spans = _chunk_spans(pages, pages_per_chunk=pages_per_chunk)
+
+        assert [t for _, t in spans] == _chunk_pages(pages, pages_per_chunk=pages_per_chunk)
+
+    def test_span_start_pages_with_overlap(self):
+        from extraction.extractor import _chunk_spans
+        from extraction.pdf_loader import PDFPage
+        pages = [PDFPage(page_number=i + 1, text=f"text {i + 1}") for i in range(5)]
+
+        assert [p for p, _ in _chunk_spans(pages, pages_per_chunk=3, overlap=1)] == [1, 3]
+
+
+def test_rows_carry_chunk_start_page(monkeypatch):
+    """Synthetic 3-page doc, 2 pages per chunk: chunks start on pages 1 and 2."""
+    import extraction.extractor as extractor_mod
+    from tests.legacy_golden import MockClient, load_fixture
+    from extraction.pdf_loader import PDFPage
+    fx = load_fixture("synthetic")
+    pages = [PDFPage(page_number=i + 1, text=t) for i, t in enumerate(fx["pages"])]
+    monkeypatch.setattr(extractor_mod, "load_pdf_pages", lambda source: pages)
+
+    result = extract_guideline("fake.pdf", strategy=PromptStrategy(name="zero_shot", scheme=GRADE),
+                               client=MockClient(fx["responses"]), pages_per_chunk=fx["pages_per_chunk"])
+
+    by_text = result.recommendations_df.set_index("recommendation")
+    assert by_text.loc["We recommend early antibiotics", ["page", "chunk_id"]].tolist() == [1, 0]
+    # Repeated in both chunks → earliest page wins
+    assert by_text.loc["We suggest balanced crystalloids over saline", "page"] == 1
+    assert by_text.loc["Reassess volume status frequently", ["page", "chunk_id"]].tolist() == [2, 1]

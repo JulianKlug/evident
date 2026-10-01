@@ -8,7 +8,7 @@ from typing import Optional, TYPE_CHECKING
 import numpy as np
 import pandas as pd
 
-from extraction.extractor import ExtractionResult, _chunk_pages
+from extraction.extractor import ExtractionResult, _chunk_spans
 from extraction.pdf_loader import load_pdf_pages
 from extraction.prompts import PromptStrategy, build_prompt
 from extraction.llm_client import OllamaClient
@@ -18,7 +18,7 @@ from extraction.deduplication import deduplicate_recommendations
 if TYPE_CHECKING:
     pass
 
-_OUTPUT_COLUMNS = ["recommendation", "class", "LOE", "category"]
+_OUTPUT_COLUMNS = ["recommendation", "class", "LOE", "category", "page", "chunk_id"]
 
 
 def _cluster_recommendations(
@@ -147,14 +147,14 @@ def self_consistency_extract(
         raise ValueError("Cannot use both --grading-oracle and --context-oracle")
 
     pages = load_pdf_pages(source)
-    chunks = _chunk_pages(pages, pages_per_chunk=pages_per_chunk)
+    spans = _chunk_spans(pages, pages_per_chunk=pages_per_chunk)
 
     ctx_override = None
     if pages_per_chunk > 1:
         ctx_override = client.model_info.get("context_window", 8192)
 
     # Collect recs from N stochastic runs
-    all_recs = []  # list of (sample_idx, recommendation, class, LOE, category)
+    all_recs = []  # list of (sample_idx, recommendation, class, LOE, category, page, chunk_id)
     all_responses = []
     total_raw = 0
 
@@ -162,13 +162,15 @@ def self_consistency_extract(
         print(f"  [SC] Sample {sample_idx + 1}/{n_samples}...", flush=True)
         sample_dfs = []
 
-        for chunk_text in chunks:
+        for chunk_id, (start_page, chunk_text) in enumerate(spans):
             prompt = build_prompt(chunk_text, strategy, output_format=output_format)
             response = client.generate(prompt, num_ctx=ctx_override, temperature=temperature)
             all_responses.append(response)
 
             chunk_df = parse_llm_response(response.raw_text, has_thinking=client.has_thinking)
             if not chunk_df.empty:
+                chunk_df["page"] = start_page
+                chunk_df["chunk_id"] = chunk_id
                 sample_dfs.append(chunk_df)
 
         if sample_dfs:
@@ -183,6 +185,8 @@ def self_consistency_extract(
                     row.get("class", ""),
                     row.get("LOE", ""),
                     row.get("category", CATEGORY_GRADED),
+                    row["page"],
+                    row["chunk_id"],
                 ))
             print(f"  [SC] Sample {sample_idx + 1}: {len(sample_df)} recs (deduped)", flush=True)
         else:
@@ -200,7 +204,7 @@ def self_consistency_extract(
         )
 
     # Build pooled dataframe with sample tags
-    pooled_df = pd.DataFrame(all_recs, columns=["sample_idx", "recommendation", "class", "LOE", "category"])
+    pooled_df = pd.DataFrame(all_recs, columns=["sample_idx", "recommendation", "class", "LOE", "category", "page", "chunk_id"])
     texts = pooled_df["recommendation"].tolist()
 
     # Cluster by semantic similarity
@@ -234,11 +238,16 @@ def self_consistency_extract(
         level = _majority_vote(cluster_rows["LOE"].tolist())
         category = _majority_vote(cluster_rows["category"].tolist())
 
+        # Provenance: earliest page in the cluster, with that row's chunk
+        first_row = cluster_rows.loc[cluster_rows["page"].idxmin()]
+
         kept_rows.append({
             "recommendation": best_row["recommendation"],
             "class": grade,
             "LOE": level,
             "category": category,
+            "page": first_row["page"],
+            "chunk_id": first_row["chunk_id"],
         })
 
     if kept_rows:
