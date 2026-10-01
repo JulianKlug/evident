@@ -1,6 +1,6 @@
 # Spec: M1 Pipeline End to End
 
-Status: DRAFT · 2026-10-01 · Branch: `agent_explor`
+Status: IMPLEMENTED except §13 (real run pending) · 2026-10-01 · Branch: `agent_explor`
 Parent docs: `docs/designs/living-evidence-map.md` (decisions), `docs/roadmap.md` (M1), `docs/specs/m0-foundations.md` (store, harmonization, corpus)
 Tasks: T3b legacy hooks · T4 ExtractorConfig · T7 pipeline + CLI · T11 PDF fetcher · T8a headline CSV · first real run
 
@@ -504,3 +504,14 @@ One commit per numbered section. Run the golden replay after each Lane C step.
 - **Bootstrap on 12 clusters** gives wide CIs; the gate catches only clear regressions. That is the intent of OV4, but say so in the paper.
 - **`load_pdf_pages` DOI fallback** stays in legacy code. Only the `run()` guard protects the pipeline; a future direct caller could still reach Sci-Hub.
 - **BioLORD revision** comes from the local HF cache. A cache wipe plus re-download of a newer revision is caught by `check_artifacts`, but blocks `add` until a new snapshot.
+
+## 18. Implementation notes (2026-10-01)
+Everything except the real run (§13.2–13.4) is in. Differences from the text above:
+- **Few-shot examples are stored at `finish_run`.** The runner picks them, so `start_run` gets `[]` and `finish_run(..., few_shot=)` overwrites it.
+- **Pool drift is detected through the id.** `ExtractorVersion` has no pool column; `check_artifacts` compares digest, classifier and embedding field by field, then recomputes the id. A different id with equal fields is reported as `few_shot_pool_sha256`.
+- **`PipelineDeps.headline_path`** added so tests write to a tmp dir; the CLI passes `out/headline.csv`.
+- **`status` reports the newest snapshot of any state**, so a COMPLETE snapshot awaiting `publish` is visible. Only one can be BUILDING, so this is always the one in progress.
+- **`add` probes artifacts before attaching the member**, so a drift doesn't leave a member without a run. A failed `add` exits 1 and doesn't publish.
+- **`ExtractorConfig` rejects any embedding model but BioLORD**, so the CLI's single lazy BioLORD serves extraction and validation.
+- **Validation matching** uses `build_similarity_matrix` + Hungarian directly (same as `match_recommendations`) to keep row indices for grade comparison.
+- **Dedup differs from the legacy baseline.** §5.3 injects BioLORD as `dedup_model`; `benchmark.run_full_benchmark` ran exact-only dedup. v0 may drop a few near-duplicates the legacy run kept.
