@@ -63,3 +63,39 @@ def test_no_seed_kwarg_when_unseeded(monkeypatch):
     client = _SeedRecordingClient([f"{_REC} | Strong For | High"] * 3)
     _run_sc(monkeypatch, [], client=client)
     assert client.seeds == ["unset"] * 3
+
+
+def test_call_records_per_sample_and_chunk(monkeypatch):
+    import hashlib
+    import extraction.self_consistency as sc_mod
+    pages = [PDFPage(page_number=i + 1, text=f"page {i + 1}") for i in range(2)]
+    monkeypatch.setattr(sc_mod, "load_pdf_pages", lambda source: pages)
+    client = _SeedRecordingClient([f"{_REC} | Strong For | High"] * 6)
+
+    result = self_consistency_extract(
+        "fake.pdf", strategy=PromptStrategy(name="zero_shot", scheme=GRADE), client=client,
+        similarity_model=FakeEncoder(), n_samples=3, seed=10,
+    )
+
+    records = result.call_records
+    assert [(r.sample_idx, r.chunk_id, r.seed) for r in records] == [
+        (s, c, 10 + s) for s in range(3) for c in range(2)]
+    assert [r.prompt_sha256 for r in records] == [hashlib.sha256(p.encode()).hexdigest() for p in client.prompts]
+
+
+class _ThinkRecordingClient(MockClient):
+    def __init__(self, responses):
+        super().__init__(responses)
+        self.thinks = []
+
+    def generate(self, prompt, num_ctx=None, temperature=0, **kwargs):
+        self.thinks.append(kwargs.get("think", "unset"))
+        return super().generate(prompt, num_ctx=num_ctx, temperature=temperature)
+
+
+@pytest.mark.parametrize("think, expected", [("default", "unset"), ("on", "on")])
+def test_think_forwarded_only_when_set(monkeypatch, think, expected):
+    from extraction.llm_client import ThinkMode
+    client = _ThinkRecordingClient([f"{_REC} | Strong For | High"] * 3)
+    _run_sc(monkeypatch, [], client=client, think=ThinkMode(think))
+    assert client.thinks == [expected] * 3

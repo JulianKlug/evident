@@ -163,3 +163,41 @@ def test_extract_guideline_forwards_seed_only_when_set(monkeypatch, seed, expect
                       client=_Client(["NO_RECOMMENDATIONS_FOUND"]), seed=seed)
 
     assert seen == [expected]
+
+
+def test_call_records_one_per_call(monkeypatch):
+    import hashlib
+    import extraction.extractor as extractor_mod
+    from tests.legacy_golden import MockClient, load_fixture
+    from extraction.pdf_loader import PDFPage
+    fx = load_fixture("acp")
+    pages = [PDFPage(page_number=i + 1, text=t) for i, t in enumerate(fx["pages"])]
+    monkeypatch.setattr(extractor_mod, "load_pdf_pages", lambda source: pages)
+    client = MockClient(fx["responses"])
+
+    result = extract_guideline("fake.pdf", strategy=PromptStrategy(name="zero_shot", scheme=GRADE),
+                               client=client, pages_per_chunk=fx["pages_per_chunk"])
+
+    records = result.call_records
+    assert [(r.sample_idx, r.chunk_id, r.seed) for r in records] == [(0, i, None) for i in range(len(client.prompts))]
+    assert [r.prompt_sha256 for r in records] == [hashlib.sha256(p.encode()).hexdigest() for p in client.prompts]
+    assert [r.response for r in records] == result.per_page_responses
+
+
+@pytest.mark.parametrize("think, expected", [("default", "unset"), ("off", "off")])
+def test_extract_guideline_forwards_think_only_when_set(monkeypatch, think, expected):
+    import extraction.extractor as extractor_mod
+    from extraction.llm_client import ThinkMode
+    from extraction.pdf_loader import PDFPage
+    monkeypatch.setattr(extractor_mod, "load_pdf_pages", lambda source: [PDFPage(page_number=1, text="t")])
+    seen = []
+
+    class _Client(MockOllamaClient):
+        def generate(self, prompt, num_ctx=None, **kwargs):
+            seen.append(kwargs.get("think", "unset"))
+            return super().generate(prompt, num_ctx=num_ctx)
+
+    extract_guideline("fake.pdf", strategy=PromptStrategy(name="zero_shot", scheme=GRADE),
+                      client=_Client(["NO_RECOMMENDATIONS_FOUND"]), seed=1, think=ThinkMode(think))
+
+    assert seen == [expected]

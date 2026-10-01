@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass, field
 from typing import Optional, TYPE_CHECKING
@@ -10,7 +11,7 @@ import pandas as pd
 
 from extraction.pdf_loader import load_pdf_pages, PDFPage
 from extraction.prompts import PromptStrategy, build_prompt
-from extraction.llm_client import OllamaClient, LLMResponse
+from extraction.llm_client import OllamaClient, LLMResponse, ThinkMode
 from extraction.response_parser import parse_llm_response, parse_json_response
 from extraction.deduplication import deduplicate_recommendations
 
@@ -41,6 +42,25 @@ _EXTRACTION_SCHEMA = {
 
 
 @dataclass
+class CallRecord:
+    """One LLM call with what is needed to reproduce it."""
+    sample_idx: int  # 0 for single pass; SC sample index otherwise
+    chunk_id: int
+    seed: int | None
+    prompt_sha256: str
+    response: LLMResponse
+
+
+def _prompt_sha256(prompt: str) -> str:
+    return hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+
+
+def _think_kwargs(think: ThinkMode) -> dict:
+    # Kwarg omitted when DEFAULT, so legacy clients without `think` keep working
+    return {} if think == ThinkMode.DEFAULT else {"think": think}
+
+
+@dataclass
 class ExtractionResult:
     """Result of extracting recommendations from a guideline PDF."""
     recommendations_df: pd.DataFrame  # columns: recommendation, class, LOE, category, page, chunk_id
@@ -50,6 +70,7 @@ class ExtractionResult:
     n_final_recommendations: int
     per_page_responses: list[LLMResponse] = field(default_factory=list)
     vision_pages: list = field(default_factory=list)  # pages processed by vision
+    call_records: list[CallRecord] = field(default_factory=list)
 
 
 def _chunk_spans(
@@ -120,6 +141,7 @@ def extract_guideline(
     context_oracle: bool = False,
     context_similarity_model: SimilarityModel | None = None,
     seed: int | None = None,
+    think: ThinkMode = ThinkMode.DEFAULT,
 ) -> ExtractionResult:
     """Extract recommendations from a guideline PDF.
 
@@ -146,6 +168,7 @@ def extract_guideline(
         context_oracle: If True, re-grade using context-aware oracle with BioLORD retrieval.
         context_similarity_model: Pre-loaded BioLORD model for context retrieval.
         seed: Sampling seed, forwarded to the client only when set.
+        think: Thinking switch, forwarded to the client only when not DEFAULT.
 
     Returns:
         ExtractionResult with deduplicated recommendations and metadata.
@@ -162,7 +185,9 @@ def extract_guideline(
 
     all_dfs = []
     responses = []
+    call_records = []
     seed_kwargs = {} if seed is None else {"seed": seed}
+    call_kwargs = {**seed_kwargs, **_think_kwargs(think)}
     n_chunks_with_recs = 0
 
     # Only set explicit num_ctx when multi-page chunks need more context
@@ -174,10 +199,11 @@ def extract_guideline(
         prompt = build_prompt(chunk_text, strategy, output_format=output_format)
 
         if output_format == "json":
-            response = client.generate_json(prompt, schema=_EXTRACTION_SCHEMA, num_ctx=ctx_override, **seed_kwargs)
+            response = client.generate_json(prompt, schema=_EXTRACTION_SCHEMA, num_ctx=ctx_override, **call_kwargs)
         else:
-            response = client.generate(prompt, num_ctx=ctx_override, **seed_kwargs)
+            response = client.generate(prompt, num_ctx=ctx_override, **call_kwargs)
         responses.append(response)
+        call_records.append(CallRecord(0, chunk_id, seed, _prompt_sha256(prompt), response))
 
         if output_format == "json":
             chunk_df = parse_json_response(response.raw_text)
@@ -254,4 +280,5 @@ def extract_guideline(
         n_raw_recommendations=n_raw,
         n_final_recommendations=len(final_df),
         per_page_responses=responses,
+        call_records=call_records,
     )

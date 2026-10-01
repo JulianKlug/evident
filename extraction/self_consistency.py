@@ -8,10 +8,10 @@ from typing import Optional, TYPE_CHECKING
 import numpy as np
 import pandas as pd
 
-from extraction.extractor import ExtractionResult, _chunk_spans
+from extraction.extractor import CallRecord, ExtractionResult, _chunk_spans, _prompt_sha256, _think_kwargs
 from extraction.pdf_loader import load_pdf_pages
 from extraction.prompts import PromptStrategy, build_prompt
-from extraction.llm_client import OllamaClient
+from extraction.llm_client import OllamaClient, ThinkMode
 from extraction.response_parser import parse_llm_response, CATEGORY_GRADED
 from extraction.deduplication import deduplicate_recommendations
 
@@ -111,6 +111,7 @@ def self_consistency_extract(
     context_oracle: bool = False,
     context_similarity_model=None,
     seed: Optional[int] = None,
+    think: ThinkMode = ThinkMode.DEFAULT,
 ) -> ExtractionResult:
     """Extract recommendations using self-consistency voting.
 
@@ -141,6 +142,7 @@ def self_consistency_extract(
         context_oracle: If True, re-grade using context-aware oracle with BioLORD retrieval.
         context_similarity_model: Pre-loaded BioLORD model for context retrieval.
         seed: Base sampling seed; sample k uses seed + k. Unset = unseeded (legacy).
+        think: Thinking switch, forwarded to the client only when not DEFAULT.
 
     Returns:
         ExtractionResult with consensus-filtered recommendations.
@@ -158,18 +160,22 @@ def self_consistency_extract(
     # Collect recs from N stochastic runs
     all_recs = []  # list of (sample_idx, recommendation, class, LOE, category, page, chunk_id)
     all_responses = []
+    call_records = []
     total_raw = 0
 
     for sample_idx in range(n_samples):
         print(f"  [SC] Sample {sample_idx + 1}/{n_samples}...", flush=True)
         sample_dfs = []
         # Kwarg omitted when unseeded, so legacy clients without `seed` keep working
-        seed_kwargs = {} if seed is None else {"seed": seed + sample_idx}
+        sample_seed = None if seed is None else seed + sample_idx
+        seed_kwargs = {} if sample_seed is None else {"seed": sample_seed}
+        call_kwargs = {**seed_kwargs, **_think_kwargs(think)}
 
         for chunk_id, (start_page, chunk_text) in enumerate(spans):
             prompt = build_prompt(chunk_text, strategy, output_format=output_format)
-            response = client.generate(prompt, num_ctx=ctx_override, temperature=temperature, **seed_kwargs)
+            response = client.generate(prompt, num_ctx=ctx_override, temperature=temperature, **call_kwargs)
             all_responses.append(response)
+            call_records.append(CallRecord(sample_idx, chunk_id, sample_seed, _prompt_sha256(prompt), response))
 
             chunk_df = parse_llm_response(response.raw_text, has_thinking=client.has_thinking)
             if not chunk_df.empty:
@@ -205,6 +211,7 @@ def self_consistency_extract(
             n_raw_recommendations=0,
             n_final_recommendations=0,
             per_page_responses=all_responses,
+            call_records=call_records,
         )
 
     # Build pooled dataframe with sample tags
@@ -309,4 +316,5 @@ def self_consistency_extract(
         n_raw_recommendations=total_raw,
         n_final_recommendations=len(final_df),
         per_page_responses=all_responses,
+        call_records=call_records,
     )

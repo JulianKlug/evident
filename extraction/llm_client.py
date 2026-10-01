@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
+from enum import Enum
 
 import ollama
 
@@ -18,6 +19,21 @@ AVAILABLE_MODELS = {
     "mistral-small3.2:24b": {"context_window": 32768, "has_thinking": False},
     "qwen3:30b-a3b": {"context_window": 32768, "has_thinking": False},
 }
+
+
+class ThinkMode(str, Enum):
+    DEFAULT = "default"  # no `think` kwarg: Ollama's own default (legacy, byte-identical call)
+    ON = "on"
+    OFF = "off"
+
+
+_THINK_KWARGS = {ThinkMode.DEFAULT: {}, ThinkMode.ON: {"think": True}, ThinkMode.OFF: {"think": False}}
+
+
+class ModelNotFoundError(LookupError):
+    def __init__(self, model: str):
+        super().__init__(f"Model {model} is not pulled in Ollama")
+        self.model = model
 
 
 @dataclass
@@ -50,8 +66,16 @@ class OllamaClient:
         """Whether this model requires chat API (ChatML-trained models)."""
         return self.model_info.get("use_chat", False)
 
+    def model_digest(self) -> str:
+        """Digest of the pulled weights; changes when the model is re-pulled."""
+        for entry in self._client.list().models:
+            if entry.model == self.model:
+                return entry.digest
+        raise ModelNotFoundError(self.model)
+
     def generate(
         self, prompt: str, num_ctx: int | None = None, temperature: float = 0, seed: int | None = None,
+        think: ThinkMode = ThinkMode.DEFAULT,
     ) -> LLMResponse:
         """Generate a completion from the model.
 
@@ -64,9 +88,10 @@ class OllamaClient:
                      otherwise uses the model's default context window.
             temperature: Sampling temperature (0 = deterministic).
             seed: Sampling seed. Only passed to Ollama when explicitly set.
+            think: Thinking switch. Only passed to Ollama when not DEFAULT.
         """
         if self.use_chat:
-            return self._generate_chat(prompt, num_ctx=num_ctx, temperature=temperature, seed=seed)
+            return self._generate_chat(prompt, num_ctx=num_ctx, temperature=temperature, seed=seed, think=think)
 
         options: dict = {"temperature": temperature}
         if num_ctx is not None:
@@ -78,6 +103,7 @@ class OllamaClient:
             model=self.model,
             prompt=prompt,
             options=options,
+            **_THINK_KWARGS[think],
         )
         elapsed_ms = (time.time() - start) * 1000
 
@@ -91,6 +117,7 @@ class OllamaClient:
 
     def _generate_chat(
         self, prompt: str, num_ctx: int | None = None, temperature: float = 0, seed: int | None = None,
+        think: ThinkMode = ThinkMode.DEFAULT,
     ) -> LLMResponse:
         """Generate using chat API for ChatML-trained models.
 
@@ -123,6 +150,7 @@ class OllamaClient:
             model=self.model,
             messages=messages,
             options=options,
+            **_THINK_KWARGS[think],
         )
         elapsed_ms = (time.time() - start) * 1000
 
@@ -137,6 +165,7 @@ class OllamaClient:
 
     def generate_json(
         self, prompt: str, schema: dict, num_ctx: int | None = None, seed: int | None = None,
+        think: ThinkMode = ThinkMode.DEFAULT,
     ) -> LLMResponse:
         """Generate a JSON-structured completion using Ollama's format parameter.
 
@@ -145,6 +174,7 @@ class OllamaClient:
             schema: JSON schema for the expected output format.
             num_ctx: Context window size. Only passed to Ollama when explicitly set.
             seed: Sampling seed. Only passed to Ollama when explicitly set.
+            think: Thinking switch. Only passed to Ollama when not DEFAULT.
         """
         options: dict = {"temperature": 0}
         if num_ctx is not None:
@@ -157,6 +187,7 @@ class OllamaClient:
             prompt=prompt,
             format=schema,
             options=options,
+            **_THINK_KWARGS[think],
         )
         elapsed_ms = (time.time() - start) * 1000
 
