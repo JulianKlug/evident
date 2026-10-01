@@ -5,6 +5,7 @@ import pytest
 
 from extraction.response_parser import (
     parse_llm_response,
+    parse_json_response,
     _strip_thinking_tags,
     _remove_boilerplate,
     _parse_pipe_delimited,
@@ -161,7 +162,7 @@ class TestParseLLMResponse:
         text = "rec1 | strong for | high\nrec2 | weak for | low"
         df = parse_llm_response(text)
         assert len(df) == 2
-        assert list(df.columns) == ["recommendation", "class", "LOE"]
+        assert list(df.columns) == ["recommendation", "class", "LOE", "category"]
 
     def test_with_thinking(self):
         text = "<think>Analyzing the page...</think>\nrec1 | A | 1"
@@ -194,3 +195,32 @@ class TestParseLLMResponse:
         text = "I found the following recommendations:\n\nrec1 | A | 1\nrec2 | B | 2\n\nThese are all the recommendations."
         df = parse_llm_response(text)
         assert len(df) == 2
+
+
+class TestCategory:
+    """Sentinel grade tokens (prompt V1) map to a category; the 3 original columns are unchanged."""
+
+    @pytest.mark.parametrize("text, expected", [
+        ("Give X | Strong For | High", ["graded"]),
+        ("Reassess often | BEST_PRACTICE | NA", ["best_practice"]),
+        ("No advice on Y | NO_RECOMMENDATION | NA", ["no_recommendation"]),
+        ("Give X | Weak For | Low\nReassess | best_practice | NA\nNo advice | NO_RECOMMENDATION | NA",
+         ["graded", "best_practice", "no_recommendation"]),
+        ("this line is malformed\nGive X | Strong For | High", ["graded"]),
+    ])
+    def test_category_from_grade_token(self, text, expected):
+        df = parse_llm_response(text)
+        assert df["category"].tolist() == expected
+
+    def test_sentinel_kept_in_class_column(self):
+        df = parse_llm_response("Reassess often | BEST_PRACTICE | NA")
+        assert df.iloc[0][["recommendation", "class", "LOE"]].tolist() == ["Reassess often", "BEST_PRACTICE", "NA"]
+
+    @pytest.mark.parametrize("text", ["", "NO_RECOMMENDATIONS_FOUND", "no table here"])
+    def test_empty_frames_carry_all_columns(self, text):
+        assert list(parse_llm_response(text).columns) == ["recommendation", "class", "LOE", "category"]
+
+    def test_json_parser_has_category(self):
+        df = parse_json_response('{"recommendations": [{"text": "t", "grade": "NO_RECOMMENDATION", "level": "NA"}]}')
+        assert df["category"].tolist() == ["no_recommendation"]
+        assert list(parse_json_response("").columns) == ["recommendation", "class", "LOE", "category"]

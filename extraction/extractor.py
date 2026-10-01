@@ -43,7 +43,7 @@ _EXTRACTION_SCHEMA = {
 @dataclass
 class ExtractionResult:
     """Result of extracting recommendations from a guideline PDF."""
-    recommendations_df: pd.DataFrame  # columns: recommendation, class, LOE
+    recommendations_df: pd.DataFrame  # columns: recommendation, class, LOE, category
     n_pages: int
     n_pages_with_recs: int
     n_raw_recommendations: int
@@ -175,7 +175,7 @@ def extract_guideline(
     if all_dfs:
         raw_df = pd.concat(all_dfs, ignore_index=True)
     else:
-        raw_df = pd.DataFrame(columns=["recommendation", "class", "LOE"])
+        raw_df = pd.DataFrame(columns=["recommendation", "class", "LOE", "category"])
 
     n_raw = len(raw_df)
 

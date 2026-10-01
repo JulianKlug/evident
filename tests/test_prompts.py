@@ -3,7 +3,8 @@
 import pytest
 
 from evaluation.grading import GRADE, ABCD_123, ESC_ERS
-from extraction.prompts import PromptStrategy, build_prompt
+from extraction.prompts import PromptStrategy, PromptVersion, build_prompt
+from tests.legacy_golden import GOLDEN_DIR, load_fixture
 
 
 class TestBuildPrompt:
@@ -54,3 +55,32 @@ class TestBuildPrompt:
         strategy = PromptStrategy(name="zero_shot", scheme=custom)
         with pytest.raises(ValueError, match="No terminology"):
             build_prompt("text", strategy)
+
+
+class TestPromptVersion:
+    """V0 is the frozen legacy prompt; V1 adds ungraded-statement rules."""
+
+    @staticmethod
+    def _golden(name):
+        with open(f"{GOLDEN_DIR}/{name}") as f:
+            return f.read()
+
+    @pytest.mark.parametrize("golden_name, strategy_name", [
+        ("prompt_v0_fewshot.txt", "few_shot"),
+        ("prompt_v0_zeroshot.txt", "zero_shot"),
+    ])
+    def test_v0_is_byte_identical_to_golden(self, golden_name, strategy_name):
+        fx = load_fixture("acp")
+        strategy = PromptStrategy(name=strategy_name, scheme=GRADE, examples=fx["examples"])
+
+        assert strategy.prompt_version == PromptVersion.V0
+        assert build_prompt(fx["pages"][0], strategy) == self._golden(golden_name)
+
+    def test_v1_contains_ungraded_rules(self):
+        strategy = PromptStrategy(name="zero_shot", scheme=GRADE, prompt_version=PromptVersion.V1)
+        prompt = build_prompt("Page text.", strategy)
+
+        assert "Also extract best-practice / good-practice statements: write BEST_PRACTICE as the " \
+               "strength of recommendation and NA as the level of confidence" in prompt
+        assert "write NO_RECOMMENDATION as the strength of recommendation and NA as the level of confidence" in prompt
+        assert "statements without an explicit" not in prompt

@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 from evaluation.grading import GradingScheme
+from extraction.response_parser import CATEGORY_GRADED
 
 
 def normalize_extracted_grades(
@@ -26,10 +27,13 @@ def normalize_extracted_grades(
         return df.copy()
 
     result = df.copy()
-    result["class"] = result["class"].apply(
+
+    # Ungraded statements keep their sentinel tokens (e.g. BEST_PRACTICE | NA)
+    graded = result["category"] == CATEGORY_GRADED if "category" in result.columns else slice(None)
+    result.loc[graded, "class"] = result.loc[graded, "class"].apply(
         lambda x: scheme.normalize_grade(str(x)) or str(x)
     )
-    result["LOE"] = result["LOE"].apply(
+    result.loc[graded, "LOE"] = result.loc[graded, "LOE"].apply(
         lambda x: scheme.normalize_level(str(x)) or str(x)
     )
     return result

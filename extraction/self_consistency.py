@@ -12,11 +12,13 @@ from extraction.extractor import ExtractionResult, _chunk_pages
 from extraction.pdf_loader import load_pdf_pages
 from extraction.prompts import PromptStrategy, build_prompt
 from extraction.llm_client import OllamaClient
-from extraction.response_parser import parse_llm_response
+from extraction.response_parser import parse_llm_response, CATEGORY_GRADED
 from extraction.deduplication import deduplicate_recommendations
 
 if TYPE_CHECKING:
     pass
+
+_OUTPUT_COLUMNS = ["recommendation", "class", "LOE", "category"]
 
 
 def _cluster_recommendations(
@@ -152,7 +154,7 @@ def self_consistency_extract(
         ctx_override = client.model_info.get("context_window", 8192)
 
     # Collect recs from N stochastic runs
-    all_recs = []  # list of (sample_idx, recommendation, class, LOE)
+    all_recs = []  # list of (sample_idx, recommendation, class, LOE, category)
     all_responses = []
     total_raw = 0
 
@@ -180,13 +182,14 @@ def self_consistency_extract(
                     row["recommendation"],
                     row.get("class", ""),
                     row.get("LOE", ""),
+                    row.get("category", CATEGORY_GRADED),
                 ))
             print(f"  [SC] Sample {sample_idx + 1}: {len(sample_df)} recs (deduped)", flush=True)
         else:
             print(f"  [SC] Sample {sample_idx + 1}: 0 recs", flush=True)
 
     if not all_recs:
-        empty_df = pd.DataFrame(columns=["recommendation", "class", "LOE"])
+        empty_df = pd.DataFrame(columns=_OUTPUT_COLUMNS)
         return ExtractionResult(
             recommendations_df=empty_df,
             n_pages=len(pages),
@@ -197,7 +200,7 @@ def self_consistency_extract(
         )
 
     # Build pooled dataframe with sample tags
-    pooled_df = pd.DataFrame(all_recs, columns=["sample_idx", "recommendation", "class", "LOE"])
+    pooled_df = pd.DataFrame(all_recs, columns=["sample_idx", "recommendation", "class", "LOE", "category"])
     texts = pooled_df["recommendation"].tolist()
 
     # Cluster by semantic similarity
@@ -226,20 +229,22 @@ def self_consistency_extract(
         best_idx = cluster_rows["recommendation"].str.len().idxmax()
         best_row = cluster_rows.loc[best_idx]
 
-        # Majority vote for grade and level
+        # Majority vote for grade, level and category
         grade = _majority_vote(cluster_rows["class"].tolist())
         level = _majority_vote(cluster_rows["LOE"].tolist())
+        category = _majority_vote(cluster_rows["category"].tolist())
 
         kept_rows.append({
             "recommendation": best_row["recommendation"],
             "class": grade,
             "LOE": level,
+            "category": category,
         })
 
     if kept_rows:
         final_df = pd.DataFrame(kept_rows)
     else:
-        final_df = pd.DataFrame(columns=["recommendation", "class", "LOE"])
+        final_df = pd.DataFrame(columns=_OUTPUT_COLUMNS)
 
     if adaptive_threshold:
         eff_thr = _adaptive_consensus(len(clusters), n_samples)

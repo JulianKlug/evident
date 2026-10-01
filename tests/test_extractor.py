@@ -68,7 +68,7 @@ class TestExtractGuideline:
         assert result.n_raw_recommendations == 2
         assert result.n_final_recommendations == 2
         assert len(result.recommendations_df) == 2
-        assert list(result.recommendations_df.columns) == ["recommendation", "class", "LOE"]
+        assert list(result.recommendations_df.columns) == ["recommendation", "class", "LOE", "category"]
 
     def test_dedup_across_pages(self, monkeypatch):
         """Same recommendation on two pages should be deduplicated."""

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 
 from evaluation.grading import GradingScheme, GRADE, ABCD_123
 
@@ -33,12 +34,24 @@ _SCHEME_TERMINOLOGY = {
 }
 
 
+class PromptVersion(str, Enum):
+    V0 = "v0"  # legacy: graded recommendations only (text frozen, golden-tested)
+    V1 = "v1"  # also best-practice statements and explicit non-recommendations
+
+
+# Sentinel grade tokens for ungraded statements (V1); parsed into `category`
+BEST_PRACTICE_TOKEN = "BEST_PRACTICE"
+NO_RECOMMENDATION_TOKEN = "NO_RECOMMENDATION"
+UNGRADED_LEVEL_TOKEN = "NA"
+
+
 @dataclass
 class PromptStrategy:
     """Configuration for a prompting strategy."""
     name: str  # "zero_shot" or "few_shot"
     scheme: GradingScheme
     examples: list[dict] = field(default_factory=list)  # For few-shot: [{recommendation, class, LOE}]
+    prompt_version: PromptVersion = PromptVersion.V0
 
 
 def build_prompt(
@@ -64,14 +77,27 @@ def build_prompt(
     level_values = terms["level_values"]
 
     parts = []
+    is_v1 = strategy.prompt_version == PromptVersion.V1
+
+    # V1 widens the definition to ungraded statements; V0 text must stay byte-identical
+    if is_v1:
+        definition = (
+            f"A \"recommendation\" is an actionable statement that directs clinical practice. "
+            f"It is usually graded with a {grade_label} and a {level_label}; ungraded "
+            f"best-practice statements and explicit non-recommendations also count.\n"
+        )
+    else:
+        definition = (
+            f"A \"recommendation\" is an actionable statement that directs clinical practice "
+            f"and is explicitly graded with a {grade_label} and a {level_label}.\n"
+        )
 
     # System instruction with precise definition
     parts.append(
         f"You are an expert medical researcher. Extract all clinical recommendations "
         f"from the following {terms['domain']} text.\n"
         f"\n"
-        f"A \"recommendation\" is an actionable statement that directs clinical practice "
-        f"and is explicitly graded with a {grade_label} and a {level_label}.\n"
+        f"{definition}"
         f"\n"
         f"For each recommendation, extract:\n"
         f"- The recommendation text — copy it EXACTLY as written in the source\n"
@@ -92,12 +118,27 @@ def build_prompt(
         )
 
     # Rules with negative examples
+    if is_v1:
+        scope_rules = (
+            f"- Extract ONLY explicitly stated recommendations\n"
+            f"- Copy the recommendation text EXACTLY as written — do NOT paraphrase or summarize\n"
+            f"- Also extract best-practice / good-practice statements: write {BEST_PRACTICE_TOKEN} "
+            f"as the {grade_label} and {UNGRADED_LEVEL_TOKEN} as the {level_label}\n"
+            f"- Also extract explicit non-recommendations (\"we cannot recommend for or against\", "
+            f"\"evidence was insufficient to make a recommendation\"): write {NO_RECOMMENDATION_TOKEN} "
+            f"as the {grade_label} and {UNGRADED_LEVEL_TOKEN} as the {level_label}\n"
+            f"- Do NOT extract: background statements, evidence summaries, section headers\n"
+        )
+    else:
+        scope_rules = (
+            f"- Extract ONLY explicitly stated recommendations with a clear {grade_label} and {level_label}\n"
+            f"- Copy the recommendation text EXACTLY as written — do NOT paraphrase or summarize\n"
+            f"- Do NOT extract: background statements, evidence summaries, section headers, "
+            f"or statements without an explicit {grade_label} and {level_label}\n"
+        )
     parts.append(
         f"Rules:\n"
-        f"- Extract ONLY explicitly stated recommendations with a clear {grade_label} and {level_label}\n"
-        f"- Copy the recommendation text EXACTLY as written — do NOT paraphrase or summarize\n"
-        f"- Do NOT extract: background statements, evidence summaries, section headers, "
-        f"or statements without an explicit {grade_label} and {level_label}\n"
+        f"{scope_rules}"
         f"- Do NOT infer or create recommendations that are not in the text\n"
         f"- If no recommendations are found, output exactly: NO_RECOMMENDATIONS_FOUND\n"
         f"- Do NOT include headers, row numbers, or any other text"

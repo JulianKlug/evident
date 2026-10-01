@@ -9,6 +9,8 @@ import re
 
 import pandas as pd
 
+from extraction.prompts import BEST_PRACTICE_TOKEN, NO_RECOMMENDATION_TOKEN
+
 
 _THINKING_PATTERN = re.compile(r"<think>.*?</think>", re.DOTALL)
 _ROW_NUMBER_PATTERN = re.compile(r"^\s*\d+[\.\)]\s*")
@@ -18,14 +20,31 @@ _HEADER_PATTERN = re.compile(
 )
 NO_RECOMMENDATIONS_SENTINEL = "NO_RECOMMENDATIONS_FOUND"
 
+# Category values; sentinel grade tokens mark ungraded statements, anything else is graded
+CATEGORY_GRADED = "graded"
+CATEGORY_BEST_PRACTICE = "best_practice"
+CATEGORY_NO_RECOMMENDATION = "no_recommendation"
+_CATEGORY_BY_TOKEN = {
+    BEST_PRACTICE_TOKEN: CATEGORY_BEST_PRACTICE,
+    NO_RECOMMENDATION_TOKEN: CATEGORY_NO_RECOMMENDATION,
+}
+_COLUMNS = ["recommendation", "class", "LOE", "category"]
+
+
+def _to_frame(records: list[dict]) -> pd.DataFrame:
+    """Build the parser output; `category` derives from the grade token."""
+    df = pd.DataFrame(records, columns=["recommendation", "class", "LOE"])
+    df["category"] = df["class"].map(lambda g: _CATEGORY_BY_TOKEN.get(str(g).strip().upper(), CATEGORY_GRADED))
+    return df[_COLUMNS]
+
 
 def parse_llm_response(raw_text: str, has_thinking: bool = False) -> pd.DataFrame:
-    """Parse raw LLM text into a DataFrame with columns [recommendation, class, LOE].
+    """Parse raw LLM text into a DataFrame with columns [recommendation, class, LOE, category].
 
     Pipeline: strip thinking → remove boilerplate → pipe-delimited parse → CSV fallback.
     """
     if not raw_text or not raw_text.strip():
-        return pd.DataFrame(columns=["recommendation", "class", "LOE"])
+        return pd.DataFrame(columns=_COLUMNS)
 
     text = raw_text
     text = _strip_thinking_tags(text)
@@ -34,7 +53,7 @@ def parse_llm_response(raw_text: str, has_thinking: bool = False) -> pd.DataFram
 
     text_lower = text.lower().strip()
     if "no_recommendations_found" in text_lower or "no recommendations found" in text_lower:
-        return pd.DataFrame(columns=["recommendation", "class", "LOE"])
+        return pd.DataFrame(columns=_COLUMNS)
 
     # Try pipe-delimited first
     records = _parse_pipe_delimited(text)
@@ -42,9 +61,9 @@ def parse_llm_response(raw_text: str, has_thinking: bool = False) -> pd.DataFram
         records = _fallback_csv_parse(text)
 
     if not records:
-        return pd.DataFrame(columns=["recommendation", "class", "LOE"])
+        return pd.DataFrame(columns=_COLUMNS)
 
-    return pd.DataFrame(records, columns=["recommendation", "class", "LOE"])
+    return _to_frame(records)
 
 
 def _strip_thinking_tags(text: str) -> str:
@@ -170,21 +189,21 @@ def _fallback_csv_parse(text: str) -> list[dict]:
 
 
 def parse_json_response(raw_text: str) -> pd.DataFrame:
-    """Parse JSON-structured LLM output into a DataFrame with columns [recommendation, class, LOE].
+    """Parse JSON-structured LLM output into a DataFrame with columns [recommendation, class, LOE, category].
 
     Expected format: {"recommendations": [{"text": str, "grade": str, "level": str}, ...]}
     """
     if not raw_text or not raw_text.strip():
-        return pd.DataFrame(columns=["recommendation", "class", "LOE"])
+        return pd.DataFrame(columns=_COLUMNS)
 
     try:
         data = json.loads(raw_text.strip())
     except json.JSONDecodeError:
-        return pd.DataFrame(columns=["recommendation", "class", "LOE"])
+        return pd.DataFrame(columns=_COLUMNS)
 
     recs = data.get("recommendations", [])
     if not recs:
-        return pd.DataFrame(columns=["recommendation", "class", "LOE"])
+        return pd.DataFrame(columns=_COLUMNS)
 
     records = []
     for rec in recs:
@@ -199,6 +218,6 @@ def parse_json_response(raw_text: str) -> pd.DataFrame:
             })
 
     if not records:
-        return pd.DataFrame(columns=["recommendation", "class", "LOE"])
+        return pd.DataFrame(columns=_COLUMNS)
 
-    return pd.DataFrame(records, columns=["recommendation", "class", "LOE"])
+    return _to_frame(records)
