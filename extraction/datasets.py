@@ -4,17 +4,30 @@ from __future__ import annotations
 
 import os
 import random
+import re
 from dataclasses import dataclass
+from enum import Enum
 
 import pandas as pd
 
 from evaluation.grading import GradingScheme, GRADE, ABCD_123, ESC_ERS
+from extraction.response_parser import CATEGORY_GRADED, CATEGORY_NO_RECOMMENDATION
 
 
 _DATA_ROOT = "/mnt/data1/klug/datasets/evidence_extraction"
 _ACP_DIR = os.path.join(_DATA_ROOT, "General internal medicine", "ACP")
 _ERS_DIR = os.path.join(_DATA_ROOT, "Pneumology", "ERS_guidelines")
 _ICU_DIR = os.path.join(_DATA_ROOT, "intensive_care_medicine")
+
+_INVALID_CLASSES = ["0.0", "nan", ""]
+_NO_RECOMMENDATION_CLASS = "no recommendation"
+_NO_RECOMMENDATION_TEXT = re.compile(r"inconclusive|insufficient|cannot recommend", re.IGNORECASE)
+_DOI_PREFIXES = ("https://doi.org/", "http://doi.org/", "doi:")
+
+
+class GtMode(str, Enum):
+    GRADED_ONLY = "graded_only"      # legacy: drop rows without a valid class
+    WITH_UNGRADED = "with_ungraded"  # keep them, and label each row's category
 
 
 @dataclass
@@ -35,13 +48,48 @@ def _load_extraction_xlsx(path: str) -> pd.DataFrame:
     df = df[["recommendation", "class", "LOE"]].copy()
     # Drop rows where recommendation is NaN
     df = df.dropna(subset=["recommendation"])
+    _add_raw_columns(df)
     # Normalize class and LOE: strip whitespace, fix case
     df["class"] = df["class"].astype(str).str.strip().str.rstrip(";,.")
     df["LOE"] = df["LOE"].astype(str).str.strip().str.rstrip(";,.")
     return df.reset_index(drop=True)
 
 
-def load_acp_datasets() -> list[GuidelineDataset]:
+def _add_raw_columns(df: pd.DataFrame) -> None:
+    """Keep the xlsx cells before any normalization; harmonization reads only these.
+
+    Needed because normalization turns "strong recommendation" into "Strong For"
+    even for "recommends against" text.
+    """
+    df["raw_class"] = df["class"].astype(str)
+    df["raw_LOE"] = df["LOE"].astype(str)
+
+
+def _finalize_gt(gt_df: pd.DataFrame, gt_mode: GtMode) -> pd.DataFrame:
+    """GRADED_ONLY drops invalid classes (legacy); WITH_UNGRADED keeps them and adds `category`."""
+    if gt_mode == GtMode.GRADED_ONLY:
+        return gt_df[~gt_df["class"].isin(_INVALID_CLASSES)].reset_index(drop=True)
+
+    gt_df = gt_df.reset_index(drop=True)
+    gt_df["category"] = [
+        CATEGORY_NO_RECOMMENDATION
+        if str(cls).strip().lower() == _NO_RECOMMENDATION_CLASS or _NO_RECOMMENDATION_TEXT.search(str(text))
+        else CATEGORY_GRADED
+        for cls, text in zip(gt_df["raw_class"], gt_df["recommendation"])
+    ]
+    return gt_df
+
+
+def _normalize_doi(doi: str) -> str:
+    """'https://doi.org/10.7326/M22-2056 ' → '10.7326/m22-2056' (same rule as evident.store)."""
+    doi = str(doi).strip().lower()
+    for prefix in _DOI_PREFIXES:
+        if doi.startswith(prefix):
+            return doi[len(prefix):]
+    return doi
+
+
+def load_acp_datasets(gt_mode: GtMode = GtMode.GRADED_ONLY) -> list[GuidelineDataset]:
     """Load all ACP guideline datasets (GRADE scheme)."""
     metadata_path = os.path.join(_ACP_DIR, "ACP.csv")
     metadata = pd.read_csv(metadata_path, encoding="utf-8-sig")
@@ -60,8 +108,8 @@ def load_acp_datasets() -> list[GuidelineDataset]:
         gt_df["LOE"] = gt_df["LOE"].apply(
             lambda x: GRADE.normalize_level(x) or x
         )
-        # Drop rows with invalid/missing values (e.g. '0.0')
-        gt_df = gt_df[~gt_df["class"].isin(["0.0", "nan", ""])].reset_index(drop=True)
+        # Drop rows with invalid/missing values (e.g. '0.0'), unless ungraded rows are wanted
+        gt_df = _finalize_gt(gt_df, gt_mode)
         datasets.append(GuidelineDataset(
             key=key,
             title=str(row.get("Title", "")),
@@ -153,7 +201,7 @@ def load_ers_datasets() -> list[GuidelineDataset]:
     return datasets
 
 
-def load_icu_datasets() -> list[GuidelineDataset]:
+def load_icu_datasets(gt_mode: GtMode = GtMode.GRADED_ONLY) -> list[GuidelineDataset]:
     """Load ICU guideline datasets (GRADE scheme)."""
     if not os.path.isdir(_ICU_DIR):
         return []
@@ -173,6 +221,7 @@ def load_icu_datasets() -> list[GuidelineDataset]:
     for doi, group in df.groupby("DOI"):
         gt_df = group[["recommendation", "class", "LOE"]].copy()
         gt_df = gt_df.dropna(subset=["recommendation"])
+        _add_raw_columns(gt_df)
         gt_df["class"] = gt_df["class"].astype(str).str.strip().str.rstrip(";,.")
         gt_df["LOE"] = gt_df["LOE"].astype(str).str.strip().str.rstrip(";,.")
         # Normalize comma-separated direction: "Conditional Recommendation, For" → "Conditional Recommendation For"
@@ -181,7 +230,7 @@ def load_icu_datasets() -> list[GuidelineDataset]:
         # Normalize verbose LOE: "low certainty of evidence" / "low certainty evidence" → "low certainty"
         gt_df["LOE"] = gt_df["LOE"].str.replace(r"\s+certainty\s+(?:of\s+)?evidence", " certainty", regex=True)
         gt_df["LOE"] = gt_df["LOE"].apply(lambda x: GRADE.normalize_level(x) or x)
-        gt_df = gt_df[~gt_df["class"].isin(["0.0", "nan", ""])].reset_index(drop=True)
+        gt_df = _finalize_gt(gt_df, gt_mode)
 
         title = group["Title"].iloc[0]
         key = str(doi).replace("/", "_").replace(".", "_")
@@ -207,10 +256,12 @@ def get_few_shot_examples(
     n_examples: int = 3,
     exclude_key: str | None = None,
     include_source_text: bool = False,
+    exclude_doi: str | None = None,
+    seed: int | None = None,
 ) -> list[dict]:
     """Sample few-shot examples from ground truth of the same grading scheme.
 
-    Excludes the target guideline (by key) to prevent data leakage.
+    Excludes the target guideline (by key or DOI) to prevent data leakage.
 
     Args:
         scheme: Grading scheme to match.
@@ -218,6 +269,8 @@ def get_few_shot_examples(
         exclude_key: Guideline key to exclude (prevents leakage).
         include_source_text: If True, include a truncated source_text excerpt
             from the recommendation text to illustrate input→output mapping.
+        exclude_doi: Guideline DOI to exclude (normalized before comparison).
+        seed: If set, sampling is reproducible; unset uses the module RNG (legacy).
     """
     if scheme.name == "grade":
         datasets = load_acp_datasets() + load_icu_datasets()
@@ -228,8 +281,11 @@ def get_few_shot_examples(
 
     # Pool all GT rows, excluding the target guideline
     pool = []
+    excluded_doi = _normalize_doi(exclude_doi) if exclude_doi else None
     for ds in datasets:
         if exclude_key and ds.key == exclude_key:
+            continue
+        if excluded_doi and _normalize_doi(ds.doi) == excluded_doi:
             continue
         for _, row in ds.ground_truth_df.iterrows():
             example = {
@@ -247,4 +303,6 @@ def get_few_shot_examples(
         return []
 
     n = min(n_examples, len(pool))
+    if seed is not None:
+        return random.Random(seed).sample(pool, n)
     return random.sample(pool, n)
