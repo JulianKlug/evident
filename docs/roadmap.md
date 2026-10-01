@@ -50,7 +50,7 @@ Regression tests for T3 are mandatory (parser, extractor columns, llm_client opt
 
 Spec: `docs/specs/m1-pipeline.md`.
 
-**Status:** code, tests and inputs DONE 2026-10-01 (spec §18). Real v0 run pending.
+**Status:** DONE 2026-10-01. v0 published (graded F1 0.503, R 1.000, P 0.336; 26 s median per guideline). See `docs/progress.md`.
 
 **Exit:**
 - With a fake strategy, `snapshot` → `validate` → `publish` → `add` runs end to end in an E2E test (no GPU). `status` shows a resumed snapshot correctly.

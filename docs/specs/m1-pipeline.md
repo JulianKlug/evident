@@ -1,6 +1,6 @@
 # Spec: M1 Pipeline End to End
 
-Status: IMPLEMENTED except §13 (real run pending) · 2026-10-01 · Branch: `agent_explor`
+Status: DONE · 2026-10-01 · Branch: `agent_explor`
 Parent docs: `docs/designs/living-evidence-map.md` (decisions), `docs/roadmap.md` (M1), `docs/specs/m0-foundations.md` (store, harmonization, corpus)
 Tasks: T3b legacy hooks · T4 ExtractorConfig · T7 pipeline + CLI · T11 PDF fetcher · T8a headline CSV · first real run
 
@@ -506,7 +506,7 @@ One commit per numbered section. Run the golden replay after each Lane C step.
 - **BioLORD revision** comes from the local HF cache. A cache wipe plus re-download of a newer revision is caught by `check_artifacts`, but blocks `add` until a new snapshot.
 
 ## 18. Implementation notes (2026-10-01)
-Everything except the real run (§13.2–13.4) is in. Differences from the text above:
+All in, including the real run (results in `docs/progress.md`). Differences from the text above:
 - **Few-shot examples are stored at `finish_run`.** The runner picks them, so `start_run` gets `[]` and `finish_run(..., few_shot=)` overwrites it.
 - **Pool drift is detected through the id.** `ExtractorVersion` has no pool column; `check_artifacts` compares digest, classifier and embedding field by field, then recomputes the id. A different id with equal fields is reported as `few_shot_pool_sha256`.
 - **`PipelineDeps.headline_path`** added so tests write to a tmp dir; the CLI passes `out/headline.csv`.

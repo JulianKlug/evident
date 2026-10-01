@@ -647,3 +647,42 @@ New function `regrade_with_context()` in `extraction/grading_oracle.py`:
 **Verdict: CLOSED.** The context oracle produced mixed results. Standalone, it improved CMCZFLU4 grade (0.70→0.80, the target) and F1 on some guidelines, but overall grade accuracy only improved marginally (+0.006) and F1 dropped (-0.017). When combined with SC Adaptive, the oracle hurt both F1 (-0.010) and grade accuracy (-0.015) — it overwrites correct SC-voted grades with worse ones.
 
 **Key insight:** Adding source context helped CMCZFLU4 grades specifically, but deepseek-r1:32b still has poor calibration across grading schemes. The oracle occasionally overwrites correct values even with context. SC Adaptive alone (F1=0.783, Grade=0.892) remains the best overall config. Grade accuracy as an extractor (0.98) does not reliably transfer to a re-grading role.
+
+---
+
+## M1 real run: v0 snapshot of the 12 labelled guidelines (2026-10-01)
+
+Snapshot 1, version `9e9b07edbbe4` (`configs/v0.json`: single pass, qwen3:14b digest `bdbd181c33f2`, thinking off, prompt v0, 3 few-shot, BioLORD rev `167aab52`), code `bc01c01`. Published, 12/12 active runs, no exclusions, no failures, no resume needed.
+
+### Validation (micro over 12 guidelines, 95% cluster-bootstrap CI; gate NO_BASELINE)
+| Metric | Value |
+|--------|-------|
+| Graded F1 | 0.503 [0.400, 0.623] |
+| Precision / Recall | 0.336 / 1.000 |
+| Strength / certainty accuracy | 0.955 / 0.909 |
+| Combined accuracy | 0.886 [0.816, 0.972] |
+| Ungraded P / R | 0.100 / 0.500 |
+
+Per guideline, every GT recommendation is found (FN = 0 on all 12). The false positives cluster in a few guidelines: M22-2056 (15), ANNALS-24-03095 (14), M22-1034 and ANNALS-24-01052 (12 each), M23-2788 (10). Spot check: near-identical consecutive rows that BioLORD dedup at 0.9 keeps. Not comparable to the legacy 0.707: that was a macro average over 14 guidelines incl. ERS, with normalization.
+
+### Runtime (thinking off)
+- Per guideline: median 26 s, max 75 s (M22-2056); total 5.7 min for 12.
+- Projected ~0.7 h for ~100 guidelines. The ≤ 3 nights M2 budget is not a constraint.
+- `think=False` took effect: 0 of 189 calls contain `<think>`, mean 51 eval tokens per call.
+
+### Headline (`out/headline.csv`)
+| Society | Guidelines | Recs | Ungraded share | % strong | % against | % high/moderate |
+|---------|-----------|------|----------------|----------|-----------|-----------------|
+| ACP | 9 | 94 | 0.0 | 40.4 | 5.3 | 69.1 |
+| ESICM | 3 | 47 | 21.3 | 0.0 | 5.4 | 33.3 |
+| ALL | 12 | 141 | 7.1 | 29.0 | 5.3 | 59.2 |
+
+Counts include the false positives above, so these percentages aren't fit for interpretation yet.
+
+### Issues
+- M19-3602: pypdf "invalid code lengths set" / bad float warnings; recovered, all 4 GT recs found.
+- `status` low-recall flags (M21-2710, M20-7533, M20-7844, 08058-x) are false alarms: those guidelines have 1–4 GT recs. The society-median rule misfires on small guidelines.
+- ESICM 07840-1: ungraded share 0.56 (9 ungraded FPs), from harmonization reading v0 output text.
+
+### For M2
+Precision is the problem, not recall or runtime. The SC + ML filter and dedup candidates target exactly this.
