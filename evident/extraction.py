@@ -107,7 +107,10 @@ class ExtractorConfig:
     embedding_model: str = _BIOLORD
 
     def __post_init__(self):
-        PromptVersion(self.prompt_version)  # fail on an unknown prompt now, not mid-snapshot
+        # Fail on an unknown prompt or embedding now, not mid-snapshot
+        PromptVersion(self.prompt_version)
+        if self.embedding_model != _BIOLORD:
+            raise ValueError(f"Only {_BIOLORD} is supported, not {self.embedding_model}")
 
     def to_json(self) -> str:
         return _canonical(asdict(self))
@@ -187,12 +190,14 @@ def check_artifacts(version: ExtractorVersion, live: Artifacts) -> None:
                                     live.few_shot_pool_sha256)
 
 
-def load_models(cfg: ExtractorConfig) -> Models:
-    if cfg.embedding_model != _BIOLORD:
-        raise ValueError(f"Only {_BIOLORD} is supported, not {cfg.embedding_model}")
-
+def load_similarity_model() -> object:
+    """BioLORD (the only supported embedding model); slow, so load once per process."""
     from extraction.benchmark import _BioLORDSimilarityModel
-    return Models(similarity=_BioLORDSimilarityModel())
+    return _BioLORDSimilarityModel()
+
+
+def load_models(cfg: ExtractorConfig) -> Models:
+    return Models(similarity=load_similarity_model())
 
 
 def run(cfg: ExtractorConfig, pdf_path: str, target_doi: str, models: Models) -> ExtractionOutput:

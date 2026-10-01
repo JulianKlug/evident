@@ -65,10 +65,13 @@ class TestConfig:
             ExtractorConfig.from_json(json.dumps({**json.loads(_CFG.to_json()), "normalize": True}))
         with pytest.raises(ValueError):
             dataclasses.replace(_CFG, prompt_version="v9")
+        with pytest.raises(ValueError):
+            dataclasses.replace(_CFG, embedding_model="other/model")
 
 
 class TestVersion:
-    @pytest.mark.parametrize("name", [f.name for f in dataclasses.fields(ExtractorConfig)])
+    @pytest.mark.parametrize("name", [f.name for f in dataclasses.fields(ExtractorConfig)
+                                      if f.name != "embedding_model"])  # single allowed value
     def test_id_changes_with_each_config_field(self, name):
         other = dataclasses.replace(_CFG, **{name: _changed(getattr(_CFG, name))})
         assert version_for(other, _ARTIFACTS).id != version_for(_CFG, _ARTIFACTS).id
