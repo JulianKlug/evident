@@ -28,8 +28,10 @@ def _problems(path):
 
 
 class TestLoadManifest:
-    def test_repo_manifest_is_header_only(self):
-        assert load_manifest(_REPO_MANIFEST) == []
+    def test_repo_manifest_is_valid(self):
+        entries = load_manifest(_REPO_MANIFEST)
+        assert len(entries) == 12
+        assert current_editions(entries) == {e.doi for e in entries}
 
     def test_round_trip(self, tmp_path):
         entries = load_manifest(_manifest(tmp_path, _A, _B, _ACP))

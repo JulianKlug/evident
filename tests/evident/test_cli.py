@@ -1,5 +1,7 @@
 """Tests for evident.cli: parsing → pipeline calls with enums (pipeline patched), exit codes."""
 
+import os
+
 import pytest
 
 import evident.cli as cli
@@ -94,3 +96,9 @@ def test_models_not_loaded_for_status(tmp_path, monkeypatch):
     monkeypatch.setattr(cli, "load_similarity_model", boom)
     assert _main(tmp_path, "status") == 0
 
+
+
+def test_repo_config_is_v0_baseline():
+    cfg = cli._read_config(os.path.join(cli._REPO_ROOT, "configs", "v0.json"))
+    assert (cfg.mode.value, cfg.model, cfg.thinking.value, cfg.prompt_version, cfg.few_shot.value) == (
+        "single_pass", "qwen3:14b", "off", "v0", "few_shot")
