@@ -6,3 +6,5 @@ benchmark_log*
 .ipynb_checkpoints/
 **/__pycache__/*
 unsloth_compiled_cache/
+!tests/fixtures/**/*.csv
+!corpus/manifest.csv
