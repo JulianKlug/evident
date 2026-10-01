@@ -157,17 +157,17 @@ def load_icu_datasets() -> list[GuidelineDataset]:
     """Load ICU guideline datasets (GRADE scheme)."""
     if not os.path.isdir(_ICU_DIR):
         return []
-    xlsx_files = [f for f in os.listdir(_ICU_DIR) if f.endswith('.xlsx')]
+    xlsx_files = sorted(f for f in os.listdir(_ICU_DIR) if f.endswith('.xlsx'))
     if not xlsx_files:
         return []
 
-    path = os.path.join(_ICU_DIR, xlsx_files[0])
-    df = pd.read_excel(path)
-
-    # Forward-fill Key/Title/DOI (only on first row of each group)
-    df["Key"] = df["Key"].ffill()
-    df["Title"] = df["Title"].ffill()
-    df["DOI"] = df["DOI"].ffill()
+    # Read every xlsx; forward-fill Key/Title/DOI per file (only set on first row of each group)
+    frames = []
+    for name in xlsx_files:
+        file_df = pd.read_excel(os.path.join(_ICU_DIR, name))
+        file_df[["Key", "Title", "DOI"]] = file_df[["Key", "Title", "DOI"]].ffill()
+        frames.append(file_df)
+    df = pd.concat(frames, ignore_index=True)
 
     datasets = []
     for doi, group in df.groupby("DOI"):

@@ -111,3 +111,32 @@ class TestGetFewShotExamples:
     def test_abcd_scheme(self):
         examples = get_few_shot_examples(ABCD_123, n_examples=2)
         assert len(examples) <= 2
+
+
+def _write_icu_xlsx(path, doi, recs):
+    pd.DataFrame({
+        "Key": ["K"] + [None] * (len(recs) - 1),
+        "Title": [f"Title {doi}"] + [None] * (len(recs) - 1),
+        "DOI": [doi] + [None] * (len(recs) - 1),
+        "recommendation": recs,
+        "class": ["Conditional recommendation"] * len(recs),
+        "LOE": ["low certainty of evidence"] * len(recs),
+    }).to_excel(path, index=False)
+
+
+def test_icu_loader_reads_all_xlsx(tmp_path, monkeypatch):
+    import extraction.datasets as datasets_mod
+    _write_icu_xlsx(tmp_path / "a.xlsx", "10.1/a", ["We suggest A", "We suggest A2"])
+    _write_icu_xlsx(tmp_path / "b.xlsx", "10.1/b", ["We suggest B"])
+    monkeypatch.setattr(datasets_mod, "_ICU_DIR", str(tmp_path))
+
+    datasets = load_icu_datasets()
+
+    assert sorted(ds.doi for ds in datasets) == ["10.1/a", "10.1/b"]
+    assert sum(len(ds.ground_truth_df) for ds in datasets) == 3
+
+
+def test_icu_loader_real_data_counts():
+    datasets = load_icu_datasets()
+    assert len(datasets) == 3
+    assert sum(len(ds.ground_truth_df) for ds in datasets) == 17
