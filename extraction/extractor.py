@@ -119,6 +119,7 @@ def extract_guideline(
     oracle_model: str = "deepseek-r1:32b",
     context_oracle: bool = False,
     context_similarity_model: SimilarityModel | None = None,
+    seed: int | None = None,
 ) -> ExtractionResult:
     """Extract recommendations from a guideline PDF.
 
@@ -144,6 +145,7 @@ def extract_guideline(
         oracle_model: Model to use for grading oracle (default deepseek-r1:32b).
         context_oracle: If True, re-grade using context-aware oracle with BioLORD retrieval.
         context_similarity_model: Pre-loaded BioLORD model for context retrieval.
+        seed: Sampling seed, forwarded to the client only when set.
 
     Returns:
         ExtractionResult with deduplicated recommendations and metadata.
@@ -160,6 +162,7 @@ def extract_guideline(
 
     all_dfs = []
     responses = []
+    seed_kwargs = {} if seed is None else {"seed": seed}
     n_chunks_with_recs = 0
 
     # Only set explicit num_ctx when multi-page chunks need more context
@@ -171,9 +174,9 @@ def extract_guideline(
         prompt = build_prompt(chunk_text, strategy, output_format=output_format)
 
         if output_format == "json":
-            response = client.generate_json(prompt, schema=_EXTRACTION_SCHEMA, num_ctx=ctx_override)
+            response = client.generate_json(prompt, schema=_EXTRACTION_SCHEMA, num_ctx=ctx_override, **seed_kwargs)
         else:
-            response = client.generate(prompt, num_ctx=ctx_override)
+            response = client.generate(prompt, num_ctx=ctx_override, **seed_kwargs)
         responses.append(response)
 
         if output_format == "json":

@@ -110,6 +110,7 @@ def self_consistency_extract(
     oracle_model: str = "deepseek-r1:32b",
     context_oracle: bool = False,
     context_similarity_model=None,
+    seed: Optional[int] = None,
 ) -> ExtractionResult:
     """Extract recommendations using self-consistency voting.
 
@@ -139,6 +140,7 @@ def self_consistency_extract(
         oracle_model: Model to use for grading oracle (default deepseek-r1:32b).
         context_oracle: If True, re-grade using context-aware oracle with BioLORD retrieval.
         context_similarity_model: Pre-loaded BioLORD model for context retrieval.
+        seed: Base sampling seed; sample k uses seed + k. Unset = unseeded (legacy).
 
     Returns:
         ExtractionResult with consensus-filtered recommendations.
@@ -161,10 +163,12 @@ def self_consistency_extract(
     for sample_idx in range(n_samples):
         print(f"  [SC] Sample {sample_idx + 1}/{n_samples}...", flush=True)
         sample_dfs = []
+        # Kwarg omitted when unseeded, so legacy clients without `seed` keep working
+        seed_kwargs = {} if seed is None else {"seed": seed + sample_idx}
 
         for chunk_id, (start_page, chunk_text) in enumerate(spans):
             prompt = build_prompt(chunk_text, strategy, output_format=output_format)
-            response = client.generate(prompt, num_ctx=ctx_override, temperature=temperature)
+            response = client.generate(prompt, num_ctx=ctx_override, temperature=temperature, **seed_kwargs)
             all_responses.append(response)
 
             chunk_df = parse_llm_response(response.raw_text, has_thinking=client.has_thinking)

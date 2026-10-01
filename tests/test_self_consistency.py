@@ -41,3 +41,25 @@ def test_cluster_keeps_min_page_and_its_chunk(monkeypatch):
     ], n_pages=2)
 
     assert df[["page", "chunk_id"]].values.tolist() == [[1, 0]]
+
+
+class _SeedRecordingClient(MockClient):
+    def __init__(self, responses):
+        super().__init__(responses)
+        self.seeds = []
+
+    def generate(self, prompt, num_ctx=None, temperature=0, **kwargs):
+        self.seeds.append(kwargs.get("seed", "unset"))
+        return super().generate(prompt, num_ctx=num_ctx, temperature=temperature)
+
+
+def test_sample_k_uses_seed_plus_k(monkeypatch):
+    client = _SeedRecordingClient([f"{_REC} | Strong For | High"] * 3)
+    _run_sc(monkeypatch, [], client=client, seed=10)
+    assert client.seeds == [10, 11, 12]
+
+
+def test_no_seed_kwarg_when_unseeded(monkeypatch):
+    client = _SeedRecordingClient([f"{_REC} | Strong For | High"] * 3)
+    _run_sc(monkeypatch, [], client=client)
+    assert client.seeds == ["unset"] * 3

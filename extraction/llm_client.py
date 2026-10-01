@@ -50,7 +50,9 @@ class OllamaClient:
         """Whether this model requires chat API (ChatML-trained models)."""
         return self.model_info.get("use_chat", False)
 
-    def generate(self, prompt: str, num_ctx: int | None = None, temperature: float = 0) -> LLMResponse:
+    def generate(
+        self, prompt: str, num_ctx: int | None = None, temperature: float = 0, seed: int | None = None,
+    ) -> LLMResponse:
         """Generate a completion from the model.
 
         For ChatML-trained models (use_chat=True), automatically splits the prompt
@@ -61,13 +63,16 @@ class OllamaClient:
             num_ctx: Context window size. Only passed to Ollama when explicitly set,
                      otherwise uses the model's default context window.
             temperature: Sampling temperature (0 = deterministic).
+            seed: Sampling seed. Only passed to Ollama when explicitly set.
         """
         if self.use_chat:
-            return self._generate_chat(prompt, num_ctx=num_ctx, temperature=temperature)
+            return self._generate_chat(prompt, num_ctx=num_ctx, temperature=temperature, seed=seed)
 
         options: dict = {"temperature": temperature}
         if num_ctx is not None:
             options["num_ctx"] = num_ctx
+        if seed is not None:
+            options["seed"] = seed
         start = time.time()
         response = self._client.generate(
             model=self.model,
@@ -84,7 +89,9 @@ class OllamaClient:
             total_duration_ms=elapsed_ms,
         )
 
-    def _generate_chat(self, prompt: str, num_ctx: int | None = None, temperature: float = 0) -> LLMResponse:
+    def _generate_chat(
+        self, prompt: str, num_ctx: int | None = None, temperature: float = 0, seed: int | None = None,
+    ) -> LLMResponse:
         """Generate using chat API for ChatML-trained models.
 
         Splits the prompt at "--- Guideline Text ---" to separate system instructions
@@ -108,6 +115,8 @@ class OllamaClient:
         options: dict = {"temperature": temperature}
         if num_ctx is not None:
             options["num_ctx"] = num_ctx
+        if seed is not None:
+            options["seed"] = seed
 
         start = time.time()
         response = self._client.chat(
@@ -127,7 +136,7 @@ class OllamaClient:
         )
 
     def generate_json(
-        self, prompt: str, schema: dict, num_ctx: int | None = None,
+        self, prompt: str, schema: dict, num_ctx: int | None = None, seed: int | None = None,
     ) -> LLMResponse:
         """Generate a JSON-structured completion using Ollama's format parameter.
 
@@ -135,10 +144,13 @@ class OllamaClient:
             prompt: The prompt text.
             schema: JSON schema for the expected output format.
             num_ctx: Context window size. Only passed to Ollama when explicitly set.
+            seed: Sampling seed. Only passed to Ollama when explicitly set.
         """
         options: dict = {"temperature": 0}
         if num_ctx is not None:
             options["num_ctx"] = num_ctx
+        if seed is not None:
+            options["seed"] = seed
         start = time.time()
         response = self._client.generate(
             model=self.model,

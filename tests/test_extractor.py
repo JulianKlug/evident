@@ -145,3 +145,21 @@ def test_rows_carry_chunk_start_page(monkeypatch):
     # Repeated in both chunks → earliest page wins
     assert by_text.loc["We suggest balanced crystalloids over saline", "page"] == 1
     assert by_text.loc["Reassess volume status frequently", ["page", "chunk_id"]].tolist() == [2, 1]
+
+
+@pytest.mark.parametrize("seed, expected", [(None, "unset"), (5, 5)])
+def test_extract_guideline_forwards_seed_only_when_set(monkeypatch, seed, expected):
+    import extraction.extractor as extractor_mod
+    from extraction.pdf_loader import PDFPage
+    monkeypatch.setattr(extractor_mod, "load_pdf_pages", lambda source: [PDFPage(page_number=1, text="t")])
+    seen = []
+
+    class _Client(MockOllamaClient):
+        def generate(self, prompt, num_ctx=None, **kwargs):
+            seen.append(kwargs.get("seed", "unset"))
+            return super().generate(prompt, num_ctx=num_ctx)
+
+    extract_guideline("fake.pdf", strategy=PromptStrategy(name="zero_shot", scheme=GRADE),
+                      client=_Client(["NO_RECOMMENDATIONS_FOUND"]), seed=seed)
+
+    assert seen == [expected]
