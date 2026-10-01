@@ -45,8 +45,14 @@ Regression tests for T3 are mandatory (parser, extractor columns, llm_client opt
   - `status` (ETA, slow and low-recall outliers, coverage);
   - `publish` (gate).
 - T11 `scripts/fetch_pdfs.py`: built and tested against mocked HTTP. Not run yet.
+- T8a: `publish` writes a headline CSV (% strong, % against, % high/moderate certainty, ungraded share, by society).
+- Minimum testable product: a real v0 snapshot of the 12 labelled guidelines (GPU, one night), validated and published; results and runtime recorded.
 
-**Exit:** with a fake strategy, `add` → `snapshot` → `validate` → `publish` runs end to end in an E2E test (no GPU). `status` shows a resumed snapshot correctly.
+Spec: `docs/specs/m1-pipeline.md`.
+
+**Exit:**
+- With a fake strategy, `snapshot` → `validate` → `publish` → `add` runs end to end in an E2E test (no GPU). `status` shows a resumed snapshot correctly.
+- The real v0 snapshot of the 12 labelled guidelines is published, with validation, headline CSV and runtime recorded.
 
 ## M2 — Choose ExtractorVersion v1
 - T5 table-first strategy (Docling/Marker), with fixture tests on ESICM and ACP PDFs.
