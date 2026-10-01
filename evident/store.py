@@ -32,8 +32,7 @@ from evident.domain import (
     SnapshotState,
     ThinkingMode,
 )
-
-_DOI_PREFIXES = ("https://doi.org/", "http://doi.org/", "doi:")
+from utils.doi import normalize_doi
 
 # Legal snapshot transitions: BUILDING → COMPLETE → PUBLISHED
 _ALLOWED_TRANSITIONS = {
@@ -170,15 +169,6 @@ class NotFoundError(StoreError):
     """Referenced snapshot, member or run does not exist."""
 
 
-def _normalize_doi(doi: str) -> str:
-    """'https://doi.org/10.1/ABC ' → '10.1/abc'."""
-    doi = doi.strip().lower()
-    for prefix in _DOI_PREFIXES:
-        if doi.startswith(prefix):
-            return doi[len(prefix):]
-    return doi
-
-
 def _now() -> str:
     # Microseconds keep finished_at ordering strict between fast consecutive runs
     return datetime.now(timezone.utc).isoformat(timespec="microseconds")
@@ -213,7 +203,7 @@ class Store:
     # ── guidelines ──────────────────────────────────────────────
 
     def upsert_guideline(self, g: Guideline) -> int:
-        doi = _normalize_doi(g.doi)
+        doi = normalize_doi(g.doi)
 
         # A PDF belongs to exactly one DOI
         if g.pdf_sha256:
@@ -234,14 +224,14 @@ class Store:
                      grading_family = excluded.grading_family, pdf_path = excluded.pdf_path,
                      pdf_sha256 = excluded.pdf_sha256""",
                 (doi, g.society, g.year, g.title, g.topic_id,
-                 _normalize_doi(g.supersedes_doi) if g.supersedes_doi else None,
+                 normalize_doi(g.supersedes_doi) if g.supersedes_doi else None,
                  GradingFamily(g.grading_family).value, g.pdf_path, g.pdf_sha256, _now()),
             )
         return self._conn.execute("SELECT id FROM guideline WHERE doi = ?", (doi,)).fetchone()["id"]
 
     def get_guideline(self, doi: str) -> Optional[Guideline]:
         row = self._conn.execute(
-            "SELECT * FROM guideline WHERE doi = ?", (_normalize_doi(doi),),
+            "SELECT * FROM guideline WHERE doi = ?", (normalize_doi(doi),),
         ).fetchone()
         return self._guideline_from_row(row) if row else None
 

@@ -12,6 +12,7 @@ import pandas as pd
 
 from evaluation.grading import GradingScheme, GRADE, ABCD_123, ESC_ERS
 from extraction.response_parser import CATEGORY_GRADED, CATEGORY_NO_RECOMMENDATION
+from utils.doi import doi_to_key, normalize_doi
 
 
 _DATA_ROOT = "/mnt/data1/klug/datasets/evidence_extraction"
@@ -22,7 +23,6 @@ _ICU_DIR = os.path.join(_DATA_ROOT, "intensive_care_medicine")
 _INVALID_CLASSES = ["0.0", "nan", ""]
 _NO_RECOMMENDATION_CLASS = "no recommendation"
 _NO_RECOMMENDATION_TEXT = re.compile(r"inconclusive|insufficient|cannot recommend", re.IGNORECASE)
-_DOI_PREFIXES = ("https://doi.org/", "http://doi.org/", "doi:")
 
 
 class GtMode(str, Enum):
@@ -78,15 +78,6 @@ def _finalize_gt(gt_df: pd.DataFrame, gt_mode: GtMode) -> pd.DataFrame:
         for cls, text in zip(gt_df["raw_class"], gt_df["recommendation"])
     ]
     return gt_df
-
-
-def _normalize_doi(doi: str) -> str:
-    """'https://doi.org/10.7326/M22-2056 ' → '10.7326/m22-2056' (same rule as evident.store)."""
-    doi = str(doi).strip().lower()
-    for prefix in _DOI_PREFIXES:
-        if doi.startswith(prefix):
-            return doi[len(prefix):]
-    return doi
 
 
 def load_acp_datasets(gt_mode: GtMode = GtMode.GRADED_ONLY) -> list[GuidelineDataset]:
@@ -233,7 +224,7 @@ def load_icu_datasets(gt_mode: GtMode = GtMode.GRADED_ONLY) -> list[GuidelineDat
         gt_df = _finalize_gt(gt_df, gt_mode)
 
         title = group["Title"].iloc[0]
-        key = str(doi).replace("/", "_").replace(".", "_")
+        key = doi_to_key(str(doi))
 
         datasets.append(GuidelineDataset(
             key=key,
@@ -281,11 +272,11 @@ def get_few_shot_examples(
 
     # Pool all GT rows, excluding the target guideline
     pool = []
-    excluded_doi = _normalize_doi(exclude_doi) if exclude_doi else None
+    excluded_doi = normalize_doi(exclude_doi) if exclude_doi else None
     for ds in datasets:
         if exclude_key and ds.key == exclude_key:
             continue
-        if excluded_doi and _normalize_doi(ds.doi) == excluded_doi:
+        if excluded_doi and normalize_doi(ds.doi) == excluded_doi:
             continue
         for _, row in ds.ground_truth_df.iterrows():
             example = {

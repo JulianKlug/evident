@@ -16,6 +16,8 @@ from urllib.error import HTTPError, URLError
 
 from pypdf import PdfReader
 
+from utils.doi import doi_to_filename
+
 
 @dataclass
 class PDFPage:
@@ -156,8 +158,7 @@ def detect_opaque_tables(
     )
 
 
-def _doi_to_filename(doi: str) -> str:
-    return doi.replace("/", "_").replace(".", "_") + ".pdf"
+_doi_to_filename = doi_to_filename
 
 
 def _download_pdf_from_doi(doi: str, dest_dir: str = _DEFAULT_PDF_DIR) -> str:

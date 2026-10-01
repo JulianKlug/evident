@@ -17,12 +17,12 @@ from typing import Optional
 
 from evident.domain import GradingFamily, Guideline
 from evident.store import Store
+from utils.doi import doi_to_filename, normalize_doi, strip_doi_prefix
 
 _KNOWN_SOCIETIES = {"ESICM", "SCCM", "ACP"}
 _MIN_YEAR = 1990
 _DOI_PATTERN = re.compile(r"^10\.\d{4,9}/\S+$")
 _TOPIC_PATTERN = re.compile(r"^[a-z0-9-]+$")
-_DOI_PREFIXES = ("https://doi.org/", "http://doi.org/", "doi:")
 _HASH_CHUNK_BYTES = 1 << 20
 _FIRST_DATA_LINE = 2  # line 1 is the header
 
@@ -133,8 +133,8 @@ def _parse_row(row: dict, line: int, problems: list[str]) -> Optional[ManifestEn
     def value(column: str) -> str:
         return (row.get(column) or "").strip()
 
-    raw_doi = _strip_doi_prefix(value("doi"))
-    doi = raw_doi.lower()
+    raw_doi = strip_doi_prefix(value("doi"))
+    doi = normalize_doi(raw_doi)
     if not _DOI_PATTERN.match(doi):
         problem(f"invalid doi '{value('doi')}'")
 
@@ -161,12 +161,12 @@ def _parse_row(row: dict, line: int, problems: list[str]) -> Optional[ManifestEn
     if len(problems) > n_before:
         return None
 
-    supersedes = _strip_doi_prefix(value("supersedes_doi")).lower() or None
+    supersedes = normalize_doi(value("supersedes_doi")) or None
     return ManifestEntry(
         doi=doi, society=society, year=year, title=title, topic_id=topic_id,
         grading_family=family, supersedes_doi=supersedes, line=line,
         # Filename keeps the DOI's original case, matching existing PDF names
-        pdf_filename=value("pdf_filename") or _doi_to_filename(raw_doi),
+        pdf_filename=value("pdf_filename") or doi_to_filename(raw_doi),
     )
 
 
@@ -228,19 +228,6 @@ def _parse_family(raw: str) -> Optional[GradingFamily]:
         return GradingFamily(raw.lower())
     except ValueError:
         return None
-
-
-def _strip_doi_prefix(doi: str) -> str:
-    """Same prefixes as the store's DOI normalization; case is kept for filenames."""
-    for prefix in _DOI_PREFIXES:
-        if doi.lower().startswith(prefix):
-            return doi[len(prefix):]
-    return doi
-
-
-def _doi_to_filename(doi: str) -> str:
-    # Same rule as extraction/pdf_loader.py; evident must not import extraction
-    return doi.replace("/", "_").replace(".", "_") + ".pdf"
 
 
 def _sha256(path: str) -> str:
