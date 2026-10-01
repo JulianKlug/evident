@@ -1,0 +1,24 @@
+{
+ "pages": [
+  "1. Introduction. Sepsis is common. Recommendation 1: We recommend early antibiotics (strong; high).",
+  "Recommendation 2: We suggest balanced crystalloids over saline (conditional; moderate).",
+  "Recommendation 3: Best practice statement: reassess volume status frequently."
+ ],
+ "pages_per_chunk": 2,
+ "examples": [
+  {
+   "recommendation": "ACP recommends that clinicians use bisphosphonates for initial pharmacologic treatment",
+   "class": "Strong For",
+   "LOE": "High"
+  },
+  {
+   "recommendation": "We suggest against the routine use of albumin for fluid resuscitation",
+   "class": "Weak Against",
+   "LOE": "Low"
+  }
+ ],
+ "responses": [
+  "We recommend early antibiotics | Strong For | High\nWe suggest balanced crystalloids over saline | Weak For | Moderate",
+  "We suggest balanced crystalloids over saline | Weak For | Moderate\nReassess volume status frequently | Best practice | NA"
+ ]
+}
