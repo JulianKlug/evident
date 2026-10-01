@@ -1,15 +1,20 @@
 """Tests for evident.store against throwaway SQLite files."""
 
+import json
 import sqlite3
 
 import pytest
 
+import evident.store as store_mod
+
 from evident.domain import (
     Category,
     ExtractorVersion,
+    GateResult,
     GradingFamily,
     Guideline,
     LlmCall,
+    MemberOrigin,
     RawRecommendation,
     RunStatus,
     SnapshotState,
@@ -25,7 +30,7 @@ from evident.store import (
 )
 
 _TABLES = {"schema_version", "guideline", "extractor_version", "snapshot", "snapshot_member",
-           "extraction_run", "recommendation", "llm_call"}
+           "extraction_run", "recommendation", "llm_call", "validation"}
 _VERSION = ExtractorVersion(id="v1", config_json='{"a": 1}', model_name="qwen3:14b", model_digest="d")
 _REC = RawRecommendation(ordinal=0, text="Give X", raw_strength="Strong", raw_certainty="High",
                          raw_category=Category.GRADED, page=3, chunk_id=2)
@@ -69,14 +74,40 @@ def _to_state(store, snapshot_id, gids, state):
 
 
 class TestMigrations:
-    def test_empty_file_gets_version_1_and_all_tables(self, tmp_path):
+    def test_empty_file_gets_latest_version_and_all_tables(self, tmp_path):
         path = str(tmp_path / "db.sqlite")
         Store.open(path).close()
 
         conn = sqlite3.connect(path)
         tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
         assert tables == _TABLES
-        assert conn.execute("SELECT version FROM schema_version").fetchall() == [(1,)]
+        assert conn.execute("SELECT version FROM schema_version").fetchall() == [(2,)]
+
+    def test_v1_file_migrates_to_v2_keeping_rows(self, tmp_path, monkeypatch):
+        path = str(tmp_path / "db.sqlite")
+
+        # Build a v1 file with one snapshot, member and run
+        with monkeypatch.context() as m:
+            m.setattr(store_mod, "_MIGRATIONS", store_mod._MIGRATIONS[:1])
+            m.setattr(store_mod, "_CODE_SCHEMA_VERSION", 1)
+            conn = sqlite3.connect(path, isolation_level=None)
+            conn.row_factory = sqlite3.Row
+            v1 = Store(conn)
+            v1._migrate()
+            v1.register_extractor_version(_VERSION)
+            gid = v1.upsert_guideline(_guideline())
+            # Raw SQL: create_snapshot now writes the v2 origin column
+            conn.execute("INSERT INTO snapshot (extractor_version_id, state, created_at) VALUES ('v1', 'building', 't')")
+            conn.execute("INSERT INTO snapshot_member (snapshot_id, guideline_id) VALUES (1, ?)", (gid,))
+            conn.execute("""INSERT INTO extraction_run (snapshot_id, guideline_id, status, started_at)
+                            VALUES (1, ?, 'running', 't')""", (gid,))
+            conn.close()
+
+        with Store.open(path) as s:
+            assert s.members(1) == [store_mod.SnapshotMember(gid, None, MemberOrigin.INITIAL)]
+            assert s.runs(1)[0].code_sha is None
+            assert s.get_guideline("10.1/a") is not None
+
 
     def test_reopen_is_noop(self, tmp_path):
         path = str(tmp_path / "db.sqlite")
@@ -247,3 +278,69 @@ class TestIntegrity:
         snapshot_id, _ = snapshot
         with pytest.raises(sqlite3.IntegrityError):
             store.start_run(snapshot_id, 999, ThinkingMode.OFF, few_shot=[])
+
+
+class TestOrigins:
+    def test_initial_and_rescan(self, store, snapshot):
+        snapshot_id, gids = snapshot
+        new_gid = store.upsert_guideline(_guideline("10.1/c"))
+        store.add_snapshot_member(snapshot_id, new_gid)
+
+        assert [(m.guideline_id, m.origin) for m in store.members(snapshot_id)] == [
+            (gids[0], MemberOrigin.INITIAL), (gids[1], MemberOrigin.INITIAL), (new_gid, MemberOrigin.RESCAN)]
+
+    @pytest.mark.parametrize("state", [SnapshotState.BUILDING, SnapshotState.COMPLETE])
+    def test_published_member_refused_before_publish(self, store, snapshot, state):
+        snapshot_id, gids = snapshot
+        _to_state(store, snapshot_id, gids, state)
+        new_gid = store.upsert_guideline(_guideline("10.1/c"))
+        with pytest.raises(InvalidSnapshotTransitionError):
+            store.add_published_member(snapshot_id, new_gid)
+
+    def test_published_member(self, store, snapshot):
+        snapshot_id, gids = snapshot
+        _to_state(store, snapshot_id, gids, SnapshotState.PUBLISHED)
+        new_gid = store.upsert_guideline(_guideline("10.1/c"))
+
+        store.add_published_member(snapshot_id, new_gid)
+
+        assert store.members(snapshot_id)[-1].origin == MemberOrigin.POST_PUBLISH
+
+
+class TestPublishAndRuns:
+    def test_accept_reason_stored(self, store, snapshot):
+        snapshot_id, gids = snapshot
+        _to_state(store, snapshot_id, gids, SnapshotState.COMPLETE)
+        store.transition_snapshot(snapshot_id, SnapshotState.PUBLISHED, accept_reason="noise on 12 guidelines")
+        assert store.get_snapshot(snapshot_id).accept_reason == "noise on 12 guidelines"
+
+    def test_get_snapshot_missing(self, store):
+        assert store.get_snapshot(42) is None
+
+    def test_runs_all_statuses_with_code_sha(self, store, snapshot):
+        snapshot_id, gids = snapshot
+        failed = store.start_run(snapshot_id, gids[0], ThinkingMode.OFF, few_shot=[], code_sha="abc")
+        store.fail_run(failed, "boom")
+        _succeed(store, snapshot_id, gids[0])
+
+        runs = store.runs(snapshot_id)
+        assert [(r.status, r.code_sha) for r in runs] == [(RunStatus.FAILED, "abc"), (RunStatus.SUCCEEDED, None)]
+
+    def test_finish_run_records_few_shot(self, store, snapshot):
+        snapshot_id, gids = snapshot
+        run = store.start_run(snapshot_id, gids[0], ThinkingMode.OFF, few_shot=[])
+        store.finish_run(run, [_REC], [_CALL], n_pages=1, few_shot=[{"recommendation": "x"}])
+        assert json.loads(store.active_run(snapshot_id, gids[0]).few_shot_json) == [{"recommendation": "x"}]
+
+
+class TestValidations:
+    def test_round_trip_latest_wins(self, store, snapshot):
+        snapshot_id, _ = snapshot
+        assert store.latest_validation(snapshot_id) is None
+
+        store.save_validation(snapshot_id, None, GateResult.NO_BASELINE, '{"a": 1}')
+        second = store.save_validation(snapshot_id, None, GateResult.PASS, '{"a": 2}')
+
+        latest = store.latest_validation(snapshot_id)
+        assert (latest.id, latest.gate, latest.report_json, latest.baseline_snapshot_id) == (
+            second, GateResult.PASS, '{"a": 2}', None)

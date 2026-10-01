@@ -23,14 +23,18 @@ from evident.domain import (
     Category,
     ExtractionRun,
     ExtractorVersion,
+    GateResult,
     GradingFamily,
     Guideline,
     LlmCall,
+    MemberOrigin,
     RawRecommendation,
     RunStatus,
     Snapshot,
+    SnapshotMember,
     SnapshotState,
     ThinkingMode,
+    Validation,
 )
 from utils.doi import normalize_doi
 
@@ -118,6 +122,18 @@ _MIGRATIONS = [
             prompt_tokens INTEGER,
             eval_tokens   INTEGER,
             duration_ms   REAL
+        )""",
+    ]),
+    (2, [
+        "ALTER TABLE snapshot_member ADD COLUMN origin TEXT NOT NULL DEFAULT 'initial'",
+        "ALTER TABLE extraction_run ADD COLUMN code_sha TEXT",
+        """CREATE TABLE validation (
+            id                   INTEGER PRIMARY KEY,
+            snapshot_id          INTEGER NOT NULL REFERENCES snapshot(id),
+            baseline_snapshot_id INTEGER REFERENCES snapshot(id),
+            gate                 TEXT NOT NULL,
+            report_json          TEXT NOT NULL,
+            created_at           TEXT NOT NULL
         )""",
     ]),
 ]
@@ -273,18 +289,30 @@ class Store:
             )
             snapshot_id = cur.lastrowid
             self._conn.executemany(
-                "INSERT INTO snapshot_member (snapshot_id, guideline_id) VALUES (?, ?)",
-                [(snapshot_id, gid) for gid in guideline_ids],
+                "INSERT INTO snapshot_member (snapshot_id, guideline_id, origin) VALUES (?, ?, ?)",
+                [(snapshot_id, gid, MemberOrigin.INITIAL.value) for gid in guideline_ids],
             )
         return snapshot_id
 
-    def add_snapshot_member(self, snapshot_id: int, guideline_id: int) -> None:
+    def add_snapshot_member(self, snapshot_id: int, guideline_id: int,
+                            origin: MemberOrigin = MemberOrigin.RESCAN) -> None:
         self._require_building(snapshot_id)
-        with self._transaction():
-            self._conn.execute(
-                "INSERT OR IGNORE INTO snapshot_member (snapshot_id, guideline_id) VALUES (?, ?)",
-                (snapshot_id, guideline_id),
-            )
+        self._insert_member(snapshot_id, guideline_id, origin)
+
+    def add_published_member(self, snapshot_id: int, guideline_id: int) -> None:
+        # `add` attaches a late guideline to the published version, never to a building one
+        state = self._snapshot_state(snapshot_id)
+        if state != SnapshotState.PUBLISHED:
+            raise InvalidSnapshotTransitionError(state, None)
+        self._insert_member(snapshot_id, guideline_id, MemberOrigin.POST_PUBLISH)
+
+    def members(self, snapshot_id: int) -> list[SnapshotMember]:
+        rows = self._conn.execute(
+            """SELECT guideline_id, excluded_reason, origin FROM snapshot_member
+               WHERE snapshot_id = ? ORDER BY guideline_id""",
+            (snapshot_id,),
+        ).fetchall()
+        return [SnapshotMember(r["guideline_id"], r["excluded_reason"], MemberOrigin(r["origin"])) for r in rows]
 
     def exclude_member(self, snapshot_id: int, guideline_id: int, reason: str) -> None:
         if not reason or not reason.strip():
@@ -299,7 +327,8 @@ class Store:
         if cur.rowcount == 0:
             raise NotFoundError(f"Guideline {guideline_id} is not a member of snapshot {snapshot_id}")
 
-    def transition_snapshot(self, snapshot_id: int, to: SnapshotState) -> None:
+    def transition_snapshot(self, snapshot_id: int, to: SnapshotState,
+                            accept_reason: Optional[str] = None) -> None:
         current = self._snapshot_state(snapshot_id)
         if _ALLOWED_TRANSITIONS.get(current) != to:
             raise InvalidSnapshotTransitionError(current, to)
@@ -316,16 +345,21 @@ class Store:
                 f"UPDATE snapshot SET state = ?, {timestamp_column} = ? WHERE id = ?",
                 (to.value, _now(), snapshot_id),
             )
+            # Why a gate failure was overridden; kept for the paper
+            if to == SnapshotState.PUBLISHED and accept_reason:
+                self._conn.execute(
+                    "UPDATE snapshot SET accept_reason = ? WHERE id = ?", (accept_reason, snapshot_id),
+                )
 
     def latest_snapshot(self, state: SnapshotState) -> Optional[Snapshot]:
         row = self._conn.execute(
             "SELECT * FROM snapshot WHERE state = ? ORDER BY id DESC LIMIT 1", (state.value,),
         ).fetchone()
-        if not row:
-            return None
-        data = dict(row)
-        data["state"] = SnapshotState(data["state"])
-        return Snapshot(**data)
+        return self._snapshot_from_row(row) if row else None
+
+    def get_snapshot(self, snapshot_id: int) -> Optional[Snapshot]:
+        row = self._conn.execute("SELECT * FROM snapshot WHERE id = ?", (snapshot_id,)).fetchone()
+        return self._snapshot_from_row(row) if row else None
 
     def pending_members(self, snapshot_id: int) -> list[int]:
         rows = self._conn.execute(
@@ -342,19 +376,21 @@ class Store:
     # ── runs ────────────────────────────────────────────────────
 
     def start_run(self, snapshot_id: int, guideline_id: int, thinking: ThinkingMode,
-                  few_shot: list[dict]) -> int:
+                  few_shot: list[dict], code_sha: Optional[str] = None) -> int:
         with self._transaction():
             cur = self._conn.execute(
                 """INSERT INTO extraction_run (snapshot_id, guideline_id, status, started_at,
-                                               thinking, few_shot_json)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
+                                               thinking, few_shot_json, code_sha)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (snapshot_id, guideline_id, RunStatus.RUNNING.value, _now(),
-                 _THINKING_TO_DB[thinking], json.dumps(few_shot)),
+                 _THINKING_TO_DB[thinking], json.dumps(few_shot), code_sha),
             )
         return cur.lastrowid
 
     def finish_run(self, run_id: int, recs: list[RawRecommendation],
-                   calls: list[LlmCall], n_pages: int) -> RunStatus:
+                   calls: list[LlmCall], n_pages: int,
+                   few_shot: Optional[list[dict]] = None) -> RunStatus:
+        """few_shot: examples the extractor actually used, known only after the run; replaces start_run's."""
         status = RunStatus.SUCCEEDED if recs else RunStatus.FAILED_EMPTY
         started_at = self._run_started_at(run_id)
         finished_at = _now()
@@ -370,6 +406,10 @@ class Store:
                    WHERE id = ?""",
                 (status.value, finished_at, duration_s, n_pages, len(calls), run_id),
             )
+            if few_shot is not None:
+                self._conn.execute(
+                    "UPDATE extraction_run SET few_shot_json = ? WHERE id = ?", (json.dumps(few_shot), run_id),
+                )
         return status
 
     def fail_run(self, run_id: int, error: str) -> None:
@@ -390,6 +430,13 @@ class Store:
         ).fetchone()
         return self._run_from_row(row) if row else None
 
+    def runs(self, snapshot_id: int) -> list[ExtractionRun]:
+        """Every run of the snapshot, all statuses, oldest first."""
+        rows = self._conn.execute(
+            "SELECT * FROM extraction_run WHERE snapshot_id = ? ORDER BY id", (snapshot_id,),
+        ).fetchall()
+        return [self._run_from_row(r) for r in rows]
+
     def recommendations(self, run_id: int) -> list[RawRecommendation]:
         rows = self._conn.execute(
             """SELECT ordinal, text, raw_strength, raw_certainty, raw_category, page, chunk_id
@@ -400,6 +447,28 @@ class Store:
             RawRecommendation(**{**dict(r), "raw_category": Category(r["raw_category"])})
             for r in rows
         ]
+
+    # ── validations ─────────────────────────────────────────────
+
+    def save_validation(self, snapshot_id: int, baseline_snapshot_id: Optional[int],
+                        gate: GateResult, report_json: str) -> int:
+        self._snapshot_state(snapshot_id)
+        with self._transaction():
+            cur = self._conn.execute(
+                """INSERT INTO validation (snapshot_id, baseline_snapshot_id, gate, report_json, created_at)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (snapshot_id, baseline_snapshot_id, GateResult(gate).value, report_json, _now()),
+            )
+        return cur.lastrowid
+
+    def latest_validation(self, snapshot_id: int) -> Optional[Validation]:
+        # Re-validation appends; the newest row is the one that counts
+        row = self._conn.execute(
+            "SELECT * FROM validation WHERE snapshot_id = ? ORDER BY id DESC LIMIT 1", (snapshot_id,),
+        ).fetchone()
+        if not row:
+            return None
+        return Validation(**{**dict(row), "gate": GateResult(row["gate"])})
 
     # ── private ─────────────────────────────────────────────────
 
@@ -445,6 +514,13 @@ class Store:
             raise NotFoundError(f"Snapshot {snapshot_id} does not exist")
         return SnapshotState(row["state"])
 
+    def _insert_member(self, snapshot_id: int, guideline_id: int, origin: MemberOrigin) -> None:
+        with self._transaction():
+            self._conn.execute(
+                "INSERT OR IGNORE INTO snapshot_member (snapshot_id, guideline_id, origin) VALUES (?, ?, ?)",
+                (snapshot_id, guideline_id, origin.value),
+            )
+
     def _require_building(self, snapshot_id: int) -> None:
         state = self._snapshot_state(snapshot_id)
         if state != SnapshotState.BUILDING:
@@ -479,6 +555,10 @@ class Store:
         data = dict(row)
         data["grading_family"] = GradingFamily(data["grading_family"])
         return Guideline(**data)
+
+    @staticmethod
+    def _snapshot_from_row(row: sqlite3.Row) -> Snapshot:
+        return Snapshot(**{**dict(row), "state": SnapshotState(row["state"])})
 
     @staticmethod
     def _run_from_row(row: sqlite3.Row) -> ExtractionRun:

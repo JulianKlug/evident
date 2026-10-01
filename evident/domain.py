@@ -61,6 +61,18 @@ class ThinkingMode(str, Enum):
     ON = "on"
 
 
+class MemberOrigin(str, Enum):
+    INITIAL = "initial"            # in the manifest when the snapshot was created
+    RESCAN = "rescan"              # added to the manifest while the snapshot was building
+    POST_PUBLISH = "post_publish"  # added to a published snapshot by `add`
+
+
+class GateResult(str, Enum):
+    PASS = "pass"
+    FAIL = "fail"
+    NO_BASELINE = "no_baseline"
+
+
 @dataclass(frozen=True)
 class Guideline:
     doi: str
@@ -112,6 +124,24 @@ class ExtractionRun:
     n_llm_calls: Optional[int] = None
     few_shot_json: Optional[str] = None
     error: Optional[str] = None
+    code_sha: Optional[str] = None  # git HEAD at run time; not part of the version
+
+
+@dataclass(frozen=True)
+class SnapshotMember:
+    guideline_id: int
+    excluded_reason: Optional[str]
+    origin: MemberOrigin
+
+
+@dataclass(frozen=True)
+class Validation:
+    id: int
+    snapshot_id: int
+    baseline_snapshot_id: Optional[int]
+    gate: GateResult
+    report_json: str
+    created_at: str
 
 
 @dataclass(frozen=True)
