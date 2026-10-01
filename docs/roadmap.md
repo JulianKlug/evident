@@ -30,7 +30,9 @@ Four lanes that can run in parallel.
 
 Regression tests for T3 are mandatory (parser, extractor columns, llm_client options, ICU loader).
 
-**Exit:** the full test suite passes. The legacy benchmark on 15 guidelines gives the same F1 (±0.01) with the new options off.
+**Exit:** the full test suite passes. The legacy golden replay (`tests/test_legacy_golden.py`) is unchanged with the new options off. It replaces the ±0.01 F1 benchmark check, which isn't reproducible (unseeded few-shot).
+
+**Status:** DONE 2026-10-01. See the outcome in `docs/specs/m0-foundations.md` §13.
 
 ## M1 — Pipeline end to end
 - T4 `ExtractorConfig`:

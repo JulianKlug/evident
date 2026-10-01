@@ -1,6 +1,6 @@
 # Spec: M0 Foundations
 
-Status: DRAFT · 2026-10-01 · Branch: `agent_explor`
+Status: DONE · 2026-10-01 · Branch: `agent_explor` · Outcome: §13
 Parent docs: `docs/designs/living-evidence-map.md` (decisions), `docs/roadmap.md` (M0)
 Tasks: T1 store · T2 harmonization · T3 legacy extractor changes · T6 corpus
 
@@ -325,7 +325,7 @@ benchmark isn't reproducible: unseeded few-shot, `datasets.py:252`).
   - leakage: for every labelled guideline, no example text equals any of its own GT rows when excluded by DOI;
   - same seed → same examples; different seed → different examples (pool ≥ 10);
   - ICU multi-xlsx;
-  - `GtMode` row counts: ACP 29→30, ICU 17 unchanged (the "No recommendation" and bare "recommendation" rows are already kept today); category values as expected; `raw_class`/`raw_LOE` equal the xlsx cells.
+  - `GtMode` row counts: ACP 29 and ICU 17 in both modes (the ACP class-`0` row and the ICU "No recommendation" and bare "recommendation" rows are already kept today); category values as expected; `raw_class`/`raw_LOE` equal the xlsx cells.
 
 ## 7. T2 Harmonization (`evident/harmonization.py`)
 
@@ -384,7 +384,7 @@ vocabulary word maps to that word; otherwise it's unrecognized. This is generic
 and needs no alias list.
 
 ### 7.4 Tests (`test_harmonization.py`, table-driven, `pytest.mark.parametrize`)
-- **Every GT row:** run all 47 ACP + ICU GT rows (30 + 17, via `GtMode.WITH_UNGRADED`, using `raw_class`/`raw_LOE`) through `harmonize`; expectations are hand-written in `tests/fixtures/harmonization_gt_expected.csv`. Must include:
+- **Every GT row:** run all 46 ACP + ICU GT rows (29 + 17, via `GtMode.WITH_UNGRADED`, using `raw_class`/`raw_LOE`) through `harmonize`; expectations are hand-written in `tests/fixtures/harmonization_gt_expected.csv`. Must include:
   - ACP "recommends against adding a DPP-4…" → STRONG / AGAINST / HIGH;
   - ACP "suggest against clinicians treating…" → WEAK / AGAINST / LOW;
   - ICU "We suggest against the routine use of ultrafiltration…" (class `recommendation`) → strength UNMAPPED, certainty LOW;
@@ -470,3 +470,12 @@ for §6.4 `GtMode`; its synthetic tests don't.
 - **Runtime:** the baseline took 2,839 s for one ACP guideline (`artifacts/ab_tests/baseline.csv`). About 100 guidelines single-pass ≈ 79 h, which exceeds the 3-night snapshot budget before SC (×3). This is input to M2/T10: thinking off, table-first, chunking.
 - **ACP labelled set has 29 graded rows and 1 ungraded:** ungraded-category accuracy is effectively unmeasurable in MVP. Report it as such.
 - **Sci-Hub download code in `pdf_loader.py`:** T11 must not call it.
+
+## 13. Outcome (2026-10-01)
+All exit criteria in §9 pass: 309 tests with `-m "not slow"`. Differences from the text above:
+- **Row counts.** ACP has 29 GT rows, not 30. The legacy filter drops `"0.0"` but the cell is `"0"`, so the "Evidence was inconclusive…" row was already kept. Both `GtMode`s give 29; harmonization covers 46 rows.
+- **Prompt V1** also relaxes the first rule ("Extract ONLY … with a clear grade and level"), which contradicted the new rules.
+- **Shared DOI rules** live in `utils/doi.py` (`normalize_doi`, `strip_doi_prefix`, `doi_to_key`, `doi_to_filename`). `utils/` depends on neither `extraction/` nor `evident/`.
+- **Added:** `NotFoundError` in the store; `ThinkingMode` in `domain.py`; `tests/test_category_contract.py` keeps parser category strings equal to `Category`.
+- **`.gitignore`** excludes `*.csv`; `tests/fixtures/**/*.csv` and `corpus/manifest.csv` are now exceptions.
+- **Goldens record existing quirks** as expected output, e.g. a markdown header row parsed as a recommendation.
