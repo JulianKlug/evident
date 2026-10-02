@@ -705,3 +705,20 @@ Snapshot 2, version `e50b2250a148` (`configs/v0_qwen38-64k.json`: v0 with only t
 Per guideline (TP/FP/FN, 14b → 38-64k): FPs fall from 87 to 7 in total. Recall losses: ESICM 07369-9 (11/11/0 → 7/0/4), M20-7533 (2/0/0 → 1/0/1), M22-2056 (5/15/0 → 4/2/1). Thinking off held: 0/189 `<think>`, 26 eval tokens per call.
 
 Takeaway: the larger model fixes most of v0's precision problem at about the same speed; recall now limits. ESICM part 1 loses 4 of 11 recommendations.
+
+## Thinking on: qwen38-64k (2026-10-02)
+
+Snapshot 3, version `1fd75aea8f09` (`configs/v0_qwen38-64k_think.json`: snapshot 2's config with thinking on), model `qwen38-64k:latest@12af24e3ee72`. 12/12 succeeded. Gate vs published snapshot 1: PASS. Paired vs snapshot 2 (thinking off): **FAIL**. Not published.
+
+| Metric | qwen38-64k off (snap 2) | qwen38-64k on (snap 3) | On − off [95% paired CI] |
+|--------|------------------------|------------------------|--------------------------|
+| Graded F1 | **0.854** | 0.769 [0.676, 0.855] | −0.085 [−0.154, −0.037] |
+| Precision / Recall | **0.844** / 0.864 | 0.667 / **0.909** | |
+| Strength / certainty acc | 0.947 / 0.921 | **0.975 / 0.950** | |
+| Combined acc | 0.895 | **0.925** [0.862, 1.000] | +0.030 [−0.036, +0.117] |
+| Median / max s per guideline | 33 / 55 | 122 / 267 | |
+| Total for 12 / eval tokens | 7.6 min / 4.9k | 28.5 min / 98k | |
+
+Per guideline (TP/FP/FN, off → on): ESICM part 1 recovers fully (7/0/4 → 11/7/0), but FPs rise from 7 to 20 overall (ESICM parts 1–3, M23-2788, M19-3602). Thinking also loses 1 rec each on ANNALS-24-01052 and ANNALS-24-03095. M20-7533 and M22-2056 miss 1 rec in both modes.
+
+Takeaway: thinking trades precision for recall and is 3.7× slower; net F1 is clearly worse. Grade accuracy is slightly better (+0.03), but the CI includes 0. Keep thinking off. Thinking text is not stored: the client keeps only Ollama's `response`, so only its token count is in `eval_tokens`.
