@@ -722,3 +722,16 @@ Snapshot 3, version `1fd75aea8f09` (`configs/v0_qwen38-64k_think.json`: snapshot
 Per guideline (TP/FP/FN, off → on): ESICM part 1 recovers fully (7/0/4 → 11/7/0), but FPs rise from 7 to 20 overall (ESICM parts 1–3, M23-2788, M19-3602). Thinking also loses 1 rec each on ANNALS-24-01052 and ANNALS-24-03095. M20-7533 and M22-2056 miss 1 rec in both modes.
 
 Takeaway: thinking trades precision for recall and is 3.7× slower; net F1 is clearly worse. Grade accuracy is slightly better (+0.03), but the CI includes 0. Keep thinking off. Thinking text is not stored: the client keeps only Ollama's `response`, so only its token count is in `eval_tokens`.
+
+## Published: snapshot 2, qwen38-64k thinking off (2026-10-02)
+
+Snapshot 3 rejected ("thinking on: graded F1 0.769 vs 0.854 …, 3.7x slower"). Snapshot 2 published against snapshot 1 (gate PASS). Snapshot 1 stays PUBLISHED in history; the latest published one is current.
+
+Headline now vs ground truth (graded rows, mapped axes):
+| | % strong ACP / ESICM | % high/moderate ACP / ESICM |
+|---|---|---|
+| Ground truth (12 labelled) | 21.4 / 0.0 | 25.0 / 18.8 |
+| Snapshot 2 (published) | 22.6 / 0.0 | 32.3 / 14.3 |
+| Snapshot 1 (v0) | 40.4 / 0.0 | 69.1 / 33.3 |
+
+v0's percentages were driven by its false positives; snapshot 2 is within a few points of GT.
