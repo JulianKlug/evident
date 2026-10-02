@@ -735,3 +735,40 @@ Headline now vs ground truth (graded rows, mapped axes):
 | Snapshot 1 (v0) | 40.4 / 0.0 | 69.1 / 33.3 |
 
 v0's percentages were driven by its false positives; snapshot 2 is within a few points of GT.
+
+## Error analysis: snapshot 2 (qwen38-64k, thinking off) (2026-10-02)
+
+13 errors: 6 FN, 7 FP. Method: match each GT row, find its source page, compare with that page's stored LLM output; replay parse + dedup offline from stored `llm_call` rows (replay reproduces the stored score exactly).
+
+### All 6 misses are deduplication, not extraction
+The model output every one of them; BioLORD semantic dedup (threshold 0.9) then merged it with a sibling recommendation that differs only in population or comparator:
+| Guideline | Lost (GT) | Merged into (similarity) |
+|-----------|-----------|--------------------------|
+| ESICM 07369-9 | crystalloids vs albumin, *in general* | … *with acute respiratory failure* (0.92) |
+| ESICM 07369-9 | crystalloids vs albumin, *with sepsis* | balanced vs saline, *with sepsis* (0.90) |
+| ESICM 07369-9 | saline vs *albumin*, TBI | saline vs *balanced*, TBI (0.96) |
+| ESICM 07369-9 | balanced vs saline, *in general* | … *with kidney injury* (0.94) |
+| ACP M20-7533 | HFNO vs *NIV* (Rec 1a) | HFNO vs *conventional O2* (Rec 1b) (0.90) |
+| ACP M22-2056 | *combination* therapy (Rec 1b) | *monotherapy* (Rec 1a) (0.93) |
+
+No miss involves a table: on these 12 guidelines table-first (T5) has nothing to recover.
+
+Dedup replay on stored output (12 guidelines, paired F1 diff vs stored):
+| Dedup | Snap 2 (qwen38-64k) P / R / F1 | Δ F1 [CI] | Snap 1 (qwen3:14b) F1 |
+|-------|-------------------------------|-----------|------------------------|
+| BioLORD 0.90 (current) | 0.844 / 0.864 / 0.854 | — | 0.503 |
+| BioLORD 0.95 | 0.843 / 0.977 / 0.905 | +0.051 [−0.012, +0.112] | 0.451 |
+| BioLORD 0.97 | 0.830 / 1.000 / 0.907 | +0.053 [−0.031, +0.131] | 0.447 |
+| exact only (legacy) | 0.786 / 1.000 / 0.880 | +0.026 [−0.065, +0.116] | 0.438 |
+
+The best threshold depends on the model. qwen3:14b needs aggressive dedup to hide its paraphrased FPs; qwen38-64k doesn't produce those, so dedup only causes damage. The gain is chosen on the same 12 guidelines and its CI includes 0, but the mechanism is direct.
+
+### The 7 false positives
+| Count | Cause | Example |
+|-------|-------|---------|
+| 2 | **GT omission**: real graded recs missing from the labels | ESICM 07840-1 p9: hemorrhagic shock after penetrating/blunt trauma, "(conditional recommendation, moderate certainty of evidence)". GT for this guideline has 3 rows, no trauma recs. |
+| 2 | Restatement in rationale text | ANNALS-24-01052 p6: "the CGC suggests that clinicians … use a β-blocker …" |
+| 2 | Sub-bullets of a multi-option rec extracted separately | M22-2056: "Switching to or augmenting with cognitive behavioral therapy" |
+| 1 | Rationale sentence | M19-3602 p10: "clinicians should avoid prescribing these therapies …" |
+
+Corrected for the GT omission, snapshot 2 precision is 40/45 = 0.889 (not 0.844).
