@@ -772,3 +772,16 @@ The best threshold depends on the model. qwen3:14b needs aggressive dedup to hid
 | 1 | Rationale sentence | M19-3602 p10: "clinicians should avoid prescribing these therapies …" |
 
 Corrected for the GT omission, snapshot 2 precision is 40/45 = 0.889 (not 0.844).
+
+## Dedup 0.97: qwen38-64k (2026-10-02)
+
+Snapshot 4, version `3b2c29833235` (`configs/v0_qwen38-64k_dedup097.json`: snapshot 2's config, `dedup_threshold` 0.9 → 0.97), `qwen38-64k:latest@12af24e3ee72`. 12/12 succeeded, 7.7 min. Gate vs published snapshot 2: **PASS**. Matches the offline replay exactly. Not published.
+
+| Metric | Snap 2 (0.90, published) | Snap 4 (0.97) | Diff [95% paired CI] |
+|--------|--------------------------|---------------|----------------------|
+| Graded F1 | 0.854 | **0.907** [0.832, 0.966] | +0.053 [−0.031, +0.131] |
+| Precision / Recall | 0.844 / 0.864 | 0.830 / **1.000** | |
+| Strength / certainty acc | 0.947 / 0.921 | 0.977 / 0.955 | |
+| Combined acc | 0.895 | **0.932** | +0.037 [+0.002, +0.102] |
+
+Changed guidelines (TP/FP/FN): ESICM 07369-9 7/0/4 → 11/0/0; M20-7533 1/0/1 → 2/0/0; M22-2056 4/2/1 → 5/2/0; ANNALS-24-03095 and M23-2788 +1 FP each. All 6 misses recovered for 2 FPs. The combined-accuracy CI excludes 0: the recovered recs are graded correctly. Threshold chosen on the same 12 guidelines.
