@@ -135,6 +135,32 @@ class GateFailedError(PipelineError):
         self.report_json = report_json
 
 
+class AmbiguousPublishError(PipelineError):
+    def __init__(self, snapshot_ids: list[int]):
+        ids = ", ".join(str(i) for i in snapshot_ids)
+        super().__init__(f"Several complete snapshots ({ids}); choose one with --snapshot ID "
+                         "and retire the others with reject")
+        self.snapshot_ids = snapshot_ids
+
+
+class NotPublishableError(PipelineError):
+    def __init__(self, snapshot_id: int, state: Optional[SnapshotState]):
+        what = state.value if state else "missing"
+        super().__init__(f"Snapshot {snapshot_id} is {what}; only a complete snapshot, "
+                         "or the latest published one (re-publish), can be published")
+        self.snapshot_id = snapshot_id
+        self.state = state
+
+
+class StaleValidationError(PipelineError):
+    def __init__(self, snapshot_id: int, validated_against: Optional[int], published: Optional[int]):
+        super().__init__(f"Snapshot {snapshot_id} was gated against snapshot {validated_against}, "
+                         f"but {published} is published now; run validate --snapshot {snapshot_id}")
+        self.snapshot_id = snapshot_id
+        self.validated_against = validated_against
+        self.published = published
+
+
 class NothingToPublishError(PipelineError):
     def __init__(self):
         super().__init__("No complete or published snapshot")
@@ -184,6 +210,13 @@ class PublishReport:
     n_skipped_excluded: int
     n_skipped_superseded: int
     model: str = ""
+
+
+@dataclass(frozen=True)
+class RejectReport:
+    snapshot_id: int
+    model: str
+    reason: str
 
 
 @dataclass(frozen=True)
@@ -276,20 +309,28 @@ def validate(deps: PipelineDeps, snapshot_id: Optional[int] = None) -> Validatio
                             _model_label(deps.store, baseline) if baseline else None)
 
 
-def publish(deps: PipelineDeps, accept_regression: Optional[str] = None) -> PublishReport:
-    entries = load_manifest(deps.manifest_path)
-    complete = deps.store.latest_snapshot(SnapshotState.COMPLETE)
+def publish(deps: PipelineDeps, accept_regression: Optional[str] = None,
+            snapshot_id: Optional[int] = None) -> PublishReport:
+    """Publish a complete snapshot, or re-publish the latest published one's outputs.
 
-    if complete is None:
-        # Re-publish: after `add`, only the outputs of the published snapshot change
-        published = deps.store.latest_snapshot(SnapshotState.PUBLISHED)
-        if published is None:
-            raise NothingToPublishError()
-        return _write_outputs(deps, published, entries, republished=True)
+    snapshot_id None: the only complete snapshot, else the published one; several → AmbiguousPublishError.
+    """
+    entries = load_manifest(deps.manifest_path)
+    published = deps.store.latest_snapshot(SnapshotState.PUBLISHED)
+    complete = _publish_target(deps.store, snapshot_id, published)
+
+    # Re-publish: after `add`, only the outputs of the published snapshot change
+    if complete.state == SnapshotState.PUBLISHED:
+        return _write_outputs(deps, complete, entries, republished=True)
 
     validation = deps.store.latest_validation(complete.id)
     if validation is None:
         raise ValidationMissingError(complete.id)
+
+    # The gate is only meaningful against the snapshot that is published now
+    published_id = published.id if published else None
+    if validation.baseline_snapshot_id != published_id:
+        raise StaleValidationError(complete.id, validation.baseline_snapshot_id, published_id)
 
     gaps = _coverage_gaps(deps.store, complete.id, entries)
     if gaps:
@@ -300,6 +341,13 @@ def publish(deps: PipelineDeps, accept_regression: Optional[str] = None) -> Publ
 
     deps.store.transition_snapshot(complete.id, SnapshotState.PUBLISHED, accept_regression)
     return _write_outputs(deps, deps.store.get_snapshot(complete.id), entries, republished=False)
+
+
+def reject(deps: PipelineDeps, snapshot_id: int, reason: str) -> RejectReport:
+    """Retire a building or complete candidate; it stays in the DB with its reason."""
+    deps.store.reject_snapshot(snapshot_id, reason)
+    snap = deps.store.get_snapshot(snapshot_id)
+    return RejectReport(snapshot_id, _model_label(deps.store, snap), reason)
 
 
 def add(deps: PipelineDeps, pdf_path: str, mode: IngestMode = IngestMode.NORMAL) -> AddReport:
@@ -338,7 +386,7 @@ def add(deps: PipelineDeps, pdf_path: str, mode: IngestMode = IngestMode.NORMAL)
 
 def status(deps: PipelineDeps) -> StatusReport:
     store = deps.store
-    latest = [store.latest_snapshot(s) for s in SnapshotState]
+    latest = [store.latest_snapshot(s) for s in SnapshotState if s != SnapshotState.REJECTED]
     snap = max((s for s in latest if s), key=lambda s: s.id, default=None)
     if snap is None:
         return StatusReport()
@@ -416,6 +464,24 @@ def _resume_snapshot(deps: PipelineDeps) -> tuple[int, ExtractorConfig]:
     cfg = _config_checked(deps, deps.store.get_extractor_version(building.extractor_version_id))
     _log.info("snapshot %d: resume", building.id)
     return building.id, cfg
+
+
+def _publish_target(store: Store, snapshot_id: Optional[int], published: Optional[Snapshot]) -> Snapshot:
+    if snapshot_id is not None:
+        snap = store.get_snapshot(snapshot_id)
+        is_latest_published = snap is not None and published is not None and snap.id == published.id
+        if snap is None or not (snap.state == SnapshotState.COMPLETE or is_latest_published):
+            raise NotPublishableError(snapshot_id, snap.state if snap else None)
+        return snap
+
+    complete = store.complete_snapshots()
+    if len(complete) > 1:
+        raise AmbiguousPublishError([s.id for s in complete])
+    if complete:
+        return complete[0]
+    if published is None:
+        raise NothingToPublishError()
+    return published
 
 
 def _config_checked(deps: PipelineDeps, version: ExtractorVersion) -> ExtractorConfig:

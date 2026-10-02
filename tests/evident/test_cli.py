@@ -7,7 +7,15 @@ import pytest
 import evident.cli as cli
 from evident import pipeline
 from evident.domain import SnapshotState
-from evident.pipeline import AddReport, AddStatus, IngestMode, PublishReport, SnapshotReport, SnapshotStart
+from evident.pipeline import (
+    AddReport,
+    AddStatus,
+    IngestMode,
+    PublishReport,
+    RejectReport,
+    SnapshotReport,
+    SnapshotStart,
+)
 from tests.evident.pipeline_fakes import CONFIG
 
 
@@ -25,6 +33,7 @@ def calls(monkeypatch, tmp_path):
     record("snapshot", SnapshotReport(1, SnapshotState.COMPLETE, 3, 0, 0, [], []))
     record("publish", PublishReport(1, True, "out/headline.csv", 3, 0, 0))
     record("add", AddReport(1, "10.1000/d", AddStatus.ADDED))
+    record("reject", RejectReport(3, "m@d", "worse F1"))
     return seen
 
 
@@ -61,7 +70,8 @@ def test_usage_errors_exit_2(calls, tmp_path, argv):
 
 def test_add_force_then_publish(calls, tmp_path):
     assert _main(tmp_path, "add", "x.pdf", "--force") == 0
-    assert calls == [("add", ("x.pdf", IngestMode.FORCE)), ("publish", (None,))]
+    # Re-publish the snapshot add attached to, never a pending candidate
+    assert calls == [("add", ("x.pdf", IngestMode.FORCE)), ("publish", (None, 1))]
 
 
 def test_failed_add_does_not_publish(calls, tmp_path, monkeypatch):
@@ -72,11 +82,28 @@ def test_failed_add_does_not_publish(calls, tmp_path, monkeypatch):
 
 def test_publish_accept_regression(calls, tmp_path):
     assert _main(tmp_path, "publish", "--accept-regression", "noise") == 0
-    assert calls == [("publish", ("noise",))]
+    assert calls == [("publish", ("noise", None))]
+
+
+def test_publish_chosen_snapshot(calls, tmp_path):
+    assert _main(tmp_path, "publish", "--snapshot", "2") == 0
+    assert calls == [("publish", (None, 2))]
+
+
+def test_reject(calls, tmp_path):
+    assert _main(tmp_path, "reject", "--snapshot", "3", "--reason", "worse F1") == 0
+    assert calls == [("reject", (3, "worse F1"))]
+
+
+@pytest.mark.parametrize("argv", [["reject", "--snapshot", "3"], ["reject", "--reason", "x"]])
+def test_reject_needs_id_and_reason(calls, tmp_path, argv):
+    with pytest.raises(SystemExit) as err:
+        _main(tmp_path, *argv)
+    assert err.value.code == 2
 
 
 def test_known_error_exit_1_message_only(calls, tmp_path, monkeypatch, capsys):
-    def refuse(deps, reason):
+    def refuse(deps, reason, snapshot_id):
         raise pipeline.NothingToPublishError()
     monkeypatch.setattr(pipeline, "publish", refuse)
 

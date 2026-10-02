@@ -515,3 +515,10 @@ All in, including the real run (results in `docs/progress.md`). Differences from
 - **`ExtractorConfig` rejects any embedding model but BioLORD**, so the CLI's single lazy BioLORD serves extraction and validation.
 - **Validation matching** uses `build_similarity_matrix` + Hungarian directly (same as `match_recommendations`) to keep row indices for grade comparison.
 - **Dedup differs from the legacy baseline.** §5.3 injects BioLORD as `dedup_model`; `benchmark.run_full_benchmark` ran exact-only dedup. v0 may drop a few near-duplicates the legacy run kept.
+
+### 18.1 Added after the first runs (2026-10-02)
+- **`reject --snapshot ID --reason TEXT`**: new terminal state `REJECTED` (migration 3: `snapshot.rejected_at`, `reject_reason`), from BUILDING or COMPLETE. A rejected snapshot is never picked by `publish`, `add` or `status`; rejecting a BUILDING one unblocks `snapshot NEW`.
+- **`publish --snapshot ID`**: publish a chosen COMPLETE snapshot, or re-publish the latest PUBLISHED one. Without an id, several COMPLETE snapshots → `AmbiguousPublishError`. Fixes a bug: `publish` took the latest COMPLETE, so `add`'s chained publish could publish a pending candidate.
+- **Stale gate**: `publish` refuses a validation whose baseline is no longer the published snapshot (`StaleValidationError`); re-run `validate`.
+- **`add` re-publishes its own snapshot** by id.
+- **Model labels**: every report, CLI line and the headline CSV carry `name@digest`.

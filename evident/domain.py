@@ -54,6 +54,7 @@ class SnapshotState(str, Enum):
     BUILDING = "building"
     COMPLETE = "complete"
     PUBLISHED = "published"
+    REJECTED = "rejected"  # terminal: a candidate never to be published, with a reason
 
 
 class ThinkingMode(str, Enum):
@@ -108,6 +109,8 @@ class Snapshot:
     completed_at: Optional[str] = None
     published_at: Optional[str] = None
     accept_reason: Optional[str] = None
+    rejected_at: Optional[str] = None
+    reject_reason: Optional[str] = None
 
 
 @dataclass(frozen=True)

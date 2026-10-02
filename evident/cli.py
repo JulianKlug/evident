@@ -4,8 +4,9 @@
       snapshot --config CONFIG.json [--exclude DOI --reason TEXT]...
       snapshot --resume             [--exclude DOI --reason TEXT]...
       validate [--snapshot ID]
-      publish  [--accept-regression REASON]
-      add PDF  [--force]                       # then publish
+      publish  [--snapshot ID] [--accept-regression REASON]
+      reject   --snapshot ID --reason TEXT      # retire a candidate for good
+      add PDF  [--force]                       # then re-publish
       status
 
 Maps flags to enums, builds the real PipelineDeps, prints reports.
@@ -100,7 +101,7 @@ def _validate(args, deps) -> int:
 
 
 def _publish(args, deps) -> int:
-    report = pipeline.publish(deps, args.accept_regression)
+    report = pipeline.publish(deps, args.accept_regression, args.snapshot)
     verb = "re-published" if report.republished else "published"
     print(f"snapshot {report.snapshot_id} [{report.model}] {verb}: {report.headline_path} "
           f"({report.n_headline_guidelines} guidelines; skipped {report.n_skipped_excluded} excluded, "
@@ -116,8 +117,14 @@ def _add(args, deps) -> int:
         print(f"error: {report.error}", file=sys.stderr)
         return _EXIT_ERROR
 
-    # add = ingest, then publish
-    return _publish(argparse.Namespace(accept_regression=None), deps)
+    # add = ingest, then re-publish that snapshot (never a pending candidate)
+    return _publish(argparse.Namespace(accept_regression=None, snapshot=report.snapshot_id), deps)
+
+
+def _reject(args, deps) -> int:
+    report = pipeline.reject(deps, args.snapshot, args.reason)
+    print(f"snapshot {report.snapshot_id} [{report.model}] rejected: {report.reason}")
+    return _EXIT_OK
 
 
 def _status(args, deps) -> int:
@@ -142,7 +149,8 @@ def _status(args, deps) -> int:
     return _EXIT_OK
 
 
-_COMMANDS = {"snapshot": _snapshot, "validate": _validate, "publish": _publish, "add": _add, "status": _status}
+_COMMANDS = {"snapshot": _snapshot, "validate": _validate, "publish": _publish, "reject": _reject,
+             "add": _add, "status": _status}
 
 
 # ── wiring ──────────────────────────────────────────────────────
@@ -165,7 +173,12 @@ def _parser() -> argparse.ArgumentParser:
     val.add_argument("--snapshot", type=int, help="snapshot id (default: latest complete)")
 
     pub = commands.add_parser("publish", help="publish the validated snapshot, write outputs")
+    pub.add_argument("--snapshot", type=int, help="snapshot id (needed when several are complete)")
     pub.add_argument("--accept-regression", metavar="REASON", help="publish despite a failed gate")
+
+    rej = commands.add_parser("reject", help="retire a building or complete snapshot, with a reason")
+    rej.add_argument("--snapshot", type=int, required=True)
+    rej.add_argument("--reason", required=True)
 
     add = commands.add_parser("add", help="extract one new guideline with the published version, then publish")
     add.add_argument("pdf")

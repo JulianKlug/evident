@@ -66,6 +66,9 @@ def _to_state(store, snapshot_id, gids, state):
     """Drive a fresh snapshot to `state` along the legal path."""
     if state == SnapshotState.BUILDING:
         return
+    if state == SnapshotState.REJECTED:
+        store.reject_snapshot(snapshot_id, "test")
+        return
     for gid in gids:
         _succeed(store, snapshot_id, gid)
     store.transition_snapshot(snapshot_id, SnapshotState.COMPLETE)
@@ -81,9 +84,9 @@ class TestMigrations:
         conn = sqlite3.connect(path)
         tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
         assert tables == _TABLES
-        assert conn.execute("SELECT version FROM schema_version").fetchall() == [(2,)]
+        assert conn.execute("SELECT version FROM schema_version").fetchall() == [(3,)]
 
-    def test_v1_file_migrates_to_v2_keeping_rows(self, tmp_path, monkeypatch):
+    def test_v1_file_migrates_to_latest_keeping_rows(self, tmp_path, monkeypatch):
         path = str(tmp_path / "db.sqlite")
 
         # Build a v1 file with one snapshot, member and run
@@ -344,3 +347,36 @@ class TestValidations:
         latest = store.latest_validation(snapshot_id)
         assert (latest.id, latest.gate, latest.report_json, latest.baseline_snapshot_id) == (
             second, GateResult.PASS, '{"a": 2}', None)
+
+
+class TestReject:
+    @pytest.mark.parametrize("state", [SnapshotState.BUILDING, SnapshotState.COMPLETE])
+    def test_reject_with_reason(self, store, snapshot, state):
+        snapshot_id, gids = snapshot
+        _to_state(store, snapshot_id, gids, state)
+
+        store.reject_snapshot(snapshot_id, "worse F1")
+
+        snap = store.get_snapshot(snapshot_id)
+        assert (snap.state, snap.reject_reason) == (SnapshotState.REJECTED, "worse F1")
+        assert snap.rejected_at
+        assert store.latest_snapshot(state) is None
+
+    def test_reject_published_refused(self, store, snapshot):
+        snapshot_id, gids = snapshot
+        _to_state(store, snapshot_id, gids, SnapshotState.PUBLISHED)
+        with pytest.raises(InvalidSnapshotTransitionError):
+            store.reject_snapshot(snapshot_id, "no")
+
+    def test_rejected_is_terminal(self, store, snapshot):
+        snapshot_id, _ = snapshot
+        store.reject_snapshot(snapshot_id, "abandoned")
+        with pytest.raises(InvalidSnapshotTransitionError):
+            store.transition_snapshot(snapshot_id, SnapshotState.COMPLETE)
+        with pytest.raises(InvalidSnapshotTransitionError):
+            store.reject_snapshot(snapshot_id, "again")
+
+    def test_reject_needs_reason(self, store, snapshot):
+        snapshot_id, _ = snapshot
+        with pytest.raises(ValueError):
+            store.reject_snapshot(snapshot_id, " ")

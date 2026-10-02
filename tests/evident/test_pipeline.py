@@ -11,23 +11,27 @@ from evident.domain import GateResult, MemberOrigin, RunStatus, SnapshotState, T
 from evident.extraction import ArtifactMismatchError
 from evident.pipeline import (
     AddStatus,
+    AmbiguousPublishError,
     CoverageError,
     GateFailedError,
     IngestMode,
     ManifestEntryMissingError,
     NoPublishedSnapshotError,
+    NotPublishableError,
     NoSnapshotInProgressError,
     NothingToPublishError,
     SnapshotInProgressError,
     SnapshotStart,
+    StaleValidationError,
     ValidationMissingError,
     add,
     publish,
+    reject,
     snapshot,
     status,
     validate,
 )
-from evident.store import DuplicatePdfError
+from evident.store import DuplicatePdfError, InvalidSnapshotTransitionError
 from evident.validation import ValidationJoinError
 from tests.evident.pipeline_fakes import CONFIG, WORSE_CONFIG, FakeRunner, World
 
@@ -323,3 +327,84 @@ class TestModelLabels:
         _published(world)
         rows = list(csv.DictReader(open(world.headline)))
         assert {r["model"] for r in rows} == {"qwen3:14b@digest"}
+
+
+class TestChooseAndReject:
+    """Several COMPLETE candidates: publish must target one explicitly; rejected ones are inert."""
+
+    def _two_candidates(self, world):
+        _published(world)
+        first = snapshot(world.deps(), _NEW, CONFIG).snapshot_id
+        validate(world.deps(), first)
+        second = snapshot(world.deps(), _NEW, CONFIG).snapshot_id
+        validate(world.deps(), second)
+        return first, second
+
+    def test_publish_without_id_refuses_ambiguity(self, world):
+        first, second = self._two_candidates(world)
+        with pytest.raises(AmbiguousPublishError) as err:
+            publish(world.deps())
+        assert err.value.snapshot_ids == [first, second]
+
+    def test_publish_chosen_snapshot(self, world):
+        first, second = self._two_candidates(world)
+
+        report = publish(world.deps(), snapshot_id=first)
+
+        assert report.snapshot_id == first and not report.republished
+        assert world.store.get_snapshot(first).state == SnapshotState.PUBLISHED
+        assert world.store.get_snapshot(second).state == SnapshotState.COMPLETE
+
+    def test_stale_validation_refused(self, world):
+        first, second = self._two_candidates(world)
+        publish(world.deps(), snapshot_id=first)
+
+        # second was gated against snapshot 1, no longer the published baseline
+        with pytest.raises(StaleValidationError):
+            publish(world.deps(), snapshot_id=second)
+        validate(world.deps(), second)
+        assert publish(world.deps(), snapshot_id=second).snapshot_id == second
+
+    def test_rejected_snapshot_is_ignored(self, world):
+        first, second = self._two_candidates(world)
+
+        reject(world.deps(), second, "thinking on: worse F1")
+
+        snap = world.store.get_snapshot(second)
+        assert (snap.state, snap.reject_reason) == (SnapshotState.REJECTED, "thinking on: worse F1")
+        assert status(world.deps()).snapshot_id == first
+        assert publish(world.deps()).snapshot_id == first
+        with pytest.raises(NotPublishableError):
+            publish(world.deps(), snapshot_id=second)
+
+    def test_reject_building_unblocks_new(self, world):
+        building = snapshot(world.deps(runner=FakeRunner(fail=(_A,))), _NEW, CONFIG).snapshot_id
+        reject(world.deps(), building, "abandoned")
+        assert snapshot(world.deps(), _NEW, CONFIG).state == SnapshotState.COMPLETE
+
+    def test_reject_published_refused(self, world):
+        published = _published(world)
+        with pytest.raises(InvalidSnapshotTransitionError):
+            reject(world.deps(), published.id, "no")
+
+    def test_reject_needs_reason(self, world):
+        snap = snapshot(world.deps(), _NEW, CONFIG).snapshot_id
+        with pytest.raises(ValueError):
+            reject(world.deps(), snap, "  ")
+
+    def test_older_published_not_republishable(self, world):
+        first, _ = self._two_candidates(world)
+        publish(world.deps(), snapshot_id=first)
+        with pytest.raises(NotPublishableError):
+            publish(world.deps(), snapshot_id=1)
+
+    def test_republish_by_id_with_candidate_pending(self, world):
+        # What `add` relies on: re-publishing the published snapshot ignores a COMPLETE candidate
+        published = _published(world)
+        candidate = snapshot(world.deps(), _NEW, CONFIG).snapshot_id
+        validate(world.deps(), candidate)
+
+        report = publish(world.deps(), snapshot_id=published.id)
+
+        assert report.republished and report.snapshot_id == published.id
+        assert world.store.get_snapshot(candidate).state == SnapshotState.COMPLETE

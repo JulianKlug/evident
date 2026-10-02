@@ -38,11 +38,12 @@ from evident.domain import (
 )
 from utils.doi import normalize_doi
 
-# Legal snapshot transitions: BUILDING → COMPLETE → PUBLISHED
+# Legal snapshot transitions: BUILDING → COMPLETE → PUBLISHED; REJECTED via reject_snapshot
 _ALLOWED_TRANSITIONS = {
     SnapshotState.BUILDING: SnapshotState.COMPLETE,
     SnapshotState.COMPLETE: SnapshotState.PUBLISHED,
 }
+_REJECTABLE = {SnapshotState.BUILDING, SnapshotState.COMPLETE}
 
 # Ordered migrations: (version, statements). Never edit a released one; append.
 _MIGRATIONS = [
@@ -135,6 +136,10 @@ _MIGRATIONS = [
             report_json          TEXT NOT NULL,
             created_at           TEXT NOT NULL
         )""",
+    ]),
+    (3, [
+        "ALTER TABLE snapshot ADD COLUMN rejected_at TEXT",
+        "ALTER TABLE snapshot ADD COLUMN reject_reason TEXT",
     ]),
 ]
 _CODE_SCHEMA_VERSION = _MIGRATIONS[-1][0]
@@ -350,6 +355,26 @@ class Store:
                 self._conn.execute(
                     "UPDATE snapshot SET accept_reason = ? WHERE id = ?", (accept_reason, snapshot_id),
                 )
+
+    def reject_snapshot(self, snapshot_id: int, reason: str) -> None:
+        """Retire a building or complete candidate for good; publish and add never pick it up."""
+        if not reason or not reason.strip():
+            raise ValueError("Reject reason must be non-empty")
+
+        current = self._snapshot_state(snapshot_id)
+        if current not in _REJECTABLE:
+            raise InvalidSnapshotTransitionError(current, SnapshotState.REJECTED)
+        with self._transaction():
+            self._conn.execute(
+                "UPDATE snapshot SET state = ?, rejected_at = ?, reject_reason = ? WHERE id = ?",
+                (SnapshotState.REJECTED.value, _now(), reason, snapshot_id),
+            )
+
+    def complete_snapshots(self) -> list[Snapshot]:
+        rows = self._conn.execute(
+            "SELECT * FROM snapshot WHERE state = ? ORDER BY id", (SnapshotState.COMPLETE.value,),
+        ).fetchall()
+        return [self._snapshot_from_row(r) for r in rows]
 
     def latest_snapshot(self, state: SnapshotState) -> Optional[Snapshot]:
         row = self._conn.execute(
