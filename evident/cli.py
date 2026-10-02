@@ -77,7 +77,7 @@ def _snapshot(args, deps) -> int:
     config = _read_config(args.config) if args.config else None
     report = pipeline.snapshot(deps, start, config, list(zip(args.exclude, args.reason)))
 
-    print(f"snapshot {report.snapshot_id}: {report.state.value}")
+    print(f"snapshot {report.snapshot_id} [{report.model}]: {report.state.value}")
     print(f"  succeeded {report.n_succeeded}, failed {report.n_failed}, empty {report.n_failed_empty}")
     for doi, error in report.failures:
         print(f"  failed {doi}: {error}")
@@ -89,11 +89,11 @@ def _snapshot(args, deps) -> int:
 def _validate(args, deps) -> int:
     report = pipeline.validate(deps, args.snapshot)
     gate = report.gate
-    baseline = report.baseline_snapshot_id or "none"
-    print(f"snapshot {report.snapshot_id} vs baseline {baseline}: {gate.result.value}")
-    _print_metrics("candidate", gate.candidate)
+    baseline = f"{report.baseline_snapshot_id} [{report.baseline_model}]" if report.baseline_snapshot_id else "none"
+    print(f"snapshot {report.snapshot_id} [{report.model}] vs baseline {baseline}: {gate.result.value}")
+    _print_metrics(f"candidate {report.model}", gate.candidate)
     if gate.baseline:
-        _print_metrics("baseline", gate.baseline)
+        _print_metrics(f"baseline {report.baseline_model}", gate.baseline)
         print(f"  diff F1 {_fmt(gate.f1_diff)} {_fmt_ci(gate.f1_diff_ci)}, "
               f"combined {_fmt(gate.combined_diff)} {_fmt_ci(gate.combined_diff_ci)}")
     return _EXIT_OK
@@ -102,7 +102,7 @@ def _validate(args, deps) -> int:
 def _publish(args, deps) -> int:
     report = pipeline.publish(deps, args.accept_regression)
     verb = "re-published" if report.republished else "published"
-    print(f"snapshot {report.snapshot_id} {verb}: {report.headline_path} "
+    print(f"snapshot {report.snapshot_id} [{report.model}] {verb}: {report.headline_path} "
           f"({report.n_headline_guidelines} guidelines; skipped {report.n_skipped_excluded} excluded, "
           f"{report.n_skipped_superseded} superseded)")
     return _EXIT_OK
@@ -126,7 +126,7 @@ def _status(args, deps) -> int:
         print("no snapshot")
         return _EXIT_OK
 
-    print(f"snapshot {r.snapshot_id}: {r.state.value}  version {r.extractor_version_id[:12]}")
+    print(f"snapshot {r.snapshot_id}: {r.state.value}  model {r.model}  version {r.extractor_version_id[:12]}")
     print(f"  members {r.n_members}, excluded {len(r.excluded)}, pending {len(r.pending)}")
     print(f"  runs: succeeded {r.n_succeeded}, failed {r.n_failed}, empty {r.n_failed_empty}, "
           f"interrupted {r.n_interrupted}")

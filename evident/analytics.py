@@ -44,12 +44,14 @@ class HeadlineRow:
     n_certainty_ungraded: int
     snapshot_id: int
     extractor_version_id: str
+    model: str  # LLM the snapshot ran on, e.g. "qwen3:14b@bdbd181c33f2"
 
 
-def headline(rows: list[HarmonizedRow], snapshot_id: int, extractor_version_id: str) -> list[HeadlineRow]:
+def headline(rows: list[HarmonizedRow], snapshot_id: int, extractor_version_id: str,
+             model: str) -> list[HeadlineRow]:
     societies = sorted({r.society for r in rows})
     groups = [(s, [r for r in rows if r.society == s]) for s in societies] + [(_ALL, rows)]
-    return [_aggregate(name, group, snapshot_id, extractor_version_id) for name, group in groups]
+    return [_aggregate(name, group, snapshot_id, extractor_version_id, model) for name, group in groups]
 
 
 def write_headline(rows: list[HeadlineRow], path: str) -> None:
@@ -64,7 +66,8 @@ def write_headline(rows: list[HeadlineRow], path: str) -> None:
     os.replace(tmp, path)
 
 
-def _aggregate(society: str, rows: list[HarmonizedRow], snapshot_id: int, version_id: str) -> HeadlineRow:
+def _aggregate(society: str, rows: list[HarmonizedRow], snapshot_id: int, version_id: str,
+               model: str) -> HeadlineRow:
     grades = [r.grade for r in rows]
     graded = [g for g in grades if g.category == Category.GRADED]
     strength_mapped = [g for g in graded if g.strength_status == AxisStatus.MAPPED]
@@ -85,6 +88,7 @@ def _aggregate(society: str, rows: list[HarmonizedRow], snapshot_id: int, versio
         n_certainty_ungraded=sum(g.certainty_status == AxisStatus.UNGRADED for g in graded),
         snapshot_id=snapshot_id,
         extractor_version_id=version_id,
+        model=model,
     )
 
 

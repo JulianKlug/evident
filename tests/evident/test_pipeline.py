@@ -307,3 +307,19 @@ class TestStatus:
         snapshot(world.deps(), _NEW, CONFIG)
         world.add_row(_D)
         assert status(world.deps()).coverage_gaps == [_D]
+
+
+class TestModelLabels:
+    def test_reports_name_the_model(self, world):
+        _published(world)
+        snap = snapshot(world.deps(), _NEW, WORSE_CONFIG)
+        val = validate(world.deps())
+
+        assert snap.model == "qwen3:8b@digest"
+        assert (val.model, val.baseline_model) == ("qwen3:8b@digest", "qwen3:14b@digest")
+        assert status(world.deps()).model == "qwen3:8b@digest"
+
+    def test_headline_names_the_model(self, world):
+        _published(world)
+        rows = list(csv.DictReader(open(world.headline)))
+        assert {r["model"] for r in rows} == {"qwen3:14b@digest"}

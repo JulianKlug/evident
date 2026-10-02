@@ -24,7 +24,7 @@ _ROWS = [
 
 
 def test_every_column():
-    acp, esicm, total = headline(_ROWS, snapshot_id=3, extractor_version_id="v")
+    acp, esicm, total = headline(_ROWS, snapshot_id=3, extractor_version_id="v", model="m@d")
 
     assert (acp.society, acp.n_guidelines, acp.n_recs, acp.n_graded, acp.n_ungraded) == ("ACP", 2, 4, 4, 0)
     assert acp.ungraded_share == 0.0
@@ -33,19 +33,19 @@ def test_every_column():
     # Certainty: HIGH + LOW mapped; one unmapped, one ungraded (insufficient) excluded
     assert acp.pct_high_moderate == 50.0
     assert (acp.n_strength_unmapped, acp.n_certainty_unmapped, acp.n_certainty_ungraded) == (1, 1, 1)
-    assert (acp.snapshot_id, acp.extractor_version_id) == (3, "v")
+    assert (acp.snapshot_id, acp.extractor_version_id, acp.model) == (3, "v", "m@d")
 
     assert (esicm.n_recs, esicm.n_ungraded, esicm.ungraded_share) == (1, 1, 100.0)
     assert total.society == "ALL" and total.ungraded_share == 20.0
 
 
 def test_empty_denominators_are_empty_not_zero():
-    (esicm, _) = headline([_ROWS[-1]], 1, "v")
+    (esicm, _) = headline([_ROWS[-1]], 1, "v", "m@d")
     assert (esicm.pct_strong, esicm.pct_against, esicm.pct_high_moderate) == (None, None, None)
 
 
 def test_all_is_sum_of_societies():
-    *societies, total = headline(_ROWS, 1, "v")
+    *societies, total = headline(_ROWS, 1, "v", "m@d")
     for column in ("n_guidelines", "n_recs", "n_graded", "n_ungraded", "n_strength_unmapped",
                    "n_certainty_unmapped", "n_certainty_ungraded"):
         assert getattr(total, column) == sum(getattr(s, column) for s in societies)
@@ -53,7 +53,7 @@ def test_all_is_sum_of_societies():
 
 def test_write_atomic_with_empty_cells(tmp_path):
     path = tmp_path / "out" / "headline.csv"
-    write_headline(headline([_ROWS[-1]], 1, "v"), str(path))
+    write_headline(headline([_ROWS[-1]], 1, "v", "m@d"), str(path))
 
     rows = list(csv.DictReader(open(path)))
     assert [r["society"] for r in rows] == ["ESICM", "ALL"]

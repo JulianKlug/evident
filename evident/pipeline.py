@@ -50,6 +50,7 @@ _log = logging.getLogger(__name__)
 _SLOW_FACTOR = 3.0           # a run slower than 3 × median is flagged
 _LOW_RECALL_FACTOR = 0.5     # fewer recs than half the society median is flagged
 _UNGRADED_SHARE_MARGIN = 0.25  # ungraded share above society median + 0.25 is flagged
+_DIGEST_PREFIX = 12  # same length as `ollama list` IDs
 
 
 class SnapshotStart(str, Enum):
@@ -161,6 +162,7 @@ class SnapshotReport:
     n_failed_empty: int
     pending: list[str]
     failures: list[tuple[str, str]]  # (doi, error) of this invocation
+    model: str = ""  # "<name>@<digest prefix>", e.g. "qwen3:14b@bdbd181c33f2"
 
 
 @dataclass(frozen=True)
@@ -169,6 +171,8 @@ class ValidationReport:
     snapshot_id: int
     baseline_snapshot_id: Optional[int]
     gate: GateReport
+    model: str = ""
+    baseline_model: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -179,6 +183,7 @@ class PublishReport:
     n_headline_guidelines: int
     n_skipped_excluded: int
     n_skipped_superseded: int
+    model: str = ""
 
 
 @dataclass(frozen=True)
@@ -194,6 +199,7 @@ class StatusReport:
     snapshot_id: Optional[int] = None  # None: no snapshot yet
     state: Optional[SnapshotState] = None
     extractor_version_id: Optional[str] = None
+    model: Optional[str] = None
     n_members: int = 0
     excluded: list[tuple[str, str]] = field(default_factory=list)
     n_succeeded: int = 0
@@ -244,6 +250,7 @@ def snapshot(deps: PipelineDeps, start: SnapshotStart, config: Optional[Extracto
         state=deps.store.get_snapshot(snapshot_id).state,
         n_succeeded=tally.succeeded, n_failed=len(tally.failures), n_failed_empty=tally.failed_empty,
         pending=_dois(deps.store, pending), failures=tally.failures,
+        model=_model_label(deps.store, deps.store.get_snapshot(snapshot_id)),
     )
 
 
@@ -265,7 +272,8 @@ def validate(deps: PipelineDeps, snapshot_id: Optional[int] = None) -> Validatio
 
     baseline_id = baseline.id if baseline else None
     validation_id = deps.store.save_validation(target.id, baseline_id, report.result, report.to_json())
-    return ValidationReport(validation_id, target.id, baseline_id, report)
+    return ValidationReport(validation_id, target.id, baseline_id, report, _model_label(deps.store, target),
+                            _model_label(deps.store, baseline) if baseline else None)
 
 
 def publish(deps: PipelineDeps, accept_regression: Optional[str] = None) -> PublishReport:
@@ -348,6 +356,7 @@ def status(deps: PipelineDeps) -> StatusReport:
         snapshot_id=snap.id,
         state=snap.state,
         extractor_version_id=snap.extractor_version_id,
+        model=_model_label(store, snap),
         n_members=len(members),
         excluded=[(guidelines[m.guideline_id].doi, m.excluded_reason) for m in members if m.excluded_reason],
         n_succeeded=_count(runs, RunStatus.SUCCEEDED),
@@ -395,7 +404,8 @@ def _new_snapshot(deps: PipelineDeps, cfg: Optional[ExtractorConfig],
     # All editions are members: trends need superseded ones too
     gids = [deps.store.get_guideline(e.doi).id for e in entries]
     snapshot_id = deps.store.create_snapshot(version.id, gids)
-    _log.info("snapshot %d: new, version %s, %d guidelines", snapshot_id, version.id[:12], len(gids))
+    _log.info("snapshot %d: new, version %s, model %s@%s, %d guidelines", snapshot_id, version.id[:12],
+              version.model_name, version.model_digest[:_DIGEST_PREFIX], len(gids))
     return snapshot_id, cfg
 
 
@@ -469,6 +479,12 @@ def _extract(deps: PipelineDeps, snapshot_id: int, cfg: ExtractorConfig, g: Guid
 
 
 # ── read-side helpers ───────────────────────────────────────────
+
+def _model_label(store: Store, snap: Snapshot) -> str:
+    """Which LLM a snapshot ran on, e.g. "qwen3:14b@bdbd181c33f2" (name + digest prefix)."""
+    version = store.get_extractor_version(snap.extractor_version_id)
+    return f"{version.model_name}@{version.model_digest[:_DIGEST_PREFIX]}"
+
 
 def _guidelines_by_id(store: Store) -> dict[int, Guideline]:
     return {g.id: g for g in store.list_guidelines()}
@@ -561,5 +577,7 @@ def _write_outputs(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEnt
                           harmonize(r.raw_strength, r.raw_certainty, r.text, r.raw_category, g.grading_family))
             for r in recs)
 
-    write_headline(headline(rows, snap.id, snap.extractor_version_id), deps.headline_path)
-    return PublishReport(snap.id, republished, deps.headline_path, len(contributing), n_excluded, n_superseded)
+    model = _model_label(deps.store, snap)
+    write_headline(headline(rows, snap.id, snap.extractor_version_id, model), deps.headline_path)
+    return PublishReport(snap.id, republished, deps.headline_path, len(contributing), n_excluded, n_superseded,
+                         model)
