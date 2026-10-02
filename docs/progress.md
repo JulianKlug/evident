@@ -686,3 +686,22 @@ Counts include the false positives above, so these percentages aren't fit for in
 
 ### For M2
 Precision is the problem, not recall or runtime. The SC + ML filter and dedup candidates target exactly this.
+
+## Model swap: v0 on qwen38-64k (2026-10-02)
+
+Snapshot 2, version `e50b2250a148` (`configs/v0_qwen38-64k.json`: v0 with only the model changed), model `qwen38-64k:latest@12af24e3ee72` (qwen3.8 27B, Q4_K_M, 64k context), thinking off. 12/12 succeeded. Validated against published snapshot 1 (`qwen3:14b@bdbd181c33f2`): gate **PASS**. Not published.
+
+| Metric | qwen3:14b (snap 1) | qwen38-64k (snap 2) | Diff [95% paired CI] |
+|--------|-------------------|---------------------|----------------------|
+| Graded F1 | 0.503 [0.400, 0.623] | **0.854** [0.784, 0.933] | +0.351 [0.218, 0.489] |
+| Precision | 0.336 | **0.844** | |
+| Recall | **1.000** | 0.864 | |
+| Strength / certainty acc | 0.955 / 0.909 | 0.947 / 0.921 | |
+| Combined acc | 0.886 | 0.895 | +0.008 [-0.076, 0.088] |
+| Ungraded P / R | 0.10 / 0.50 | n/a / 0.00 | |
+| Median / max s per guideline | 26 / 75 | 33 / 55 | |
+| Total for 12 | 5.7 min | 7.6 min | |
+
+Per guideline (TP/FP/FN, 14b → 38-64k): FPs fall from 87 to 7 in total. Recall losses: ESICM 07369-9 (11/11/0 → 7/0/4), M20-7533 (2/0/0 → 1/0/1), M22-2056 (5/15/0 → 4/2/1). Thinking off held: 0/189 `<think>`, 26 eval tokens per call.
+
+Takeaway: the larger model fixes most of v0's precision problem at about the same speed; recall now limits. ESICM part 1 loses 4 of 11 recommendations.
