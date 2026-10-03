@@ -785,3 +785,5 @@ Snapshot 4, version `3b2c29833235` (`configs/v0_qwen38-64k_dedup097.json`: snaps
 | Combined acc | 0.895 | **0.932** | +0.037 [+0.002, +0.102] |
 
 Changed guidelines (TP/FP/FN): ESICM 07369-9 7/0/4 → 11/0/0; M20-7533 1/0/1 → 2/0/0; M22-2056 4/2/1 → 5/2/0; ANNALS-24-03095 and M23-2788 +1 FP each. All 6 misses recovered for 2 FPs. The combined-accuracy CI excludes 0: the recovered recs are graded correctly. Threshold chosen on the same 12 guidelines.
+
+**Published 2026-10-03:** snapshot 4 is the current version (used by `add`, baseline for the next gate). Headline: ACP 35 recs, 22.9% strong, 31.4% high/moderate; ESICM 18 recs, 0.0% strong, 22.2% high/moderate (GT: 21.4 / 25.0 and 0.0 / 18.8).
