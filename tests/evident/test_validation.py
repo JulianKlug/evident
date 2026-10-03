@@ -126,5 +126,5 @@ class TestGate:
 def test_load_labelled_real_data():
     labelled = load_labelled()
     assert len(labelled) == 12
-    assert sum(len(g.gt) for g in labelled) == 46
+    assert sum(len(g.gt) for g in labelled) == 48
     assert all(g.doi == g.doi.lower() for g in labelled)

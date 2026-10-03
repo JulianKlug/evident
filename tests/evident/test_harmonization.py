@@ -10,7 +10,7 @@ from evident.harmonization import UnsupportedGradingFamilyError, harmonize
 from extraction.datasets import GtMode, load_acp_datasets, load_icu_datasets
 
 _EXPECTED_CSV = os.path.join(os.path.dirname(__file__), "..", "fixtures", "harmonization_gt_expected.csv")
-_N_GT_ROWS = 46  # ACP 29 + ICU 17
+_N_GT_ROWS = 48  # ACP 29 + ICU 19 (2 ESICM part 2 trauma recs added 2026-10-03)
 S, W = Strength.STRONG, Strength.WEAK
 F, A = Direction.FOR, Direction.AGAINST
 M, U, NG = AxisStatus.MAPPED, AxisStatus.UNMAPPED, AxisStatus.UNGRADED

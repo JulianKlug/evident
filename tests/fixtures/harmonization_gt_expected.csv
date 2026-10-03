@@ -42,6 +42,8 @@ key,category,strength,direction,certainty,strength_status,certainty_status
 10.1007/s00134-025-07840-1#0,graded,weak,for,very_low,mapped,mapped
 10.1007/s00134-025-07840-1#1,no_recommendation,,,,ungraded,ungraded
 10.1007/s00134-025-07840-1#2,graded,weak,for,very_low,mapped,mapped
+10.1007/s00134-025-07840-1#3,graded,weak,for,moderate,mapped,mapped
+10.1007/s00134-025-07840-1#4,graded,weak,for,low,mapped,mapped
 10.1007/s00134-025-08058-x#0,graded,weak,for,low,mapped,mapped
 10.1007/s00134-025-08058-x#1,graded,weak,for,moderate,mapped,mapped
 10.1007/s00134-025-08058-x#2,graded,,,low,unmapped,mapped

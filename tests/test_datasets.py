@@ -140,7 +140,7 @@ def test_icu_loader_reads_all_xlsx(tmp_path, monkeypatch):
 def test_icu_loader_real_data_counts():
     datasets = load_icu_datasets()
     assert len(datasets) == 3
-    assert sum(len(ds.ground_truth_df) for ds in datasets) == 17
+    assert sum(len(ds.ground_truth_df) for ds in datasets) == 19
 
 
 def _labelled_grade_datasets():
@@ -172,7 +172,7 @@ class TestFewShotLeakageAndSeed:
 
 
 class TestGtMode:
-    @pytest.mark.parametrize("loader, n_rows", [(load_acp_datasets, 29), (load_icu_datasets, 17)])
+    @pytest.mark.parametrize("loader, n_rows", [(load_acp_datasets, 29), (load_icu_datasets, 19)])
     @pytest.mark.parametrize("mode", list(GtMode))
     def test_row_counts(self, loader, n_rows, mode):
         # ACP's single ungraded row (class "0") is already kept today, so both modes match

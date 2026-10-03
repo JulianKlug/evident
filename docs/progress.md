@@ -787,3 +787,17 @@ Snapshot 4, version `3b2c29833235` (`configs/v0_qwen38-64k_dedup097.json`: snaps
 Changed guidelines (TP/FP/FN): ESICM 07369-9 7/0/4 → 11/0/0; M20-7533 1/0/1 → 2/0/0; M22-2056 4/2/1 → 5/2/0; ANNALS-24-03095 and M23-2788 +1 FP each. All 6 misses recovered for 2 FPs. The combined-accuracy CI excludes 0: the recovered recs are graded correctly. Threshold chosen on the same 12 guidelines.
 
 **Published 2026-10-03:** snapshot 4 is the current version (used by `add`, baseline for the next gate). Headline: ACP 35 recs, 22.9% strong, 31.4% high/moderate; ESICM 18 recs, 0.0% strong, 22.2% high/moderate (GT: 21.4 / 25.0 and 0.0 / 18.8).
+
+## Ground truth correction: ESICM part 2 (2026-10-03)
+
+Added the 2 hemorrhagic-shock recommendations (penetrating trauma: conditional, moderate; blunt trauma: conditional, low) to `intensive_care_medicine/10.1007_s00134-025-08058-x.xlsx`, sheet rows 8–9 (end of the 07840-1 group), verified by the user against the PDF. Backup: `….xlsx.bak-2026-10-03`. Labelled set: 46 → 48 rows (ICU 17 → 19).
+
+Rescored with the corrected GT:
+| Snapshot | P | R | F1 | Combined acc |
+|----------|---|---|----|--------------|
+| 1 qwen3:14b | 0.351 | 1.000 | 0.520 | 0.891 |
+| 2 qwen38-64k, dedup 0.90 | 0.889 | 0.870 | 0.879 | 0.900 |
+| 3 qwen38-64k, thinking (rejected) | 0.700 | 0.913 | 0.792 | 0.929 |
+| **4 qwen38-64k, dedup 0.97 (published)** | 0.868 | 1.000 | **0.929** [0.867, 0.978] | 0.935 |
+
+Side effect: the few-shot pool comes from the same GT, so its hash changed. Snapshot 4's version no longer matches the live artifacts (`ArtifactMismatchError: few_shot_pool_sha256`). `add` and `snapshot --resume` with that version are refused until a new snapshot is built.
