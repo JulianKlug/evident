@@ -40,6 +40,7 @@ from full guideline PDFs with a local LLM (single RTX 3090). Produce:
 | 4 | Output: SQLite DB → paper figures/tables + static dashboard, same code path | Single source of truth; figures and dashboard never disagree |
 | 5 | Extractor frozen per published snapshot; snapshot = full re-extraction | Avoid trends confounded by extractor version |
 | 6 | Approach B: layered package | Maintainability across specialties; honours the layer rule |
+| 7 | ExtractorVersion v1 = snapshot 5 (2026-10-04): single pass, `qwen38-64k:latest` (qwen3.8 27B, digest `12af24e3ee72`), thinking off, prompt v0, 3 seeded few-shot, BioLORD dedup 0.97, no ML filter (`configs/v0_qwen38-64k_dedup097.json`, version `113889035d33`) | Best of 6 snapshots on the 12 labelled guidelines (48 GT rows): graded F1 0.929 [0.867, 0.978], P 0.868, R 1.000, combined grade accuracy 0.935; v0 legacy 0.520. 33 s/guideline (~1 h per 100). Chosen on the same 12 guidelines it is scored on. Evidence: `docs/progress.md` |
 
 ## Premises (agreed)
 1. Unit = one recommendation. Headline = % high/moderate certainty and % strong,
@@ -163,13 +164,16 @@ Failure handling (no silent failures):
    Confirm how ACP's "insufficient evidence" and "best practice" are coded.
 4. ~~Dashboard hosting~~ RESOLVED 2026-10-01: hosted on this machine; static
    files from `out/dashboard/` served locally.
-5. Which extraction config becomes ExtractorVersion v1: the best F1
+5. ~~Which extraction config becomes ExtractorVersion v1~~ RESOLVED 2026-10-04: Decision 7.
+   Original question: the best F1
    (SC + ML filter, 3× slower) or a simpler baseline? Decide with `validate`
    on labelled ACP + ICU. Note that the filter/threshold are in-sample.
    Runtime is a factor: measure hours per guideline for each candidate with
    qwen3 thinking disabled. Snapshot budget: full corpus (≈100 guidelines,
    estimate) must finish within ~3 nights on one 3090.
-6. FT v3: re-evaluate with leave-one-guideline-out before any use.
+6. FT v3: re-evaluate with leave-one-guideline-out before any use. DEFERRED 2026-10-04:
+   it is a qwen3:14b fine-tune (F1 0.808, in-sample) and v1 reaches 0.929; a fair test
+   needs a re-fine-tune on qwen3.8 plus 1–2 GPU nights. Revisit if v1 fails on the corpus.
 
 ## Success Criteria
 - `evident add <pdf>` on a new guideline updates the DB, figures and dashboard
@@ -323,13 +327,13 @@ No critical gaps (silent + untested + unhandled): 0.
 - [ ] **T2 (P1, ~1d / ~30m)** — harmonization — direction, insufficient→ungraded, per-axis categories, ACP/GRADE table tests from real GT phrasing (OV3, OV8)
 - [ ] **T3 (P1, ~4h / ~15m)** — extraction/ — category in prompt + parser (1A); page/chunk tagging + min-page merge (1D, OV6); optional seed in llm_client (2B); DOI exclusion + seeded few-shot (OV2). Regression tests for each.
 - [ ] **T4 (P1, ~4h / ~15m)** — evident/extraction — ExtractorConfig (enums, hash incl. strategy/examples, digest, classifier SHA, embedding revision), run() mode dispatch (2A, 2B, OV1, OV7)
-- [ ] **T5 (P1, ~2d / ~1h)** — evident/extraction — table-first strategy (Docling/Marker) + fixture tests on ESICM/ACP PDFs
+- [ ] **T5 (P1, ~2d / ~1h)** — evident/extraction — table-first strategy (Docling/Marker) + fixture tests on ESICM/ACP PDFs — DROPPED 2026-10-04: no miss on the 12 labelled guidelines is table-related (all were dedup merges). Revisit for opaque-table PDFs (M6, NI9RV3E7)
 - [ ] **T6 (P1, ~4h / ~15m)** — corpus — manifest schema + validation, supersession by topic_id; fix the ICU single-xlsx loader
 - [ ] **T7 (P1, ~1d / ~30m)** — pipeline/cli — add, snapshot (resume, exclude, re-scan), validate (stored runs, DOI join hard check, paired bootstrap gate), status (ETA, outliers, coverage), publish (gate) (1B, 1C, 3A, 4A, 4B, OV4, OV5)
 - [ ] **T8 (P2, ~1d / ~30m)** — analytics + publishing — headline tables, trends, captions with counts, SCCM unvalidated flag, static dashboard
-- [ ] **T9 (P2, GPU ~1–2 nights)** — FT v3 LOGO re-evaluation; record as a candidate ExtractorVersion
+- [ ] **T9 (P2, GPU ~1–2 nights)** — FT v3 LOGO re-evaluation; record as a candidate ExtractorVersion — DEFERRED 2026-10-04 (Open Question 6)
 - [ ] **T11 (P2, ~3h / ~15m)** — scripts/fetch_pdfs.py — read manifest, resolve DOI → publisher PDF URL, download missing PDFs named by DOI, verify `%PDF` header + SHA-256, write a fetch report (ok / paywalled / not found); idempotent, no credentials stored; run manually inside VPN. *Verify:* unit tests with mocked HTTP
-- [ ] **T10 (P1, GPU)** — validate v0 (legacy) vs SC+ML vs table-first vs FT on labelled ACP+ESICM with thinking off; choose v1; first snapshot
+- [x] **T10 (P1, GPU)** — validate v0 (legacy) vs SC+ML vs table-first vs FT on labelled ACP+ESICM with thinking off; choose v1; first snapshot — DONE 2026-10-04: v1 = Decision 7
 
 ## GSTACK REVIEW REPORT
 

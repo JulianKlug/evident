@@ -805,3 +805,28 @@ Side effect: the few-shot pool comes from the same GT, so its hash changed. Snap
 ## Rebuild on corrected GT: snapshot 5 published (2026-10-04)
 
 Snapshot 5, version `113889035d33`: same config as snapshot 4 (`configs/v0_qwen38-64k_dedup097.json`), new version id only because the few-shot pool hash changed with the GT fix. 12/12 succeeded, 7.6 min. Gate vs snapshot 4: PASS, identical scores (F1 0.929, P 0.868, R 1.000, combined 0.935) and identical per-guideline counts. The sampled few-shot examples are the same in 12/12 guidelines. Published; artifacts match the live machine, so `add` is unblocked.
+
+## M2 closed: v1 chosen (2026-10-04)
+
+Last candidate, SC + ML filter on qwen38-64k (snapshot 6, `configs/sc_ml_qwen38-64k.json`: 3 samples, T 0.3, adaptive consensus, clustering at 0.97, ML filter 0.3). Gated vs snapshot 5: PASS (drop not below −0.02 with confidence), but worse:
+| Metric | Snap 5 single pass | Snap 6 SC + ML | Diff [95% paired CI] |
+|--------|-------------------|----------------|----------------------|
+| Graded F1 | **0.929** | 0.882 [0.800, 0.952] | −0.047 [−0.095, −0.009] |
+| P / R | **0.868 / 1.000** | 0.804 / 0.978 | |
+| Combined acc | 0.935 | 0.933 | −0.001 |
+| Median s / guideline | **33** | 103 | 2.8× slower |
+
+Changed (TP/FP/FN): ESICM 07840-1 4/0/0 → 3/0/1 (a real trauma rec filtered), +1 FP on 08058-x and M22-2056, +2 on M23-2788. The classifier was trained on qwen3:14b extractions of these guidelines, so even in-sample it doesn't transfer. Rejected.
+
+All candidates on the corrected GT (48 rows):
+| Snap | Candidate | F1 | P | R | s/guideline | Outcome |
+|------|-----------|----|---|---|-------------|---------|
+| 1 | v0 legacy (qwen3:14b) | 0.520 | 0.351 | 1.000 | 26 | superseded |
+| 2 | qwen38-64k, dedup 0.90 | 0.879 | 0.889 | 0.870 | 33 | superseded |
+| 3 | + thinking on | 0.792 | 0.700 | 0.913 | 122 | rejected |
+| 4/5 | **qwen38-64k, dedup 0.97 = v1** | **0.929** | 0.868 | 1.000 | 33 | **published** |
+| 6 | v1 + SC + ML filter | 0.882 | 0.804 | 0.978 | 103 | rejected |
+| — | table-first (T5) | — | | | | dropped: no table-related misses |
+| — | FT v3 (T9) | — | | | | deferred: qwen3:14b fine-tune, 0.808 in-sample |
+
+Caveat for the paper: every choice (model, thinking, dedup threshold) was made on the same 12 guidelines it is scored on. Spot-check v1 on unlabelled corpus output in M3.

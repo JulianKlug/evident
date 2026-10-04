@@ -70,6 +70,8 @@ Spec: `docs/specs/m1-pipeline.md`.
 
   Record F1, grade/certainty accuracy, ungraded P/R and hours per guideline.
 
+**Status:** DONE 2026-10-04. v1 = snapshot 5: qwen38-64k, thinking off, dedup 0.97 (design doc Decision 7). T5 dropped (no table misses), T9 deferred, SC + ML filter rejected (F1 −0.047). Evidence: `docs/progress.md`.
+
 **Exit:**
 - v1 chosen.
 - Its gate passes against v0.
