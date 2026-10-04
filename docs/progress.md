@@ -801,3 +801,7 @@ Rescored with the corrected GT:
 | **4 qwen38-64k, dedup 0.97 (published)** | 0.868 | 1.000 | **0.929** [0.867, 0.978] | 0.935 |
 
 Side effect: the few-shot pool comes from the same GT, so its hash changed. Snapshot 4's version no longer matches the live artifacts (`ArtifactMismatchError: few_shot_pool_sha256`). `add` and `snapshot --resume` with that version are refused until a new snapshot is built.
+
+## Rebuild on corrected GT: snapshot 5 published (2026-10-04)
+
+Snapshot 5, version `113889035d33`: same config as snapshot 4 (`configs/v0_qwen38-64k_dedup097.json`), new version id only because the few-shot pool hash changed with the GT fix. 12/12 succeeded, 7.6 min. Gate vs snapshot 4: PASS, identical scores (F1 0.929, P 0.868, R 1.000, combined 0.935) and identical per-guideline counts. The sampled few-shot examples are the same in 12/12 guidelines. Published; artifacts match the live machine, so `add` is unblocked.
