@@ -3,6 +3,9 @@
     corpus/manifest.csv ──load_manifest──▶ [ManifestEntry] ──sync_to_store──▶ Store
                                                │
                                        current_editions → {doi}
+
+    corpus/candidates.csv ──load_candidates──▶ [Candidate] ──check_candidates(manifest)
+    (every search hit, with an include/exclude decision; curation record for the supplement)
 """
 
 from __future__ import annotations
@@ -13,6 +16,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from datetime import date
+from enum import Enum
 from typing import Optional
 
 from evident.domain import GradingFamily, Guideline
@@ -28,6 +32,27 @@ _FIRST_DATA_LINE = 2  # line 1 is the header
 
 _REQUIRED_COLUMNS = ("doi", "society", "year", "title", "topic_id", "grading_family")
 _OPTIONAL_COLUMNS = ("supersedes_doi", "pdf_filename")
+_JOINT_COLUMN = "joint_with"  # may be absent from the header
+_JOINT_SEPARATOR = ";"
+
+_CANDIDATE_COLUMNS = ("doi", "society", "year", "title", "journal", "pmid", "source", "decision", "reason",
+                      "duplicate_of")
+
+
+class CandidateDecision(str, Enum):
+    INCLUDE = "include"
+    EXCLUDE = "exclude"
+
+
+class ExclusionReason(str, Enum):
+    NOT_GUIDELINE = "not_guideline"                  # review, research agenda, methods paper
+    NOT_GRADED = "not_graded"                        # consensus, Delphi, best practice advice
+    OTHER_SOCIETY = "other_society"                  # led by a body outside the MVP societies
+    ENDORSEMENT = "endorsement"                      # endorses another body's guideline
+    DERIVATIVE = "derivative"                        # patient summary, executive summary
+    DUPLICATE_PUBLICATION = "duplicate_publication"  # second journal copy; duplicate_of names the kept one
+    OUT_OF_RANGE = "out_of_range"                    # first online before 2016
+    PDF_UNAVAILABLE = "pdf_unavailable"              # no PDF after fetch and a manual attempt
 
 
 class ManifestError(ValueError):
@@ -48,7 +73,20 @@ class ManifestEntry:
     grading_family: GradingFamily
     pdf_filename: str
     supersedes_doi: Optional[str] = None
+    joint_with: tuple[str, ...] = ()  # other MVP societies co-leading it, e.g. ("ESICM",)
     line: int = 0  # source line, for error messages
+
+
+@dataclass(frozen=True)
+class Candidate:
+    doi: str
+    society: str
+    year: Optional[int]
+    title: str
+    decision: CandidateDecision
+    reason: Optional[ExclusionReason]
+    duplicate_of: Optional[str]
+    line: int = 0
 
 
 @dataclass
@@ -77,6 +115,42 @@ def load_manifest(path: str) -> list[ManifestEntry]:
     if problems:
         raise ManifestError(problems)
     return entries
+
+
+def load_candidates(path: str) -> list[Candidate]:
+    with open(path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        missing = [c for c in _CANDIDATE_COLUMNS if c not in (reader.fieldnames or [])]
+        if missing:
+            raise ManifestError([f"line 1: missing column(s) {', '.join(missing)}"])
+        rows = list(reader)
+
+    problems: list[str] = []
+    candidates = []
+    for line, row in enumerate(rows, start=_FIRST_DATA_LINE):
+        candidate = _parse_candidate(row, line, problems)
+        if candidate:
+            candidates.append(candidate)
+
+    # A duplicate publication points at a kept (included) copy
+    included = {c.doi for c in candidates if c.decision == CandidateDecision.INCLUDE}
+    for c in candidates:
+        if c.reason == ExclusionReason.DUPLICATE_PUBLICATION and c.duplicate_of not in included:
+            problems.append(f"line {c.line}: duplicate_of '{c.duplicate_of or ''}' is not an included doi")
+
+    if problems:
+        raise ManifestError(problems)
+    return candidates
+
+
+def check_candidates(candidates: list[Candidate], entries: list[ManifestEntry]) -> None:
+    """Included candidates and manifest rows must be the same set of DOIs."""
+    included = {c.doi for c in candidates if c.decision == CandidateDecision.INCLUDE}
+    in_manifest = {e.doi for e in entries}
+    problems = [f"included candidate {d} has no manifest row" for d in sorted(included - in_manifest)]
+    problems += [f"manifest row {d} is not an included candidate" for d in sorted(in_manifest - included)]
+    if problems:
+        raise ManifestError(problems)
 
 
 def current_editions(entries: list[ManifestEntry]) -> set[str]:
@@ -158,16 +232,60 @@ def _parse_row(row: dict, line: int, problems: list[str]) -> Optional[ManifestEn
     if family is None:
         problem(f"unknown grading_family '{value('grading_family')}'")
 
+    joint_with = tuple(j.strip() for j in value(_JOINT_COLUMN).split(_JOINT_SEPARATOR) if j.strip())
+    for joint in joint_with:
+        if joint not in _KNOWN_SOCIETIES or joint == society:
+            problem(f"joint_with '{joint}' is not another known society")
+
     if len(problems) > n_before:
         return None
 
     supersedes = normalize_doi(value("supersedes_doi")) or None
     return ManifestEntry(
         doi=doi, society=society, year=year, title=title, topic_id=topic_id,
-        grading_family=family, supersedes_doi=supersedes, line=line,
+        grading_family=family, supersedes_doi=supersedes, joint_with=joint_with, line=line,
         # Filename keeps the DOI's original case, matching existing PDF names
         pdf_filename=value("pdf_filename") or doi_to_filename(raw_doi),
     )
+
+
+def _parse_candidate(row: dict, line: int, problems: list[str]) -> Optional[Candidate]:
+    """Validate one candidate row; append every problem found; None if any."""
+    n_before = len(problems)
+
+    def problem(msg: str) -> None:
+        problems.append(f"line {line}: {msg}")
+
+    def value(column: str) -> str:
+        return (row.get(column) or "").strip()
+
+    doi = normalize_doi(strip_doi_prefix(value("doi")))
+    if not _DOI_PATTERN.match(doi):
+        problem(f"invalid doi '{value('doi')}'")
+
+    decision = _parse_enum(CandidateDecision, value("decision"))
+    if decision is None:
+        problem(f"decision '{value('decision')}' is not include/exclude")
+
+    reason = _parse_enum(ExclusionReason, value("reason"))
+    if decision == CandidateDecision.EXCLUDE and reason is None:
+        problem(f"exclude needs a reason, got '{value('reason')}'")
+    if decision == CandidateDecision.INCLUDE and value("reason"):
+        problem("include must not have a reason")
+
+    if len(problems) > n_before:
+        return None
+
+    duplicate_of = normalize_doi(strip_doi_prefix(value("duplicate_of"))) or None
+    return Candidate(doi=doi, society=value("society"), year=_parse_year(value("year")), title=value("title"),
+                     decision=decision, reason=reason, duplicate_of=duplicate_of, line=line)
+
+
+def _parse_enum(enum, raw: str):
+    try:
+        return enum(raw.lower())
+    except ValueError:
+        return None
 
 
 def _cross_row_problems(entries: list[ManifestEntry]) -> list[str]:

@@ -4,10 +4,21 @@ import os
 
 import pytest
 
-from evident.corpus import ManifestError, current_editions, load_manifest, sync_to_store
+from evident.corpus import (
+    CandidateDecision,
+    ExclusionReason,
+    ManifestError,
+    check_candidates,
+    current_editions,
+    load_candidates,
+    load_manifest,
+    sync_to_store,
+)
 from evident.store import DuplicatePdfError, Store
 
 _REPO_MANIFEST = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "manifest.csv")
+_REPO_CANDIDATES = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "candidates.csv")
+_N_REPO_GUIDELINES = 74
 _HEADER = "doi,society,year,title,topic_id,supersedes_doi,grading_family,pdf_filename"
 _A = "10.1007/a,ESICM,2016,Fluids v1,fluids,,grade,"
 _B = "10.1007/b,ESICM,2020,Fluids v2,fluids,10.1007/a,grade,"
@@ -30,8 +41,12 @@ def _problems(path):
 class TestLoadManifest:
     def test_repo_manifest_is_valid(self):
         entries = load_manifest(_REPO_MANIFEST)
-        assert len(entries) == 12
-        assert current_editions(entries) == {e.doi for e in entries}
+        assert len(entries) == _N_REPO_GUIDELINES
+        assert {e.society for e in entries} == {"ACP", "ESICM", "SCCM"}
+        assert current_editions(entries) == {e.doi for e in entries} - {e.supersedes_doi for e in entries}
+
+    def test_repo_candidates_match_manifest(self):
+        check_candidates(load_candidates(_REPO_CANDIDATES), load_manifest(_REPO_MANIFEST))
 
     def test_round_trip(self, tmp_path):
         entries = load_manifest(_manifest(tmp_path, _A, _B, _ACP))
@@ -60,6 +75,16 @@ class TestLoadManifest:
         problems = _problems(_manifest(tmp_path, row))
         assert len(problems) == 1
         assert problems[0].startswith("line 2:") and fragment in problems[0]
+
+    def test_joint_with(self, tmp_path):
+        path = _manifest(tmp_path, _A + ",ACP; SCCM", header=_HEADER + ",joint_with")
+        assert load_manifest(path)[0].joint_with == ("ACP", "SCCM")
+        assert load_manifest(_manifest(tmp_path, _A))[0].joint_with == ()
+
+    @pytest.mark.parametrize("joint", ["ESC", "ESICM"])
+    def test_joint_with_must_be_another_known_society(self, tmp_path, joint):
+        problems = _problems(_manifest(tmp_path, f"{_A},{joint}", header=_HEADER + ",joint_with"))
+        assert "joint_with" in problems[0]
 
     def test_all_problems_reported_together(self, tmp_path):
         problems = _problems(_manifest(tmp_path, "bad,ESC,1,,X,,nope,", _A, _A))
@@ -120,3 +145,54 @@ class TestSyncToStore:
         with Store.open(str(tmp_path / "db.sqlite")) as store:
             with pytest.raises(DuplicatePdfError):
                 sync_to_store(load_manifest(_manifest(tmp_path, _A, b)), store, str(pdf_dir))
+
+
+_CANDIDATE_HEADER = "doi,society,year,title,journal,pmid,source,decision,reason,duplicate_of"
+_INCLUDE_A = "10.1007/a,ESICM,2016,Fluids v1,Intensive Care Med,1,pubmed,include,,"
+_INCLUDE_B = "10.1007/b,ESICM,2020,Fluids v2,Intensive Care Med,2,pubmed,include,,"
+
+
+def _candidates(tmp_path, *rows):
+    path = tmp_path / "candidates.csv"
+    path.write_text("\n".join([_CANDIDATE_HEADER, *rows]) + "\n")
+    return str(path)
+
+
+def _candidate_problems(path):
+    with pytest.raises(ManifestError) as err:
+        load_candidates(path)
+    return err.value.problems
+
+
+class TestCandidates:
+    def test_round_trip(self, tmp_path):
+        dup = "10.1097/x,SCCM,2021,Copy,Crit Care Med,3,pubmed,exclude,duplicate_publication,10.1007/A"
+        a, b, c = load_candidates(_candidates(tmp_path, _INCLUDE_A, _INCLUDE_B, dup))
+        assert (a.decision, a.reason) == (CandidateDecision.INCLUDE, None)
+        assert (c.reason, c.duplicate_of) == (ExclusionReason.DUPLICATE_PUBLICATION, "10.1007/a")
+
+    @pytest.mark.parametrize("row, fragment", [
+        ("10.1007/x,ESICM,2016,T,J,1,pubmed,maybe,,", "decision"),
+        ("10.1007/x,ESICM,2016,T,J,1,pubmed,exclude,,", "needs a reason"),
+        ("10.1007/x,ESICM,2016,T,J,1,pubmed,exclude,dislike,", "needs a reason"),
+        ("10.1007/x,ESICM,2016,T,J,1,pubmed,include,not_graded,", "must not have a reason"),
+        ("10.1007/x,ESICM,2016,T,J,1,pubmed,exclude,duplicate_publication,10.1007/zz", "duplicate_of"),
+        ("bad,ESICM,2016,T,J,1,pubmed,include,,", "invalid doi"),
+    ])
+    def test_rule_fails_with_line_number(self, tmp_path, row, fragment):
+        problems = _candidate_problems(_candidates(tmp_path, row))
+        assert len(problems) == 1
+        assert problems[0].startswith("line 2:") and fragment in problems[0]
+
+    def test_check_against_manifest(self, tmp_path):
+        manifest = load_manifest(_manifest(tmp_path, _A, _B))
+        check_candidates(load_candidates(_candidates(tmp_path, _INCLUDE_A, _INCLUDE_B)), manifest)
+
+        excluded_b = _INCLUDE_B.replace("include,", "exclude,not_graded")
+        with pytest.raises(ManifestError) as err:
+            check_candidates(load_candidates(_candidates(tmp_path, _INCLUDE_A, excluded_b)), manifest)
+        assert err.value.problems == ["manifest row 10.1007/b is not an included candidate"]
+
+        with pytest.raises(ManifestError) as err:
+            check_candidates(load_candidates(_candidates(tmp_path, _INCLUDE_A, _INCLUDE_B)), manifest[:1])
+        assert err.value.problems == ["included candidate 10.1007/b has no manifest row"]

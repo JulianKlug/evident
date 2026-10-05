@@ -83,6 +83,7 @@ Exclude, with one reason each (`ExclusionReason` enum, §4.3):
 |--------|---------|
 | `NOT_GUIDELINE` | narrative review, research agenda, methods paper |
 | `NOT_GRADED` | consensus statement, Delphi, ACP "best practice advice" or "guidance statement" |
+| `OTHER_SOCIETY` | published in an MVP journal but led by another body (ESPNIC, Brain Trauma Foundation, British societies) |
 | `ENDORSEMENT` | ACP/SCCM endorsement of another body's guideline |
 | `DERIVATIVE` | summary for patients, "In the Clinic", executive summary of an included guideline |
 | `DUPLICATE_PUBLICATION` | the second journal copy of a co-published guideline (e.g. SSC 2021 in CCM and ICM) |
