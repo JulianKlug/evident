@@ -138,6 +138,10 @@ Order by label availability and scheme difficulty:
 | 6d | Anesthesia (ESAIC, ASA) | mixed | new labels needed |
 | 6e | Hematology (ASH, BSH) | GRADE | new labels needed |
 | 6f | Remaining non-surgical | per society | per society |
+| 6g | Other critical care bodies (CCCS-SSAI, ESPNIC, BTF, British and Canadian societies) | GRADE (check per body) | none: unvalidated |
+
+6g: start from the 9 `other_society` rows in `corpus/candidates.csv`, then search each body's
+own output (M3 excluded them because only those printed in ICM/CCM/PCCM were found).
 
 Per specialty:
 1. Add a scheme mapping in harmonization, with a table test.
