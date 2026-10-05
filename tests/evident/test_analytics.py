@@ -1,8 +1,16 @@
-"""Tests for evident.analytics: headline columns and denominator rule."""
+"""Tests for evident.analytics: headline columns, denominator rule, distributions, trends, captions."""
 
-import csv
-
-from evident.analytics import HarmonizedRow, headline, write_headline
+from evident.analytics import (
+    Edition,
+    GuidelineFacts,
+    HarmonizedRow,
+    caption_facts,
+    certainty_distribution,
+    guideline_summary,
+    headline,
+    strength_by_certainty,
+    trends,
+)
 from evident.domain import AxisStatus, Category, Certainty, Direction, HarmonizedGrade, Strength
 
 _M, _UM, _UG = AxisStatus.MAPPED, AxisStatus.UNMAPPED, AxisStatus.UNGRADED
@@ -51,11 +59,70 @@ def test_all_is_sum_of_societies():
         assert getattr(total, column) == sum(getattr(s, column) for s in societies)
 
 
-def test_write_atomic_with_empty_cells(tmp_path):
-    path = tmp_path / "out" / "headline.csv"
-    write_headline(headline([_ROWS[-1]], 1, "v", "m@d"), str(path))
+def test_headline_skips_superseded_editions():
+    old = HarmonizedRow("10.1/old", "ACP", 2018, _graded(Strength.WEAK, Direction.FOR, Certainty.LOW),
+                        edition=Edition.SUPERSEDED)
+    acp, _, total = headline(_ROWS + [old], 1, "v", "m@d")
+    assert (acp.n_guidelines, acp.n_recs, total.n_recs) == (2, 4, 5)
 
-    rows = list(csv.DictReader(open(path)))
-    assert [r["society"] for r in rows] == ["ESICM", "ALL"]
-    assert rows[0]["pct_strong"] == ""
-    assert not (tmp_path / "out" / "headline.csv.tmp").exists()
+
+def test_certainty_distribution():
+    rows = {(r.society, r.certainty): r for r in certainty_distribution(_ROWS)}
+    # ACP: HIGH + LOW mapped; unmapped and ungraded certainty are not in the denominator
+    assert (rows["ACP", Certainty.HIGH].n, rows["ACP", Certainty.HIGH].pct) == (1, 50.0)
+    assert (rows["ACP", Certainty.MODERATE].n, rows["ACP", Certainty.MODERATE].pct) == (0, 0.0)
+    # ESICM has no graded rec: empty, not 0
+    assert rows["ESICM", Certainty.HIGH].pct is None
+    assert rows["ALL", Certainty.LOW].n == 1
+
+
+def test_strength_by_certainty_row_percent():
+    rows = {(r.society, r.strength, r.certainty): r for r in strength_by_certainty(_ROWS)}
+    strong_high = rows["ACP", Strength.STRONG, Certainty.HIGH]
+    # The strong rec with ungraded certainty has no certainty: only 1 strong rec in the crosstab
+    assert (strong_high.n, strong_high.pct_of_strength) == (1, 100.0)
+    assert rows["ACP", Strength.WEAK, Certainty.LOW].pct_of_strength == 100.0
+    assert sum(r.n for r in strength_by_certainty(_ROWS) if r.society == "ALL") == 2
+
+
+def test_trends_keep_superseded_editions():
+    old = HarmonizedRow("10.1/old", "ACP", 2018, _graded(Strength.STRONG, Direction.FOR, Certainty.HIGH),
+                        edition=Edition.SUPERSEDED)
+    rows = {(r.society, r.year): r for r in trends(_ROWS + [old])}
+    assert (rows["ACP", 2018].n_recs, rows["ACP", 2018].pct_strong) == (1, 100.0)
+    assert (rows["ACP", 2023].n_guidelines, rows["ACP", 2023].n_recs, rows["ACP", 2023].pct_strong) == (1, 3, 50.0)
+    assert rows["ESICM", 2025].pct_strong is None
+    assert sorted(y for s, y in rows if s == "ALL") == [2018, 2023, 2024, 2025]
+
+
+_FACTS = [
+    GuidelineFacts("10.1/a", "ACP", 2023, "A", "t-a", Edition.CURRENT),
+    GuidelineFacts("10.1/b", "ACP", 2024, "B", "t-b", Edition.CURRENT),
+    GuidelineFacts("10.1/c", "ESICM", 2025, "C", "t-c", Edition.CURRENT, joint_with=("SCCM",)),
+    GuidelineFacts("10.1/d", "SCCM", 2021, "D", "t-d", Edition.CURRENT, excluded_reason="scanned PDF"),
+]
+
+
+def test_guideline_summary():
+    rows = guideline_summary(_ROWS, _FACTS)
+    assert [r.doi for r in rows] == ["10.1/a", "10.1/b", "10.1/c", "10.1/d"]
+    a, _, c, d = rows
+    assert (a.n_recs, a.n_graded, a.pct_strong) == (3, 3, 50.0)
+    assert (c.joint_with, c.ungraded_share) == ("SCCM", 100.0)
+    assert (d.n_recs, d.excluded_reason, d.ungraded_share) == (0, "scanned PDF", None)
+
+
+def test_caption_facts():
+    facts = caption_facts(_ROWS, _FACTS, labelled_dois={"10.1/a", "10.1/c"})
+    assert facts.societies == ("ACP", "ESICM", "SCCM")
+    assert (facts.n_guidelines, facts.n_recs, facts.n_graded) == (3, 5, 4)
+    assert (facts.n_strength_unmapped, facts.n_certainty_unmapped, facts.n_certainty_ungraded) == (1, 1, 1)
+    assert facts.excluded == (("10.1/d", "scanned PDF"),)
+    assert facts.joint == (("10.1/c", "ESICM", ("SCCM",)),)
+    assert facts.unvalidated_societies == ("SCCM",)
+    assert (facts.year_min, facts.year_max) == (2023, 2025)
+
+
+def test_caption_facts_all_validated():
+    facts = caption_facts(_ROWS, _FACTS[:3], labelled_dois={"10.1/a", "10.1/c"})
+    assert facts.unvalidated_societies == ()

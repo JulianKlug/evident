@@ -93,7 +93,8 @@ class World:
         self.root = str(tmp_path)
         self.manifest = os.path.join(self.root, "manifest.csv")
         self.pdf_dir = os.path.join(self.root, "pdfs")
-        self.headline = os.path.join(self.root, "out", "headline.csv")
+        self.publish_dir = os.path.join(self.root, "out")
+        self.headline = os.path.join(self.publish_dir, "tables", "headline.csv")
         os.makedirs(self.pdf_dir)
         self.store = Store.open(os.path.join(self.root, "db.sqlite"))
         self.runner = runner or FakeRunner()
@@ -122,5 +123,5 @@ class World:
         return PipelineDeps(
             store=self.store, manifest_path=self.manifest, pdf_dir=self.pdf_dir,
             runner=runner or self.runner, probe=self.probe, labelled=labelled,
-            similarity_model=FakeEncoder(), code_sha=lambda: "sha1", headline_path=self.headline,
+            similarity_model=FakeEncoder(), code_sha=lambda: "sha1", publish_dir=self.publish_dir,
         )

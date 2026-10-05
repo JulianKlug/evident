@@ -33,7 +33,7 @@ from extraction.llm_client import ModelNotFoundError
 _DEFAULT_DB = "out/evident.sqlite"
 _DEFAULT_MANIFEST = "corpus/manifest.csv"
 _DEFAULT_PDF_DIR = "/mnt/data1/klug/datasets/evidence_extraction/pdfs"
-_HEADLINE_PATH = "out/headline.csv"
+_PUBLISH_DIR = "out"  # tables/, figures/, dashboard/
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 _EXIT_OK = 0
@@ -103,7 +103,7 @@ def _validate(args, deps) -> int:
 def _publish(args, deps) -> int:
     report = pipeline.publish(deps, args.accept_regression, args.snapshot)
     verb = "re-published" if report.republished else "published"
-    print(f"snapshot {report.snapshot_id} [{report.model}] {verb}: {report.headline_path} "
+    print(f"snapshot {report.snapshot_id} [{report.model}] {verb}: {len(report.paths)} files in {report.publish_dir} "
           f"({report.n_headline_guidelines} guidelines; skipped {report.n_skipped_excluded} excluded, "
           f"{report.n_skipped_superseded} superseded)")
     return _EXIT_OK
@@ -199,7 +199,7 @@ def _deps(args, store: Store) -> pipeline.PipelineDeps:
         labelled=load_labelled,
         similarity_model=similarity,
         code_sha=_git_head,
-        headline_path=_HEADLINE_PATH,
+        publish_dir=_PUBLISH_DIR,
     )
 
 

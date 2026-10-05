@@ -31,7 +31,7 @@ def calls(monkeypatch, tmp_path):
         monkeypatch.setattr(pipeline, name, fake)
 
     record("snapshot", SnapshotReport(1, SnapshotState.COMPLETE, 3, 0, 0, [], []))
-    record("publish", PublishReport(1, True, "out/headline.csv", 3, 0, 0))
+    record("publish", PublishReport(1, True, "out", 3, 0, 0))
     record("add", AddReport(1, "10.1000/d", AddStatus.ADDED))
     record("reject", RejectReport(3, "m@d", "worse F1"))
     return seen

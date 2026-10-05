@@ -48,6 +48,7 @@ def test_full_sequence(tmp_path):
     assert not v0.republished
     assert world.store.get_snapshot(v0.snapshot_id).state == SnapshotState.PUBLISHED
     assert os.path.isfile(world.headline)
+    assert os.path.isfile(os.path.join(world.publish_dir, "dashboard", "index.html"))
 
     # 5. A guideline published later joins v0, then outputs are rewritten
     world.add_row(_D)
@@ -58,6 +59,7 @@ def test_full_sequence(tmp_path):
     assert world.store.active_run(v0.snapshot_id, gid_d) is not None
     assert publish(deps).republished
     assert list(csv.DictReader(open(world.headline)))[-1]["n_guidelines"] == "4"
+    assert _D in open(os.path.join(world.publish_dir, "dashboard", "index.html")).read()
 
     # 6–8. A worse extractor is refused by the gate
     worse = snapshot(deps, SnapshotStart.NEW, WORSE_CONFIG)

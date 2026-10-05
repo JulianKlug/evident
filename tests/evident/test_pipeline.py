@@ -222,6 +222,25 @@ class TestPublish:
         w.store.close()
         assert (report.n_headline_guidelines, report.n_skipped_superseded) == (1, 1)
 
+        # The superseded edition counts in trends and the browser, not in the headline
+        tables = os.path.join(w.publish_dir, "tables")
+        assert list(csv.DictReader(open(w.headline)))[-1]["n_guidelines"] == "1"
+        trend_years = {r["year"] for r in csv.DictReader(open(os.path.join(tables, "trends.csv")))
+                       if r["society"] == "ALL"}
+        assert trend_years == {"2023", "2025"}
+        editions = {r["doi"]: r["edition"] for r in csv.DictReader(open(os.path.join(tables, "recommendations.csv")))}
+        assert editions == {_A: "superseded", _D: "current"}
+
+    def test_publish_writes_every_output_with_validation(self, world):
+        _published(world)
+        out = world.publish_dir
+        for rel in ("tables/trends.csv", "figures/fig4_trends.svg", "figures/captions.md", "dashboard/index.html"):
+            assert os.path.isfile(os.path.join(out, rel)), rel
+
+        captions = open(os.path.join(out, "figures", "captions.md")).read()
+        assert "Validation on 2 labelled guidelines" in captions
+        assert "unvalidated" not in captions  # both societies have a labelled guideline in the fakes
+
 
 class TestAdd:
     def test_needs_published_snapshot(self, world):

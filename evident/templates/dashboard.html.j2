@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evident evidence map</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1d1d1f; --muted: #6e6e73; --line: #d9d9de; --panel: #f5f5f7;
+    --warn-bg: #fff4e5; --warn-fg: #7a4100; --accent: #1f5fa8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161618; --fg: #ececf0; --muted: #a1a1a6; --line: #3a3a3e; --panel: #222226;
+      --warn-bg: #3d2a10; --warn-fg: #ffd59a; --accent: #7fb2ff;
+    }
+    .figure img { background: #ffffff; border-radius: 4px; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 15px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 40px 0 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  .muted { color: var(--muted); font-size: 0.9rem; }
+  .provenance { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 12px 0; font-size: 0.9rem; }
+  .provenance b { font-weight: 600; }
+  .banner { background: var(--warn-bg); color: var(--warn-fg); padding: 10px 14px; border-radius: 6px;
+            margin: 8px 0; font-size: 0.92rem; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--panel); font-weight: 600; white-space: nowrap; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr)); gap: 24px; }
+  .figure img { width: 100%; height: auto; display: block; }
+  .figure h3 { font-size: 1rem; margin: 0 0 6px; }
+  .figure p { font-size: 0.82rem; color: var(--muted); margin: 6px 0 0; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .filters input, .filters select { font: inherit; font-size: 0.9rem; padding: 5px 8px; color: var(--fg);
+                                    background: var(--bg); border: 1px solid var(--line); border-radius: 4px; }
+  .filters input[type=search] { flex: 1 1 220px; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+  a { color: var(--accent); }
+  .superseded { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Evident: living evidence map</h1>
+  <div class="muted">Recommendations, strength and certainty from {{ facts.societies | join(", ") }} guidelines,
+    extracted by a local LLM.</div>
+
+  <div class="provenance">
+    <span><b>Snapshot</b> {{ snapshot_id }}</span>
+    <span><b>Version</b> {{ version }}</span>
+    <span><b>Model</b> {{ model }}</span>
+    <span><b>Code</b> {{ code_sha }}</span>
+    {% if validation %}
+    <span><b>Validation</b> ({{ validation.n }} labelled guidelines, gate {{ validation.gate }}):
+      F1 {{ validation.f1 }} {{ validation.f1_ci }}, P {{ validation.precision }}, R {{ validation.recall }},
+      grade accuracy {{ validation.combined }} {{ validation.combined_ci }}</span>
+    {% else %}
+    <span><b>Validation</b> none</span>
+    {% endif %}
+  </div>
+  {% for society in unvalidated %}
+  <div class="banner">{{ society }}: extraction accuracy unvalidated (no labelled {{ society }} guideline).</div>
+  {% endfor %}
+
+  <h2>Headline (current editions)</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr>
+      <th>Society</th><th class="num">Guidelines</th><th class="num">Recs</th><th class="num">Graded</th>
+      <th class="num">Ungraded %</th><th class="num">Strong %</th><th class="num">Against %</th>
+      <th class="num">High/moderate %</th><th class="num">Unmapped (strength / certainty)</th>
+    </tr></thead>
+    <tbody>
+    {% for r in headline %}
+      <tr>
+        <td><span class="dot" style="background: {{ society_colours.get(r.society, '#9467bd') }}"></span>{{ r.society }}</td>
+        <td class="num">{{ r.n_guidelines }}</td><td class="num">{{ r.n_recs }}</td><td class="num">{{ r.n_graded }}</td>
+        <td class="num">{{ r.ungraded_share }}</td><td class="num">{{ r.pct_strong }}</td>
+        <td class="num">{{ r.pct_against }}</td><td class="num">{{ r.pct_high_moderate }}</td>
+        <td class="num">{{ r.n_strength_unmapped }} / {{ r.n_certainty_unmapped }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">{{ common_caption }}</p>
+
+  <h2>Figures</h2>
+  <div class="figures">
+  {% for f in figures %}
+    <figure class="figure" style="margin: 0">
+      <h3>Figure {{ loop.index }}. {{ f.title }}</h3>
+      <img src="{{ f.src }}" alt="{{ f.title }}">
+      <p>{{ f.caption }}</p>
+    </figure>
+  {% endfor %}
+  </div>
+
+  <h2>Guidelines</h2>
+  <div class="scroll">
+  <table id="guidelines">
+    <thead><tr>
+      <th>Society</th><th class="num">Year</th><th>Title</th><th>Edition</th><th class="num">Recs</th>
+      <th class="num">Ungraded %</th><th class="num">Strong %</th><th class="num">High/mod %</th><th>Note</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+
+  <h2>Recommendations</h2>
+  <div class="filters">
+    <input type="search" id="q" placeholder="Search text" aria-label="Search text">
+    <select id="f-society" aria-label="Society"><option value="">All societies</option></select>
+    <select id="f-edition" aria-label="Edition">
+      <option value="current">Current editions</option><option value="">All editions</option>
+    </select>
+    <select id="f-category" aria-label="Category"><option value="">All categories</option></select>
+    <select id="f-strength" aria-label="Strength"><option value="">Any strength</option></select>
+    <select id="f-certainty" aria-label="Certainty"><option value="">Any certainty</option></select>
+  </div>
+  <div class="muted" id="count"></div>
+  <div class="scroll">
+  <table id="recs">
+    <thead><tr>
+      <th>Recommendation</th><th>Society</th><th class="num">Year</th><th class="num">Page</th>
+      <th>Strength</th><th>Certainty</th><th>Raw grade</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+</main>
+
+<script type="application/json" id="data">{{ data_json | safe }}</script>
+<script>
+(function () {
+  "use strict";
+  var MAX_ROWS = 500;  // rendering cap; the count line says how many match
+  var data = JSON.parse(document.getElementById("data").textContent);
+  var titles = {};
+  data.guidelines.forEach(function (g) { titles[g.doi] = g.title; });
+
+  function cell(tr, text, cls) {
+    var td = document.createElement("td");
+    td.textContent = text === null || text === undefined ? "" : String(text);
+    if (cls) td.className = cls;
+    tr.appendChild(td);
+    return td;
+  }
+
+  // Guideline table
+  var gBody = document.querySelector("#guidelines tbody");
+  data.guidelines.forEach(function (g) {
+    var tr = document.createElement("tr");
+    if (g.edition === "superseded") tr.className = "superseded";
+    cell(tr, g.society);
+    cell(tr, g.year, "num");
+    var td = cell(tr, "");
+    var a = document.createElement("a");
+    a.href = "https://doi.org/" + g.doi;
+    a.textContent = g.title;
+    td.appendChild(a);
+    cell(tr, g.edition);
+    cell(tr, g.n_recs, "num");
+    cell(tr, g.ungraded_share, "num");
+    cell(tr, g.pct_strong, "num");
+    cell(tr, g.pct_high_moderate, "num");
+    var notes = [];
+    if (g.joint_with) notes.push("joint with " + g.joint_with);
+    if (g.excluded_reason) notes.push("excluded: " + g.excluded_reason);
+    cell(tr, notes.join("; "));
+    gBody.appendChild(tr);
+  });
+
+  // Recommendation browser
+  var filters = {
+    society: document.getElementById("f-society"),
+    edition: document.getElementById("f-edition"),
+    category: document.getElementById("f-category"),
+    strength: document.getElementById("f-strength"),
+    certainty: document.getElementById("f-certainty")
+  };
+  ["society", "category", "strength", "certainty"].forEach(function (key) {
+    var values = {};
+    data.recs.forEach(function (r) { if (r[key]) values[r[key]] = true; });
+    Object.keys(values).sort().forEach(function (v) {
+      var o = document.createElement("option");
+      o.value = v;
+      o.textContent = v.replace("_", " ");
+      filters[key].appendChild(o);
+    });
+  });
+  var q = document.getElementById("q");
+  var rBody = document.querySelector("#recs tbody");
+  var count = document.getElementById("count");
+
+  function draw() {
+    var needle = q.value.trim().toLowerCase();
+    var hits = data.recs.filter(function (r) {
+      for (var key in filters) {
+        if (filters[key].value && r[key] !== filters[key].value) return false;
+      }
+      return !needle || r.text.toLowerCase().indexOf(needle) !== -1;
+    });
+    rBody.textContent = "";
+    hits.slice(0, MAX_ROWS).forEach(function (r) {
+      var tr = document.createElement("tr");
+      var td = cell(tr, r.text);
+      td.title = titles[r.doi] || r.doi;
+      cell(tr, r.society);
+      cell(tr, r.year, "num");
+      cell(tr, r.page, "num");
+      cell(tr, r.category === "graded" ? [r.strength, r.direction].filter(Boolean).join(" ") || "unmapped"
+                                       : r.category.replace("_", " "));
+      cell(tr, r.category === "graded" ? (r.certainty || r.certainty_status).replace("_", " ") : "");
+      cell(tr, [r.raw_strength, r.raw_certainty].filter(Boolean).join(" · "));
+      rBody.appendChild(tr);
+    });
+    count.textContent = hits.length + " recommendation(s)" +
+      (hits.length > MAX_ROWS ? ", first " + MAX_ROWS + " shown" : "");
+  }
+  q.addEventListener("input", draw);
+  for (var key in filters) filters[key].addEventListener("change", draw);
+  draw();
+})();
+</script>
+</body>
+</html>

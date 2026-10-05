@@ -3,7 +3,7 @@
     snapshot NEW ──▶ BUILDING ──(every included member has a run)──▶ COMPLETE
          ▲   │                                                         │
     RESUME   └── failed / interrupted runs stay pending                 ▼
-                                               validate ──▶ gate ──▶ publish ──▶ PUBLISHED + headline.csv
+                                               validate ──▶ gate ──▶ publish ──▶ PUBLISHED + tables, figures, dashboard
                                                                                    │
                                                           add <pdf> (same version) ┘
 
@@ -12,6 +12,7 @@ Every model, Ollama call and GT load comes in through PipelineDeps, so tests run
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import shutil
@@ -20,7 +21,17 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Callable, Optional, Sequence
 
-from evident.analytics import HarmonizedRow, headline, write_headline
+from evident.analytics import (
+    Edition,
+    GuidelineFacts,
+    HarmonizedRow,
+    caption_facts,
+    certainty_distribution,
+    guideline_summary,
+    headline,
+    strength_by_certainty,
+    trends,
+)
 from evident.corpus import ManifestEntry, current_editions, load_manifest, sync_to_store
 from evident.domain import (
     Category,
@@ -42,6 +53,7 @@ from evident.extraction import (
     version_for,
 )
 from evident.harmonization import harmonize
+from evident.publishing import PublishBundle, ValidationSummary, render
 from evident.store import Store
 from evident.validation import GateReport, LabelledGuideline, SnapshotScore, gate, score
 
@@ -79,7 +91,7 @@ class PipelineDeps:
     labelled: Callable[[], list[LabelledGuideline]]
     similarity_model: object
     code_sha: Callable[[], Optional[str]]
-    headline_path: str
+    publish_dir: str  # tables/, figures/, dashboard/ are (re)written here
 
 
 # ── errors ──────────────────────────────────────────────────────
@@ -205,11 +217,12 @@ class ValidationReport:
 class PublishReport:
     snapshot_id: int
     republished: bool  # True when only the outputs of an already published snapshot were rewritten
-    headline_path: str
+    publish_dir: str
     n_headline_guidelines: int
     n_skipped_excluded: int
     n_skipped_superseded: int
     model: str = ""
+    paths: list[str] = field(default_factory=list)  # every file written
 
 
 @dataclass(frozen=True)
@@ -624,26 +637,68 @@ def _outliers(store: Store, snapshot_id: int, guidelines: dict[int, Guideline]) 
 
 def _write_outputs(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry],
                    republished: bool) -> PublishReport:
-    """Headline over current editions only: included members with an active run."""
-    guidelines = _guidelines_by_id(deps.store)
+    """Rows from active runs of every included member, all editions; analytics decides which count where."""
+    guidelines = {g.doi: g for g in deps.store.list_guidelines()}
     current = current_editions(entries)
-    n_excluded = sum(1 for m in deps.store.members(snap.id) if m.excluded_reason)
+    members = {m.guideline_id: m for m in deps.store.members(snap.id)}
+    active = _active_recs(deps.store, snap.id)
 
     rows = []
-    contributing = set()
-    n_superseded = 0
-    for gid, recs in _active_recs(deps.store, snap.id).items():
-        g = guidelines[gid]
-        if g.doi not in current:
-            n_superseded += 1
-            continue
-        contributing.add(g.doi)
+    facts = []
+    for e in entries:
+        g = guidelines[e.doi]
+        edition = Edition.CURRENT if e.doi in current else Edition.SUPERSEDED
+        member = members.get(g.id)
+        facts.append(GuidelineFacts(e.doi, e.society, e.year, e.title, e.topic_id, edition, e.joint_with,
+                                    member.excluded_reason if member else None))
         rows.extend(
             HarmonizedRow(g.doi, g.society, g.year,
-                          harmonize(r.raw_strength, r.raw_certainty, r.text, r.raw_category, g.grading_family))
-            for r in recs)
+                          harmonize(r.raw_strength, r.raw_certainty, r.text, r.raw_category, g.grading_family),
+                          edition, r.text, r.page, r.raw_strength, r.raw_certainty)
+            for r in active.get(g.id, []))
 
     model = _model_label(deps.store, snap)
-    write_headline(headline(rows, snap.id, snap.extractor_version_id, model), deps.headline_path)
-    return PublishReport(snap.id, republished, deps.headline_path, len(contributing), n_excluded, n_superseded,
-                         model)
+    labelled_dois = {lg.doi for lg in deps.labelled()}
+    bundle = PublishBundle(
+        snapshot_id=snap.id,
+        extractor_version_id=snap.extractor_version_id,
+        model=model,
+        code_sha=deps.code_sha(),
+        validation=_validation_summary(deps.store, snap.id),
+        headline=headline(rows, snap.id, snap.extractor_version_id, model),
+        certainty=certainty_distribution(rows),
+        crosstab=strength_by_certainty(rows),
+        trends=trends(rows),
+        guidelines=guideline_summary(rows, facts),
+        captions=caption_facts(rows, facts, labelled_dois),
+        recs=rows,
+    )
+    paths = render(bundle, deps.publish_dir)
+
+    contributing = {r.doi for r in rows if r.edition == Edition.CURRENT}
+    n_excluded = sum(1 for m in members.values() if m.excluded_reason)
+    n_superseded = len({r.doi for r in rows if r.edition == Edition.SUPERSEDED})
+    return PublishReport(snap.id, republished, deps.publish_dir, len(contributing), n_excluded, n_superseded,
+                         model, paths)
+
+
+def _validation_summary(store: Store, snapshot_id: int) -> Optional[ValidationSummary]:
+    validation = store.latest_validation(snapshot_id)
+    if validation is None:
+        return None
+    # A report without candidate metrics (hand-written in tests) shows as not validated
+    report = json.loads(validation.report_json)
+    candidate = report.get("candidate")
+    if candidate is None:
+        return None
+    return ValidationSummary(
+        gate=validation.gate,
+        n_guidelines=report["n_guidelines"],
+        baseline_snapshot_id=validation.baseline_snapshot_id,
+        f1=candidate["f1"],
+        f1_ci=tuple(candidate["f1_ci"]),
+        precision=candidate["precision"],
+        recall=candidate["recall"],
+        combined_accuracy=candidate["combined_accuracy"],
+        combined_ci=tuple(candidate["combined_ci"]),
+    )
