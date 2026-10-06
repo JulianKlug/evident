@@ -106,6 +106,7 @@ def _publish(args, deps) -> int:
     print(f"snapshot {report.snapshot_id} [{report.model}] {verb}: {len(report.paths)} files in {report.publish_dir} "
           f"({report.n_headline_guidelines} guidelines; skipped {report.n_skipped_excluded} excluded, "
           f"{report.n_skipped_superseded} superseded)")
+    _print_list("warning: PDF changed since its run (re-extract with add --force)", report.pdf_changed)
     return _EXIT_OK
 
 
@@ -146,6 +147,7 @@ def _status(args, deps) -> int:
     _print_list("slow", [f"{d}: {s / 60:.0f} min" for d, s in r.slow])
     _print_list("outliers", [f"{d}: {why}" for d, why in r.outliers])
     _print_list("coverage gaps", r.coverage_gaps)
+    _print_list("PDF changed since its run (re-extract with add --force)", r.pdf_changed)
     return _EXIT_OK
 
 

@@ -299,6 +299,19 @@ class TestStatus:
     def test_no_snapshot(self, world):
         assert status(world.deps()).snapshot_id is None
 
+    def test_run_records_pdf_bytes(self, world):
+        snapshot(world.deps(), _NEW, CONFIG)
+        g = world.store.get_guideline(_A)
+        assert world.store.active_run(1, g.id).pdf_sha256 == g.pdf_sha256 is not None
+
+    def test_pdf_replaced_after_run_is_flagged(self, world):
+        _published(world)
+        with open(os.path.join(world.pdf_dir, "10_1000_a.pdf"), "wb") as f:
+            f.write(b"%PDF a, downloaded again")
+
+        assert status(world.deps()).pdf_changed == [_A]
+        assert publish(world.deps()).pdf_changed == [_A]
+
     def test_eta_and_failures(self, world):
         snapshot(world.deps(runner=FakeRunner(fail=(_C,))), _NEW, CONFIG)
 

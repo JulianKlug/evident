@@ -128,6 +128,7 @@ class ExtractionRun:
     few_shot_json: Optional[str] = None
     error: Optional[str] = None
     code_sha: Optional[str] = None  # git HEAD at run time; not part of the version
+    pdf_sha256: Optional[str] = None  # bytes of the PDF the run read; None for runs before migration 4
 
 
 @dataclass(frozen=True)

@@ -135,6 +135,19 @@ class TestSyncToStore:
             assert store.get_guideline("10.1007/a").pdf_sha256
             assert store.get_guideline("10.1007/b").pdf_sha256 is None
 
+    def test_changed_pdf_reported(self, tmp_path):
+        pdf_dir = tmp_path / "pdfs"
+        pdf_dir.mkdir()
+        (pdf_dir / "10_1007_a.pdf").write_bytes(b"%PDF a")
+        entries = load_manifest(_manifest(tmp_path, _A, _B))
+
+        with Store.open(str(tmp_path / "db.sqlite")) as store:
+            assert sync_to_store(entries, store, str(pdf_dir)).changed_pdf == []
+            (pdf_dir / "10_1007_b.pdf").write_bytes(b"%PDF b")       # newly present: not a change
+            assert sync_to_store(entries, store, str(pdf_dir)).changed_pdf == []
+            (pdf_dir / "10_1007_a.pdf").write_bytes(b"%PDF a, new download")
+            assert sync_to_store(entries, store, str(pdf_dir)).changed_pdf == ["10.1007/a"]
+
     def test_duplicate_pdf_raises(self, tmp_path):
         pdf_dir = tmp_path / "pdfs"
         pdf_dir.mkdir()

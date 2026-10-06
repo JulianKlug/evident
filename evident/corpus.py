@@ -94,6 +94,7 @@ class SyncReport:
     added: list[str] = field(default_factory=list)
     updated: list[str] = field(default_factory=list)
     missing_pdf: list[str] = field(default_factory=list)
+    changed_pdf: list[str] = field(default_factory=list)  # PDF bytes differ from the last sync
 
 
 def load_manifest(path: str) -> list[ManifestEntry]:
@@ -186,14 +187,18 @@ def sync_to_store(entries: list[ManifestEntry], store: Store, pdf_dir: str) -> S
         if not pdf_present:
             report.missing_pdf.append(e.doi)
 
-        existed = store.get_guideline(e.doi) is not None
+        existing = store.get_guideline(e.doi)
+        sha = _sha256(pdf_path) if pdf_present else None
+        if existing and existing.pdf_sha256 and sha and sha != existing.pdf_sha256:
+            report.changed_pdf.append(e.doi)
+
         store.upsert_guideline(Guideline(
             doi=e.doi, society=e.society, year=e.year, title=e.title, topic_id=e.topic_id,
             grading_family=e.grading_family, supersedes_doi=e.supersedes_doi,
             pdf_path=pdf_path if pdf_present else None,
-            pdf_sha256=_sha256(pdf_path) if pdf_present else None,
+            pdf_sha256=sha,
         ))
-        (report.updated if existed else report.added).append(e.doi)
+        (report.updated if existing else report.added).append(e.doi)
     return report
 
 

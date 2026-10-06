@@ -141,6 +141,10 @@ _MIGRATIONS = [
         "ALTER TABLE snapshot ADD COLUMN rejected_at TEXT",
         "ALTER TABLE snapshot ADD COLUMN reject_reason TEXT",
     ]),
+    (4, [
+        # The PDF bytes a run read: a replaced PDF changes results under the same version
+        "ALTER TABLE extraction_run ADD COLUMN pdf_sha256 TEXT",
+    ]),
 ]
 _CODE_SCHEMA_VERSION = _MIGRATIONS[-1][0]
 
@@ -401,14 +405,14 @@ class Store:
     # ── runs ────────────────────────────────────────────────────
 
     def start_run(self, snapshot_id: int, guideline_id: int, thinking: ThinkingMode,
-                  few_shot: list[dict], code_sha: Optional[str] = None) -> int:
+                  few_shot: list[dict], code_sha: Optional[str] = None, pdf_sha256: Optional[str] = None) -> int:
         with self._transaction():
             cur = self._conn.execute(
                 """INSERT INTO extraction_run (snapshot_id, guideline_id, status, started_at,
-                                               thinking, few_shot_json, code_sha)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                                               thinking, few_shot_json, code_sha, pdf_sha256)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                 (snapshot_id, guideline_id, RunStatus.RUNNING.value, _now(),
-                 _THINKING_TO_DB[thinking], json.dumps(few_shot), code_sha),
+                 _THINKING_TO_DB[thinking], json.dumps(few_shot), code_sha, pdf_sha256),
             )
         return cur.lastrowid
 

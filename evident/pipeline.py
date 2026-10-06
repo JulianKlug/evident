@@ -223,6 +223,7 @@ class PublishReport:
     n_skipped_superseded: int
     model: str = ""
     paths: list[str] = field(default_factory=list)  # every file written
+    pdf_changed: list[str] = field(default_factory=list)  # published from runs whose PDF has since changed
 
 
 @dataclass(frozen=True)
@@ -259,6 +260,7 @@ class StatusReport:
     coverage_gaps: list[str] = field(default_factory=list)
     failures: list[tuple[str, str]] = field(default_factory=list)  # every failed run, as history
     gate: Optional[GateResult] = None
+    pdf_changed: list[str] = field(default_factory=list)  # PDF bytes differ from what the active run read
 
 
 # ── commands ────────────────────────────────────────────────────
@@ -328,7 +330,7 @@ def publish(deps: PipelineDeps, accept_regression: Optional[str] = None,
 
     snapshot_id None: the only complete snapshot, else the published one; several → AmbiguousPublishError.
     """
-    entries = load_manifest(deps.manifest_path)
+    entries = _sync(deps)  # current PDF hashes, for the changed-PDF warning
     published = deps.store.latest_snapshot(SnapshotState.PUBLISHED)
     complete = _publish_target(deps.store, snapshot_id, published)
 
@@ -404,6 +406,7 @@ def status(deps: PipelineDeps) -> StatusReport:
     if snap is None:
         return StatusReport()
 
+    _sync(deps)  # current PDF hashes, for the changed-PDF flag
     guidelines = _guidelines_by_id(store)
     members = store.members(snap.id)
     runs = store.runs(snap.id)
@@ -433,6 +436,7 @@ def status(deps: PipelineDeps) -> StatusReport:
         coverage_gaps=_coverage_gaps(store, snap.id, load_manifest(deps.manifest_path)),
         failures=[(guidelines[r.guideline_id].doi, r.error or "") for r in runs if r.status == RunStatus.FAILED],
         gate=validation.gate if validation else None,
+        pdf_changed=_pdf_changed(store, snap.id, guidelines),
     )
 
 
@@ -447,7 +451,9 @@ class _Tally:
 
 def _sync(deps: PipelineDeps) -> list[ManifestEntry]:
     entries = load_manifest(deps.manifest_path)
-    sync_to_store(entries, deps.store, deps.pdf_dir)
+    report = sync_to_store(entries, deps.store, deps.pdf_dir)
+    if report.changed_pdf:
+        _log.warning("PDF bytes changed since the last sync: %s", ", ".join(report.changed_pdf))
     return entries
 
 
@@ -540,7 +546,8 @@ def _extract(deps: PipelineDeps, snapshot_id: int, cfg: ExtractorConfig, g: Guid
 
     A missing PDF fails the run; it is never auto-excluded, so the gap stays visible.
     """
-    run_id = deps.store.start_run(snapshot_id, g.id, cfg.thinking, few_shot=[], code_sha=code_sha)
+    run_id = deps.store.start_run(snapshot_id, g.id, cfg.thinking, few_shot=[], code_sha=code_sha,
+                                  pdf_sha256=g.pdf_sha256)
     try:
         pdf_path = g.pdf_path or ""
         if not os.path.isfile(pdf_path):
@@ -588,6 +595,17 @@ def _active_recs(store: Store, snapshot_id: int) -> dict[int, list[RawRecommenda
         if run:
             out[m.guideline_id] = store.recommendations(run.id)
     return out
+
+
+def _pdf_changed(store: Store, snapshot_id: int, guidelines: dict[int, Guideline]) -> list[str]:
+    """DOIs whose active run read different PDF bytes than the file now synced (runs without a hash skipped)."""
+    changed = []
+    for m in store.members(snapshot_id):
+        run = store.active_run(snapshot_id, m.guideline_id)
+        g = guidelines[m.guideline_id]
+        if run and run.pdf_sha256 and run.pdf_sha256 != g.pdf_sha256:
+            changed.append(g.doi)
+    return changed
 
 
 def _score_snapshot(deps: PipelineDeps, snapshot_id: int, labelled: list[LabelledGuideline]) -> SnapshotScore:
@@ -678,8 +696,9 @@ def _write_outputs(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEnt
     contributing = {r.doi for r in rows if r.edition == Edition.CURRENT}
     n_excluded = sum(1 for m in members.values() if m.excluded_reason)
     n_superseded = len({r.doi for r in rows if r.edition == Edition.SUPERSEDED})
+    pdf_changed = _pdf_changed(deps.store, snap.id, _guidelines_by_id(deps.store))
     return PublishReport(snap.id, republished, deps.publish_dir, len(contributing), n_excluded, n_superseded,
-                         model, paths)
+                         model, paths, pdf_changed)
 
 
 def _validation_summary(store: Store, snapshot_id: int) -> Optional[ValidationSummary]:

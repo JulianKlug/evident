@@ -84,7 +84,7 @@ class TestMigrations:
         conn = sqlite3.connect(path)
         tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
         assert tables == _TABLES
-        assert conn.execute("SELECT version FROM schema_version").fetchall() == [(3,)]
+        assert conn.execute("SELECT version FROM schema_version").fetchall() == [(4,)]
 
     def test_v1_file_migrates_to_latest_keeping_rows(self, tmp_path, monkeypatch):
         path = str(tmp_path / "db.sqlite")
