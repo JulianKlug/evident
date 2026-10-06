@@ -31,7 +31,8 @@ _NO_REC_PATTERNS = (r"\bcannot\s+recommend\b", r"\bno\s+recommendation\b",
 _BEST_PRACTICE_PATTERN = r"best practice|good practice statement"
 
 _PLACEHOLDERS = {"0", "0.0", "nan", "na", "n/a", ""}
-_NO_RECOMMENDATION_LABEL = "no recommendation"
+_NO_RECOMMENDATION_LABELS = {"no recommendation", "insufficient evidence"}
+_UNGRADED_STATEMENT_LABELS = {"ungraded", "good practice", "best practice"}  # SCCM ungraded best-practice statements
 _MIN_REPAIR_LENGTH = 4
 
 _STRENGTH_VOCAB = {"strong": Strength.STRONG, "conditional": Strength.WEAK, "weak": Strength.WEAK}
@@ -94,8 +95,10 @@ def _matches_any(patterns: tuple[str, ...], text: str) -> bool:
 def _category(strength_label: str, text: str, raw_category: Category) -> Category:
     if raw_category != Category.GRADED:
         return raw_category
-    if strength_label == _NO_RECOMMENDATION_LABEL or _matches_any(_NO_REC_PATTERNS, text):
+    if strength_label in _NO_RECOMMENDATION_LABELS or _matches_any(_NO_REC_PATTERNS, text):
         return Category.NO_RECOMMENDATION
+    if strength_label in _UNGRADED_STATEMENT_LABELS:
+        return Category.BEST_PRACTICE
     if re.search(_BEST_PRACTICE_PATTERN, f"{strength_label} {text}", re.IGNORECASE):
         return Category.BEST_PRACTICE
     return Category.GRADED
@@ -115,7 +118,8 @@ def _repair(token: str, vocabulary) -> Optional[str]:
 
 
 def _label_tokens(label: str) -> list[str]:
-    return [t for t in re.split(r"[\s,;]+", label) if t]
+    """'strong/for' → ['strong', 'for']; brackets too, so a copied template '[for/against]' stays ambiguous."""
+    return [t for t in re.split(r"[\s,;/\[\]]+", label) if t]
 
 
 def _strength(label: str) -> Optional[Strength]:
@@ -136,9 +140,9 @@ def _certainty(label: str) -> tuple[Optional[Certainty], AxisStatus]:
     if not label:
         return None, AxisStatus.UNMAPPED
 
-    # Composite "moderate/low" → each part, then the lower one
+    # Composite "moderate/low" or "very low to low" → each part, then the lower one
     levels = []
-    for part in label.split("/"):
+    for part in re.split(r"/|\bto\b", label):
         tokens = [t for t in part.split() if t not in _CERTAINTY_STOPWORDS]
         if tokens == [_INSUFFICIENT]:
             return None, AxisStatus.UNGRADED

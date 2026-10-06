@@ -92,6 +92,19 @@ SYNTHETIC = [
     (("Best practice statement", "", "Reassess", G), (Category.BEST_PRACTICE, None, None, None, NG, NG)),
     (("", "", "Good practice statement: reassess", G), (Category.BEST_PRACTICE, None, None, None, NG, NG)),
     (("BEST_PRACTICE", "NA", "Reassess", Category.BEST_PRACTICE), (Category.BEST_PRACTICE, None, None, None, NG, NG)),
+    # snapshot 8 labels: "/" separates strength from direction
+    (("strong/for", "Low", "We recommend X", G), (G, S, F, Certainty.LOW, M, M)),
+    (("conditional/for", "Low", "We suggest X", G), (G, W, F, Certainty.LOW, M, M)),
+    (("strong/against", "Moderate", "We recommend against X", G), (G, S, A, Certainty.MODERATE, M, M)),
+    # two strengths: the model copied the prompt's format example → stays unmapped
+    (("strong/conditional [for/against]", "Low", "We suggest X", G), (G, None, None, Certainty.LOW, U, M)),
+    (("strong/conditional for", "Low", "We suggest X", G), (G, None, None, Certainty.LOW, U, M)),
+    # snapshot 8 labels for ungraded statements
+    (("Ungraded", "Ungraded", "Reassess", G), (Category.BEST_PRACTICE, None, None, None, NG, NG)),
+    (("good practice", "", "Reassess", G), (Category.BEST_PRACTICE, None, None, None, NG, NG)),
+    (("Insufficient Evidence", "", "X", G), (Category.NO_RECOMMENDATION, None, None, None, NG, NG)),
+    # composite certainty with "to"
+    (("Conditional", "very low to low", "We suggest X", G), (G, W, F, Certainty.VERY_LOW, M, M)),
 ]
 
 
