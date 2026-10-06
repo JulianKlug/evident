@@ -17,10 +17,30 @@ _LANDING = f"https://doi.org/{_DOI}"
 _OA_URL = "https://link.springer.com/content/pdf/x.pdf"
 _META_URL = "https://publisher.org/pdf/x.pdf"
 _HTML = "text/html"
+_JSON = "application/json"
+_EPMC_SEARCH = ("https://www.ebi.ac.uk/europepmc/webservices/rest/search?"
+                "query=DOI%3A%2210.1007%2Fs00134-025-08058-x%22&format=json&resultType=core")
+_EPMC_PDF = "https://europepmc.org/backend/ptpmcrender.fcgi?accid=PMC123&blobtype=pdf"
+_S2 = f"https://api.semanticscholar.org/graph/v1/paper/DOI:{_DOI}?fields=openAccessPdf"
+_REPO_URL = "https://repository.example.org/x.pdf"
 
 
 def _unpaywall(url_for_pdf):
     return 200, "application/json", json.dumps({"best_oa_location": {"url_for_pdf": url_for_pdf}}).encode()
+
+
+def _unpaywall_locations(*urls):
+    locations = [{"url_for_pdf": u} for u in urls]
+    return 200, _JSON, json.dumps({"best_oa_location": locations[0], "oa_locations": locations}).encode()
+
+
+def _epmc(pmcid, open_access="Y"):
+    result = {"pmcid": pmcid, "isOpenAccess": open_access}
+    return 200, _JSON, json.dumps({"resultList": {"result": [result]}}).encode()
+
+
+def _s2(url):
+    return 200, _JSON, json.dumps({"openAccessPdf": {"url": url} if url else None}).encode()
 
 
 def _landing(pdf_url):
@@ -142,6 +162,48 @@ def test_email_only_in_unpaywall_query_and_not_in_report(env, tmp_path):
     assert list(csv.DictReader(open(report)))[0]["status"] == "downloaded"
 
 
-def test_email_required():
-    with pytest.raises(SystemExit):
-        fetch.main([])
+def test_every_unpaywall_location_is_tried(env):
+    env["routes"].update({_UNPAYWALL: _unpaywall_locations(_OA_URL, _REPO_URL),
+                          _OA_URL: (403, _HTML, b""), _REPO_URL: (200, "application/pdf", _PDF)})
+    result = _run(env)
+    assert (result.status, result.source, result.detail) == (FetchStatus.DOWNLOADED, "unpaywall", _REPO_URL)
+
+
+def test_europe_pmc_open_access_copy(env):
+    env["routes"].update({_EPMC_SEARCH: _epmc("PMC123"), _EPMC_PDF: (200, "application/pdf", _PDF)})
+    result = _run(env)
+    assert (result.status, result.source) == (FetchStatus.DOWNLOADED, "europe_pmc")
+
+
+def test_europe_pmc_skipped_when_not_open_access(env):
+    env["routes"].update({_EPMC_SEARCH: _epmc("PMC123", open_access="N"),
+                          _EPMC_PDF: (200, "application/pdf", _PDF)})
+    assert _run(env).status == FetchStatus.NOT_FOUND
+    assert _EPMC_PDF not in env["requested"]
+
+
+def test_semantic_scholar_copy(env):
+    env["routes"].update({_S2: _s2(_REPO_URL), _REPO_URL: (200, "application/pdf", _PDF)})
+    result = _run(env)
+    assert (result.status, result.source) == (FetchStatus.DOWNLOADED, "semantic_scholar")
+
+
+def test_same_url_from_two_sources_requested_once(env):
+    env["routes"].update({_UNPAYWALL: _unpaywall(_REPO_URL), _S2: _s2(_REPO_URL), _REPO_URL: (403, _HTML, b"")})
+    result = _run(env)
+    assert env["requested"].count(_REPO_URL) == 1
+    assert result.status == FetchStatus.PAYWALLED
+
+
+def test_without_email_unpaywall_is_skipped(env):
+    env["routes"].update({_S2: _s2(_REPO_URL), _REPO_URL: (200, "application/pdf", _PDF)})
+    result = fetch.fetch_all(env["entries"], str(env["pdf_dir"]), None)[0]
+    assert result.status == FetchStatus.DOWNLOADED
+    assert not [u for u in env["requested"] if "unpaywall" in u]
+
+
+def test_email_optional(tmp_path, monkeypatch):
+    monkeypatch.setattr(fetch, "fetch_all", lambda entries, pdf_dir, email: [])
+    manifest = tmp_path / "m.csv"
+    manifest.write_text("doi,society,year,title,topic_id,supersedes_doi,grading_family,pdf_filename\n")
+    assert fetch.main(["--manifest", str(manifest), "--report", str(tmp_path / "r.csv")]) == 0

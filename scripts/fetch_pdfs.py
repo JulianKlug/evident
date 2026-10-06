@@ -3,7 +3,10 @@
     manifest entry ──▶ already on disk? ──yes──▶ PRESENT
                            │ no
                            ▼
-                      Unpaywall best_oa_location.url_for_pdf ──PDF──▶ DOWNLOADED
+                      legal open copies, each URL tried once, in order:   ──PDF──▶ DOWNLOADED
+                        Unpaywall oa_locations (only with --email)
+                        Europe PMC open-access PMC copy
+                        Semantic Scholar openAccessPdf
                            │ none / refused
                            ▼
                       https://doi.org/<doi> → <meta citation_pdf_url> ──PDF──▶ DOWNLOADED
@@ -13,7 +16,7 @@
                       BLOCKED: the landing page refused a script (e.g. Cloudflare 403); a browser may pass
 
 Usage (inside the institutional VPN for paywalled journals):
-    python scripts/fetch_pdfs.py --email YOU@ORG [--manifest corpus/manifest.csv] [--pdf-dir DIR]
+    python scripts/fetch_pdfs.py [--email YOU@ORG] [--manifest corpus/manifest.csv] [--pdf-dir DIR]
 
 Never imports extraction.pdf_loader (its DOI fallback reaches Sci-Hub).
 """
@@ -44,6 +47,10 @@ _DEFAULT_PDF_DIR = "/mnt/data1/klug/datasets/evidence_extraction/pdfs"
 _DEFAULT_REPORT = "fetch_report.csv"
 _UNPAYWALL_URL = "https://api.unpaywall.org/v2/{doi}?email={email}"
 _DOI_RESOLVER = "https://doi.org/{doi}"
+_EUROPE_PMC_SEARCH = "https://www.ebi.ac.uk/europepmc/webservices/rest/search?{query}"
+_EUROPE_PMC_PDF = "https://europepmc.org/backend/ptpmcrender.fcgi?accid={pmcid}&blobtype=pdf"
+_SEMANTIC_SCHOLAR = "https://api.semanticscholar.org/graph/v1/paper/DOI:{doi}?fields=openAccessPdf"
+_OPEN_ACCESS_FLAG = "Y"
 _PDF_MAGIC = b"%PDF"
 _PDF_CONTENT_TYPE = "application/pdf"
 _HTTP_OK = 200
@@ -67,6 +74,8 @@ class FetchStatus(str, Enum):
 class _Source(str, Enum):
     DISK = "disk"
     UNPAYWALL = "unpaywall"
+    EUROPE_PMC = "europe_pmc"
+    SEMANTIC_SCHOLAR = "semantic_scholar"
     LANDING_PAGE = "landing_page"
 
 
@@ -79,7 +88,7 @@ class FetchResult:
     detail: str = ""
 
 
-def fetch_all(entries: list[ManifestEntry], pdf_dir: str, email: str) -> list[FetchResult]:
+def fetch_all(entries: list[ManifestEntry], pdf_dir: str, email: Optional[str]) -> list[FetchResult]:
     os.makedirs(pdf_dir, exist_ok=True)
     return [_fetch_one(e, pdf_dir, email) for e in entries]
 
@@ -94,7 +103,8 @@ def write_report(results: list[FetchResult], path: str) -> None:
 
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Fetch manifest PDFs (Unpaywall, then landing page).")
-    parser.add_argument("--email", required=True, help="contact address Unpaywall requires; never stored")
+    parser.add_argument("--email", help="contact address Unpaywall requires; without it Unpaywall is skipped; "
+                                        "never stored")
     parser.add_argument("--manifest", default=_DEFAULT_MANIFEST)
     parser.add_argument("--pdf-dir", default=_DEFAULT_PDF_DIR)
     parser.add_argument("--report", default=_DEFAULT_REPORT)
@@ -110,7 +120,7 @@ def main(argv: Optional[list[str]] = None) -> int:
 
 # ── per entry ───────────────────────────────────────────────────
 
-def _fetch_one(entry: ManifestEntry, pdf_dir: str, email: str) -> FetchResult:
+def _fetch_one(entry: ManifestEntry, pdf_dir: str, email: Optional[str]) -> FetchResult:
     path = os.path.join(pdf_dir, entry.pdf_filename)
 
     # Idempotent: a valid file on disk is never fetched again
@@ -118,29 +128,33 @@ def _fetch_one(entry: ManifestEntry, pdf_dir: str, email: str) -> FetchResult:
     if existing is not None:
         return FetchResult(entry.doi, FetchStatus.PRESENT, _Source.DISK.value, _sha256(existing))
 
-    # Sources in order; the landing page is only requested when Unpaywall gave nothing usable
+    # Sources in order; each is only asked when the ones before gave nothing usable
     landing_status = []  # HTTP status of the landing page, once requested
 
-    def landing_page_url() -> Optional[str]:
+    def landing_page_urls() -> list[str]:
         url, status = _landing_page_pdf_url(entry.doi)
         landing_status.append(status)
-        return url
+        return [url] if url else []
 
     finders = [
-        (_Source.UNPAYWALL, lambda: _unpaywall_pdf_url(entry.doi, email)),
-        (_Source.LANDING_PAGE, landing_page_url),
+        (_Source.UNPAYWALL, lambda: _unpaywall_pdf_urls(entry.doi, email) if email else []),
+        (_Source.EUROPE_PMC, lambda: _europe_pmc_pdf_urls(entry.doi)),
+        (_Source.SEMANTIC_SCHOLAR, lambda: _semantic_scholar_pdf_urls(entry.doi)),
+        (_Source.LANDING_PAGE, landing_page_urls),
     ]
     refusals = []
-    for source, find_url in finders:
-        url = find_url()
-        if not url:
-            continue
+    tried: set[str] = set()  # one request per URL, even when several sources list it
+    for source, find_urls in finders:
+        for url in find_urls():
+            if url in tried:
+                continue
+            tried.add(url)
 
-        status, content_type, body = _get(url)
-        if status == _HTTP_OK and body.startswith(_PDF_MAGIC):
-            _write_atomic(path, body)
-            return FetchResult(entry.doi, FetchStatus.DOWNLOADED, source.value, _sha256(body), url)
-        refusals.append((source, url, status, content_type))
+            status, content_type, body = _get(url)
+            if status == _HTTP_OK and body.startswith(_PDF_MAGIC):
+                _write_atomic(path, body)
+                return FetchResult(entry.doi, FetchStatus.DOWNLOADED, source.value, _sha256(body), url)
+            refusals.append((source, url, status, content_type))
 
     return _failure(entry.doi, refusals, landing_status[0] if landing_status else None)
 
@@ -155,8 +169,8 @@ def _failure(doi: str, refusals: list[tuple], landing_status: Optional[int]) -> 
                                detail=f"landing page HTTP {landing_status} {landing}")
         if landing_status == _HTTP_OK:
             return FetchResult(doi, FetchStatus.NOT_FOUND, _Source.LANDING_PAGE.value,
-                               detail=f"no Unpaywall PDF; landing page has no citation_pdf_url {landing}")
-        return FetchResult(doi, FetchStatus.NOT_FOUND, detail="no PDF URL from Unpaywall or landing page")
+                               detail=f"no open-access PDF; landing page has no citation_pdf_url {landing}")
+        return FetchResult(doi, FetchStatus.NOT_FOUND, detail="no PDF URL from any source")
 
     source, url, status, content_type = refusals[-1]
     detail = f"HTTP {status} {content_type} {url}"
@@ -167,17 +181,48 @@ def _failure(doi: str, refusals: list[tuple], landing_status: Optional[int]) -> 
     return FetchResult(doi, FetchStatus.NOT_FOUND, source.value, detail=detail)
 
 
-def _unpaywall_pdf_url(doi: str, email: str) -> Optional[str]:
+def _unpaywall_pdf_urls(doi: str, email: str) -> list[str]:
+    """url_for_pdf of every open-access location, best first."""
     # The only request that carries the email
     url = _UNPAYWALL_URL.format(doi=urllib.parse.quote(doi, safe="/"), email=urllib.parse.quote(email))
+    record = _get_json(url)
+    best = record.get("best_oa_location") or {}
+    locations = [best] + (record.get("oa_locations") or [])
+    return _unique([loc.get("url_for_pdf") for loc in locations if loc])
+
+
+def _europe_pmc_pdf_urls(doi: str) -> list[str]:
+    """The PMC copy rendered by Europe PMC, only for open-access records (author manuscripts are refused)."""
+    query = urllib.parse.urlencode({"query": f'DOI:"{doi}"', "format": "json", "resultType": "core"})
+    results = (_get_json(_EUROPE_PMC_SEARCH.format(query=query)).get("resultList") or {}).get("result") or []
+    return _unique([_EUROPE_PMC_PDF.format(pmcid=r["pmcid"]) for r in results
+                    if r.get("pmcid") and r.get("isOpenAccess") == _OPEN_ACCESS_FLAG])
+
+
+def _semantic_scholar_pdf_urls(doi: str) -> list[str]:
+    record = _get_json(_SEMANTIC_SCHOLAR.format(doi=urllib.parse.quote(doi, safe="/")))
+    return _unique([(record.get("openAccessPdf") or {}).get("url")])
+
+
+def _get_json(url: str) -> dict:
+    """Parsed JSON body; {} on any HTTP or parse failure (a source with nothing to offer)."""
     status, _, body = _get(url)
     if status != _HTTP_OK:
-        return None
+        return {}
     try:
-        location = json.loads(body.decode("utf-8")).get("best_oa_location") or {}
+        parsed = json.loads(body.decode("utf-8"))
     except ValueError:
-        return None
-    return location.get("url_for_pdf")
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def _unique(urls: list[Optional[str]]) -> list[str]:
+    """Drop empties and repeats, keep order."""
+    seen: list[str] = []
+    for u in urls:
+        if u and u not in seen:
+            seen.append(u)
+    return seen
 
 
 def _landing_page_pdf_url(doi: str) -> tuple[Optional[str], int]:
