@@ -10,3 +10,4 @@ unsloth_compiled_cache/
 !tests/fixtures/**/*.csv
 !corpus/manifest.csv
 !corpus/candidates.csv
+.venv/

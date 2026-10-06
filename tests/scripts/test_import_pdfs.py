@@ -88,3 +88,31 @@ def test_main_missing_prints_links(env, capsys):
     assert imp.main(["--manifest", env["manifest"], "--pdf-dir", str(env["pdf_dir"]), "missing"]) == 0
     out = capsys.readouterr().out
     assert "https://doi.org/10.7326/m16-2367" in out and "2 of 2 missing" in out
+
+
+def test_open_launches_one_chrome_call_with_every_link(env, monkeypatch, capsys):
+    calls = []
+    monkeypatch.setattr(imp.sys, "platform", "darwin")
+    monkeypatch.setattr(imp.subprocess, "run", lambda args, check: calls.append(args))
+
+    assert imp.main(["--manifest", env["manifest"], "--pdf-dir", str(env["pdf_dir"]), "missing", "--open"]) == 0
+
+    assert calls == [["open", "-a", "Google Chrome", "https://doi.org/10.1097/ccm.0000000000005337",
+                      "https://doi.org/10.7326/m16-2367"]]
+    assert "opened 2 tabs" in capsys.readouterr().out
+
+
+def test_open_refused_off_macos(env, monkeypatch, capsys):
+    monkeypatch.setattr(imp.sys, "platform", "linux")
+    monkeypatch.setattr(imp.subprocess, "run", lambda *a, **k: pytest.fail("must not run"))
+    assert imp.main(["--manifest", env["manifest"], "--pdf-dir", str(env["pdf_dir"]), "missing", "--open"]) == 1
+    assert "macOS" in capsys.readouterr().err
+
+
+def test_open_without_gaps_launches_nothing(env, monkeypatch):
+    monkeypatch.setattr(imp.sys, "platform", "darwin")
+    monkeypatch.setattr(imp.subprocess, "run", lambda *a, **k: pytest.fail("must not run"))
+    env["pdf_dir"].mkdir()
+    for name in ("10_1097_CCM_0000000000005337.pdf", "10_7326_M16-2367.pdf"):
+        (env["pdf_dir"] / name).write_bytes(b"%PDF x")
+    assert imp.main(["--manifest", env["manifest"], "--pdf-dir", str(env["pdf_dir"]), "missing", "--open"]) == 0
