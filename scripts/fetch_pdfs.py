@@ -10,6 +10,7 @@
                            │ none / refused
                            ▼
                       PAYWALLED | INVALID_PDF | NOT_FOUND
+                      BLOCKED: the landing page refused a script (e.g. Cloudflare 403); a browser may pass
 
 Usage (inside the institutional VPN for paywalled journals):
     python scripts/fetch_pdfs.py --email YOU@ORG [--manifest corpus/manifest.csv] [--pdf-dir DIR]
@@ -47,6 +48,7 @@ _PDF_MAGIC = b"%PDF"
 _PDF_CONTENT_TYPE = "application/pdf"
 _HTTP_OK = 200
 _HTTP_REFUSED = {401, 403}
+_HTTP_BLOCKED = {403, 429, 503}  # bot protection on the landing page, e.g. Cloudflare "Just a moment..."
 _REQUEST_DELAY_S = 1.0
 _TIMEOUT_S = 60
 _USER_AGENT = "evident-fetch/1.0 (living evidence map; research use)"
@@ -59,6 +61,7 @@ class FetchStatus(str, Enum):
     PAYWALLED = "paywalled"
     NOT_FOUND = "not_found"
     INVALID_PDF = "invalid_pdf"
+    BLOCKED = "blocked"
 
 
 class _Source(str, Enum):
@@ -116,9 +119,16 @@ def _fetch_one(entry: ManifestEntry, pdf_dir: str, email: str) -> FetchResult:
         return FetchResult(entry.doi, FetchStatus.PRESENT, _Source.DISK.value, _sha256(existing))
 
     # Sources in order; the landing page is only requested when Unpaywall gave nothing usable
+    landing_status = []  # HTTP status of the landing page, once requested
+
+    def landing_page_url() -> Optional[str]:
+        url, status = _landing_page_pdf_url(entry.doi)
+        landing_status.append(status)
+        return url
+
     finders = [
         (_Source.UNPAYWALL, lambda: _unpaywall_pdf_url(entry.doi, email)),
-        (_Source.LANDING_PAGE, lambda: _landing_page_pdf_url(entry.doi)),
+        (_Source.LANDING_PAGE, landing_page_url),
     ]
     refusals = []
     for source, find_url in finders:
@@ -132,12 +142,20 @@ def _fetch_one(entry: ManifestEntry, pdf_dir: str, email: str) -> FetchResult:
             return FetchResult(entry.doi, FetchStatus.DOWNLOADED, source.value, _sha256(body), url)
         refusals.append((source, url, status, content_type))
 
-    return _failure(entry.doi, refusals)
+    return _failure(entry.doi, refusals, landing_status[0] if landing_status else None)
 
 
-def _failure(doi: str, refusals: list[tuple]) -> FetchResult:
-    """PDF URL found but refused → PAYWALLED; claimed a PDF but wasn't → INVALID_PDF; else NOT_FOUND."""
+def _failure(doi: str, refusals: list[tuple], landing_status: Optional[int]) -> FetchResult:
+    """PDF URL found but refused → PAYWALLED; claimed a PDF but wasn't → INVALID_PDF;
+    no PDF URL because the landing page refused → BLOCKED; else NOT_FOUND."""
     if not refusals:
+        landing = _DOI_RESOLVER.format(doi=doi)
+        if landing_status in _HTTP_BLOCKED:
+            return FetchResult(doi, FetchStatus.BLOCKED, _Source.LANDING_PAGE.value,
+                               detail=f"landing page HTTP {landing_status} {landing}")
+        if landing_status == _HTTP_OK:
+            return FetchResult(doi, FetchStatus.NOT_FOUND, _Source.LANDING_PAGE.value,
+                               detail=f"no Unpaywall PDF; landing page has no citation_pdf_url {landing}")
         return FetchResult(doi, FetchStatus.NOT_FOUND, detail="no PDF URL from Unpaywall or landing page")
 
     source, url, status, content_type = refusals[-1]
@@ -162,15 +180,15 @@ def _unpaywall_pdf_url(doi: str, email: str) -> Optional[str]:
     return location.get("url_for_pdf")
 
 
-def _landing_page_pdf_url(doi: str) -> Optional[str]:
-    """<meta name="citation_pdf_url" content="…"> on the publisher page (works inside a VPN)."""
+def _landing_page_pdf_url(doi: str) -> tuple[Optional[str], int]:
+    """(<meta name="citation_pdf_url"> on the publisher page, landing page HTTP status)."""
     landing = _DOI_RESOLVER.format(doi=urllib.parse.quote(doi, safe="/"))
     status, _, body = _get(landing)
     if status != _HTTP_OK:
-        return None
+        return None, status
     finder = _CitationPdfFinder()
     finder.feed(body.decode("utf-8", errors="replace"))
-    return urllib.parse.urljoin(landing, finder.url) if finder.url else None
+    return (urllib.parse.urljoin(landing, finder.url) if finder.url else None), status
 
 
 class _CitationPdfFinder(HTMLParser):

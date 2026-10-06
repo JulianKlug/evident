@@ -102,6 +102,22 @@ def test_not_found(env):
     assert _run(env).status == FetchStatus.NOT_FOUND
 
 
+@pytest.mark.parametrize("status", [403, 429, 503])
+def test_landing_page_refusal_is_blocked(env, status):
+    env["routes"].update({_UNPAYWALL: _unpaywall(None),
+                          _LANDING: (status, _HTML, b"<title>Just a moment...</title>")})
+    result = _run(env)
+    assert (result.status, result.source) == (FetchStatus.BLOCKED, "landing_page")
+    assert f"HTTP {status}" in result.detail
+
+
+def test_landing_page_without_pdf_link_names_it(env):
+    env["routes"].update({_UNPAYWALL: _unpaywall(None), _LANDING: (200, _HTML, b"<html>no meta</html>")})
+    result = _run(env)
+    assert result.status == FetchStatus.NOT_FOUND
+    assert "no citation_pdf_url" in result.detail
+
+
 def test_part_file_never_survives_a_failed_write(env, monkeypatch):
     env["routes"].update({_UNPAYWALL: _unpaywall(_OA_URL), _OA_URL: (200, "application/pdf", _PDF)})
 
