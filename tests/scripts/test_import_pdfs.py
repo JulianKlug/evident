@@ -11,11 +11,11 @@ _A = "10.1097/CCM.0000000000005337"
 _B = "10.7326/M16-2367"
 
 
-def _pdf(path, *dois):
-    """A one-page PDF whose metadata names the given DOIs."""
+def _pdf(path, *dois, text=None):
+    """A one-page PDF whose metadata names the given DOIs (or holds `text` verbatim)."""
     writer = PdfWriter()
     writer.add_blank_page(width=72, height=72)
-    writer.add_metadata({"/Subject": " ".join(f"https://doi.org/{d}." for d in dois)})
+    writer.add_metadata({"/Subject": text if text is not None else " ".join(f"https://doi.org/{d}." for d in dois)})
     with open(path, "wb") as f:
         writer.write(f)
     return path
@@ -77,6 +77,20 @@ def test_unclear_pdfs_are_not_copied(env, dois, status):
     _pdf(env["downloads"] / "x.pdf", *dois)
     assert status in _import(env)
     assert not env["pdf_dir"].exists() or not list(env["pdf_dir"].iterdir())
+
+
+@pytest.mark.parametrize("text", [
+    "doi:10.7326/M16-2367www.annals.org",           # extracted text glues the next word on
+    "(DOI: https://doi.org/10.7326/\nM16-2367) and",  # DOI broken across lines
+])
+def test_doi_found_in_messy_text(env, text):
+    _pdf(env["downloads"] / "x.pdf", text=text)
+    assert _import(env)[ImportStatus.IMPORTED].doi == "10.7326/m16-2367"
+
+
+def test_longer_doi_is_not_a_match(env):
+    _pdf(env["downloads"] / "x.pdf", text="doi:10.7326/M16-23670 other paper")
+    assert ImportStatus.UNMATCHED in _import(env)
 
 
 def test_non_pdf_is_unreadable(env):

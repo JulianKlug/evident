@@ -15,3 +15,11 @@
 - **Cons:** may need moving model loads out of module import time.
 - **Context:** seen during eng review (2026-10-01). Likely heavy imports or model loads at module level. `pytest.ini` defines a `slow` marker.
 - **Depends on:** nothing.
+
+## Scalable PDF acquisition
+- **What:** a way to get guideline PDFs without one manual download per paper.
+- **Why:** M3 needed 46 of 74 PDFs by hand. Annals (acpjournals.org) and LWW (Crit Care Med, PCCM) put a Cloudflare human check in front of every page, even on an institutional network, so `fetch_pdfs.py` and a headless browser both stop. Unpaywall, Europe PMC and Semantic Scholar recovered 1 extra PDF. M6 adds societies (ESC, ACC/AHA, ATS, ASH…) and likely hundreds of PDFs.
+- **Options to evaluate:** publisher text-and-data-mining APIs (Wiley, Elsevier, Springer Nature TDM; Wolters Kluwer on request), library or society bulk agreements, asking societies for guideline PDFs directly, a library proxy (EZproxy) session for scripted access where the licence allows it.
+- **Not an option:** Sci-Hub or other infringing sources.
+- **Context:** `scripts/fetch_pdfs.py` (reports `blocked`), `scripts/import_pdfs.py` (`missing --open`, `import`) make the manual path one click per paper meanwhile.
+- **Depends on:** nothing; needed before M6.

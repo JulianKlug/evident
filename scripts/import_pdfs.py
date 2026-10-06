@@ -90,11 +90,19 @@ def import_dir(source_dir: str, entries: list[ManifestEntry], pdf_dir: str) -> l
 
 
 def dois_in(path: str) -> set[str]:
-    """Normalized DOIs from the PDF metadata and the text of its first pages."""
-    reader = PdfReader(path)
-    texts = [str(v) for v in (reader.metadata or {}).values()]
-    texts += [page.extract_text() or "" for page in reader.pages[:_PAGES_SCANNED]]
-    return {normalize_doi(m.rstrip(_TRAILING_PUNCTUATION)) for t in texts for m in _DOI_PATTERN.findall(t)}
+    """Normalized DOI-like strings in the PDF metadata and first pages (for reports; may be messy)."""
+    return {normalize_doi(m.rstrip(_TRAILING_PUNCTUATION)) for m in _DOI_PATTERN.findall(_pdf_text(path))}
+
+
+def manifest_dois_in(path: str, dois: set[str]) -> set[str]:
+    """Manifest DOIs present in the PDF, robust to messy extracted text.
+
+    Whitespace is removed first, so a DOI broken across lines matches; a DOI counts unless a
+    digit follows it. Examples: "10.7326/\nM16-2367" and "10.7326/M16-2367www.annals.org" match
+    10.7326/m16-2367; "10.7326/M16-23670" does not.
+    """
+    compact = re.sub(r"\s+", "", _pdf_text(path)).lower()
+    return {d for d in dois if re.search(re.escape(d) + r"(?!\d)", compact)}
 
 
 def main(argv: Optional[list[str]] = None) -> int:
@@ -143,14 +151,14 @@ def _import_one(path: str, by_doi: dict[str, ManifestEntry], pdf_dir: str) -> Im
     if not _is_pdf(path):
         return ImportResult(path, ImportStatus.UNREADABLE, detail="not a PDF")
     try:
-        found = dois_in(path)
+        matches = sorted(manifest_dois_in(path, set(by_doi)))
     except (PdfReadError, ValueError, OSError) as e:
         return ImportResult(path, ImportStatus.UNREADABLE, detail=str(e))
 
     # Exactly one manifest DOI, or nothing is copied
-    matches = sorted(d for d in found if d in by_doi)
     if not matches:
-        return ImportResult(path, ImportStatus.UNMATCHED, detail=f"DOIs found: {', '.join(sorted(found)) or 'none'}")
+        found = ", ".join(sorted(dois_in(path))) or "none"
+        return ImportResult(path, ImportStatus.UNMATCHED, detail=f"DOIs found: {found}")
     if len(matches) > 1:
         return ImportResult(path, ImportStatus.AMBIGUOUS, detail=", ".join(matches))
 
@@ -160,6 +168,14 @@ def _import_one(path: str, by_doi: dict[str, ManifestEntry], pdf_dir: str) -> Im
         return ImportResult(path, ImportStatus.ALREADY_PRESENT, doi)
     _copy_atomic(path, dest)
     return ImportResult(path, ImportStatus.IMPORTED, doi)
+
+
+def _pdf_text(path: str) -> str:
+    """Metadata values and the text of the first pages, joined by newlines."""
+    reader = PdfReader(path)
+    texts = [str(v) for v in (reader.metadata or {}).values()]
+    texts += [page.extract_text() or "" for page in reader.pages[:_PAGES_SCANNED]]
+    return "\n".join(texts)
 
 
 def _is_pdf(path: str) -> bool:
