@@ -23,6 +23,7 @@ from evident.extraction import (
     check_artifacts,
     version_for,
 )
+from extraction.deduplication import DedupKey
 from extraction.llm_client import LLMResponse, ThinkMode
 from extraction.pdf_loader import PDFPage
 from tests.legacy_golden import FakeEncoder, expected_path, load_fixture
@@ -51,6 +52,22 @@ def _changed(value):
 class TestConfig:
     def test_json_round_trip(self):
         assert ExtractorConfig.from_json(_CFG.to_json()) == _CFG
+
+    def test_default_dedup_key_left_out_of_canonical_json(self):
+        # v1 was hashed before dedup_key existed: its canonical JSON (and version id) must not change
+        assert "dedup_key" not in json.loads(_CFG.to_json())
+        v2 = dataclasses.replace(_CFG, dedup_key=DedupKey.ALPHANUMERIC)
+        assert json.loads(v2.to_json())["dedup_key"] == "alphanumeric"
+        assert ExtractorConfig.from_json(v2.to_json()) == v2
+
+    def test_repo_v1_config_json_unchanged(self):
+        with open("configs/v0_qwen38-64k_dedup097.json") as f:
+            stored = f.read()
+        assert "dedup_key" not in ExtractorConfig.from_json(stored).to_json()
+
+    def test_alphanumeric_dedup_refused_with_self_consistency(self):
+        with pytest.raises(ValueError, match="dedup_key"):
+            dataclasses.replace(_CFG, mode=ExtractionMode.SELF_CONSISTENCY, dedup_key=DedupKey.ALPHANUMERIC)
 
     def test_canonical_form(self):
         data = json.loads(_CFG.to_json())
@@ -169,6 +186,19 @@ class TestRun:
     def test_single_pass_forwards_seed_and_think(self, acp):
         ex.run(acp["cfg"], acp["pdf"], _DOI, Models(similarity=None))
         assert acp["client"].kwargs[0] == {"temperature": 0, "seed": 0, "think": ThinkMode.OFF}
+
+    def test_dedup_key_forwarded(self, acp, monkeypatch):
+        seen = {}
+
+        def fake_extract(source, **kwargs):
+            seen.update(kwargs)
+            return extractor_mod.ExtractionResult(pd.DataFrame(columns=["recommendation"]), 0, 0, 0, 0)
+        monkeypatch.setattr(ex, "extract_guideline", fake_extract)
+
+        ex.run(dataclasses.replace(acp["cfg"], dedup_key=DedupKey.ALPHANUMERIC), acp["pdf"], _DOI,
+               Models(similarity=None))
+
+        assert seen["dedup_key"] == DedupKey.ALPHANUMERIC
 
     def test_zero_shot_skips_examples(self, acp):
         cfg = dataclasses.replace(acp["cfg"], few_shot=FewShotMode.ZERO_SHOT)

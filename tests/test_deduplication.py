@@ -3,7 +3,7 @@
 import pandas as pd
 import pytest
 
-from extraction.deduplication import deduplicate_recommendations
+from extraction.deduplication import DedupKey, deduplicate_recommendations
 
 
 def _make_df(recs, classes=None, loes=None):
@@ -92,3 +92,35 @@ class TestPageProvenance:
 
         assert out["recommendation"].tolist() == ["Use drug X in adults with sepsis now"]
         assert out["page"].tolist() == [3]
+
+
+class TestAlphanumericKey:
+    """DedupKey.ALPHANUMERIC: copies of one recommendation that differ in PDF text noise merge."""
+
+    def test_default_key_keeps_noisy_copies_apart(self):
+        df = _make_df(["Use drug X in adults", "Use drug X in adults (strong recommendation; high-certainty evidence)."])
+        assert len(deduplicate_recommendations(df)) == 2
+
+    def test_trailing_grade_is_stripped_and_copies_merge(self):
+        df = _make_df(["Use drug X in adults", "Use drug X in adults (strong recommendation; high-certainty evidence)."])
+        result = deduplicate_recommendations(df, key=DedupKey.ALPHANUMERIC)
+        assert result["recommendation"].tolist() == ["Use drug X in adults"]
+
+    def test_hyphenation_dashes_and_ligatures_ignored(self):
+        df = _make_df(["Add a sodium–glucose cotransporter-2 inhibitor to lifestyle modification",
+                       "Add a sodium –glucose cotrans- porter-2 inhibitor to life- style modiﬁcation"])
+        assert len(deduplicate_recommendations(df, key=DedupKey.ALPHANUMERIC)) == 1
+
+    def test_parenthetical_without_grade_words_kept(self):
+        df = _make_df(["Switch therapy (see Clinical Considerations)", "Switch therapy"])
+        result = deduplicate_recommendations(df, key=DedupKey.ALPHANUMERIC)
+        assert sorted(result["recommendation"]) == ["Switch therapy", "Switch therapy (see Clinical Considerations)"]
+
+    def test_different_recommendations_stay_apart(self):
+        df = _make_df(["Use drug X in males", "Use drug X in females"])
+        assert len(deduplicate_recommendations(df, key=DedupKey.ALPHANUMERIC)) == 2
+
+    def test_earliest_page_kept(self):
+        df = _make_df(["Use drug X", "Use drug X (conditional recommendation, low certainty of evidence)"])
+        df["page"] = [4, 1]
+        assert deduplicate_recommendations(df, key=DedupKey.ALPHANUMERIC)["page"].tolist() == [1]

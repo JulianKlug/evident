@@ -21,6 +21,7 @@ from typing import Optional
 from evaluation.grading import GRADE
 from evident.domain import Category, ExtractorVersion, LlmCall, RawRecommendation, ThinkingMode
 from extraction.datasets import get_few_shot_examples, load_acp_datasets, load_icu_datasets
+from extraction.deduplication import DedupKey
 from extraction.extractor import CallRecord, extract_guideline
 from extraction.llm_client import OllamaClient, ThinkMode
 from extraction.prompts import PromptStrategy, PromptVersion
@@ -58,7 +59,10 @@ _ENUM_FIELDS = {
     "few_shot": FewShotMode,
     "sc_consensus": ConsensusMode,
     "ml_filter": MlFilterMode,
+    "dedup_key": DedupKey,
 }
+_ADDED_FIELD_DEFAULTS = {"dedup_key": DedupKey.WHITESPACE}  # field → default omitted from the canonical JSON
+_NO_DEFAULT = object()
 _THINK_MODES = {ThinkingMode.OFF: ThinkMode.OFF, ThinkingMode.ON: ThinkMode.ON}
 
 
@@ -105,15 +109,20 @@ class ExtractorConfig:
     ml_filter_threshold: float = 0.3
     classifier_path: str = "artifacts/classifier/rec_classifier.joblib"
     embedding_model: str = _BIOLORD
+    dedup_key: DedupKey = DedupKey.WHITESPACE  # v2: ALPHANUMERIC (single pass only)
 
     def __post_init__(self):
         # Fail on an unknown prompt or embedding now, not mid-snapshot
         PromptVersion(self.prompt_version)
         if self.embedding_model != _BIOLORD:
             raise ValueError(f"Only {_BIOLORD} is supported, not {self.embedding_model}")
+        if self.mode == ExtractionMode.SELF_CONSISTENCY and self.dedup_key != DedupKey.WHITESPACE:
+            raise ValueError("dedup_key applies to single-pass extraction only")
 
     def to_json(self) -> str:
-        return _canonical(asdict(self))
+        # Fields added after a version was hashed are left out at their default, so its id still matches
+        data = {k: v for k, v in asdict(self).items() if _ADDED_FIELD_DEFAULTS.get(k, _NO_DEFAULT) != v}
+        return _canonical(data)
 
     @classmethod
     def from_json(cls, s: str) -> "ExtractorConfig":
@@ -230,7 +239,8 @@ def run(cfg: ExtractorConfig, pdf_path: str, target_doi: str, models: Models) ->
         )
     else:
         result = extract_guideline(
-            pdf_path, dedup_threshold=cfg.dedup_threshold, dedup_model=models.similarity, **common,
+            pdf_path, dedup_threshold=cfg.dedup_threshold, dedup_model=models.similarity, dedup_key=cfg.dedup_key,
+            **common,
         )
 
     return ExtractionOutput(

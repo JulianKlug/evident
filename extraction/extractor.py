@@ -13,7 +13,7 @@ from extraction.pdf_loader import load_pdf_pages, PDFPage
 from extraction.prompts import PromptStrategy, build_prompt
 from extraction.llm_client import OllamaClient, LLMResponse, ThinkMode
 from extraction.response_parser import parse_llm_response, parse_json_response
-from extraction.deduplication import deduplicate_recommendations
+from extraction.deduplication import DedupKey, deduplicate_recommendations
 
 if TYPE_CHECKING:
     from similarity_evaluation.similarity_models import SimilarityModel
@@ -142,6 +142,7 @@ def extract_guideline(
     context_similarity_model: SimilarityModel | None = None,
     seed: int | None = None,
     think: ThinkMode = ThinkMode.DEFAULT,
+    dedup_key: DedupKey = DedupKey.WHITESPACE,
 ) -> ExtractionResult:
     """Extract recommendations from a guideline PDF.
 
@@ -169,6 +170,7 @@ def extract_guideline(
         context_similarity_model: Pre-loaded BioLORD model for context retrieval.
         seed: Sampling seed, forwarded to the client only when set.
         think: Thinking switch, forwarded to the client only when not DEFAULT.
+        dedup_key: How exact dedup matches rows (DedupKey.WHITESPACE = legacy).
 
     Returns:
         ExtractionResult with deduplicated recommendations and metadata.
@@ -229,6 +231,7 @@ def extract_guideline(
         raw_df,
         similarity_threshold=dedup_threshold,
         similarity_model=dedup_model,
+        key=dedup_key,
     )
 
     # Post-extraction verification
