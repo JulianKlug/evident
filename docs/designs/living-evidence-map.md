@@ -41,6 +41,7 @@ from full guideline PDFs with a local LLM (single RTX 3090). Produce:
 | 5 | Extractor frozen per published snapshot; snapshot = full re-extraction | Avoid trends confounded by extractor version |
 | 6 | Approach B: layered package | Maintainability across specialties; honours the layer rule |
 | 7 | ExtractorVersion v1 = snapshot 5 (2026-10-04): single pass, `qwen38-64k:latest` (qwen3.8 27B, digest `12af24e3ee72`), thinking off, prompt v0, 3 seeded few-shot, BioLORD dedup 0.97, no ML filter (`configs/v0_qwen38-64k_dedup097.json`, version `113889035d33`) | Best of 6 snapshots on the 12 labelled guidelines (48 GT rows): graded F1 0.929 [0.867, 0.978], P 0.868, R 1.000, combined grade accuracy 0.935; v0 legacy 0.520. 33 s/guideline (~1 h per 100). Chosen on the same 12 guidelines it is scored on. Evidence: `docs/progress.md` |
+| 8 | ExtractorVersion v2 = snapshot 8 (2026-10-06): v1 + alphanumeric exact-dedup key (trailing grade stripped), `configs/v2_qwen38-64k_alnum.json`, version `39ac17093b65` | Re-downloaded publisher PDFs left abstract/body duplicates that dedup 0.97 kept (broken letter spacing, ligatures, trailing grade). Same LLM outputs as v1; F1 0.902 → 0.939 on the corpus snapshot (+0.037 [0.000, 0.083]), grade accuracy unchanged. Evidence: `docs/progress.md` (M3) |
 
 ## Premises (agreed)
 1. Unit = one recommendation. Headline = % high/moderate certainty and % strong,

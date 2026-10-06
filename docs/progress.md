@@ -830,3 +830,43 @@ All candidates on the corrected GT (48 rows):
 | — | FT v3 (T9) | — | | | | deferred: qwen3:14b fine-tune, 0.808 in-sample |
 
 Caveat for the paper: every choice (model, thinking, dedup threshold) was made on the same 12 guidelines it is scored on. Spot-check v1 on unlabelled corpus output in M3.
+
+## M3: corpus, snapshots 7 and 8, v2 published (2026-10-06)
+
+### Corpus
+PubMed search 2026-10-04 (`scripts/search_guidelines.py`, queries in its `QUERIES`): 426 hits (78 ESICM, 145 SCCM, 203 ACP) in `corpus/candidates.csv`, each with a decision. Included: **73 guidelines** (17 ESICM, 36 SCCM, 20 ACP), 65 current editions, 8 superseded. Excluded by reason: not_guideline 209, derivative 82, not_graded 39, duplicate_publication 11, other_society 10, out_of_range 2. Decisions drafted from titles, PubMed types and the PDFs; reviewed for GRADE wording (all included PDFs grade); the 2024 positioning/mobilisation guideline was moved out (German AWMF, not ESICM).
+
+### PDFs
+74 needed, 74 on disk. 46 (17 ACP, 29 SCCM) had to be downloaded by hand: Annals and LWW serve a Cloudflare human check even on an institutional network. Unpaywall, Europe PMC and Semantic Scholar added 1 (PADIS 2018). Tooling: `fetch_pdfs.py` reports `blocked`; `import_pdfs.py missing --open` / `import`. Scalable acquisition is a TODO before M6.
+
+### Snapshot 7: v1 on the corpus (rejected)
+73/73 succeeded, 0 failed or empty, ~95 min (median ~45 s; SSC guidelines ~6 min). Validate vs snapshot 5: PASS, but **F1 0.902** (P 0.821, R 1.000) vs 0.929, combined accuracy unchanged 0.935.
+
+Cause: the upload replaced 10 of the 12 labelled PDFs (new Annals downloads; the HAL author manuscript for ESICM 07840-1). Exactly those 10 had different prompts; the 2 unchanged PDFs reproduced snapshot 5 call for call. In the new Annals PDFs the abstract and body copies of a recommendation differ in broken letter spacing ("modific a t i o n si na d u l t sw i ht y p e2"), ligatures and a trailing "(strong recommendation; high-certainty evidence)", so dedup at 0.97 keeps both. Fixes: runs now store the PDF hash (migration 4; backfilled), `status`/`publish` flag changed PDFs.
+
+### Snapshot 8: v2 (published)
+v2 = v1 + `dedup_key: alphanumeric` (`configs/v2_qwen38-64k_alnum.json`, version `39ac17093b65`): strip the trailing grade from the text, exact-match on letters and digits. All 1,754 LLM outputs identical to snapshot 7; only dedup differs.
+
+| Metric | Snap 7 (v1) | Snap 8 (v2) | Diff [95% paired CI] |
+|--------|-------------|-------------|----------------------|
+| Graded F1 | 0.902 | **0.939** [0.867, 0.989] | +0.037 [0.000, 0.083] |
+| Precision / Recall | 0.821 / 1.000 | 0.885 / 1.000 | |
+| Combined grade accuracy | 0.935 | 0.935 | 0.000 |
+
+On snapshot 5's stored outputs (old PDFs) the same change gives 0.929 → 0.958. v2 removes 34 of 1,546 corpus rows; all 34 checked by hand are duplicates. Gate vs snapshot 5: PASS. Snapshot 7 rejected, snapshot 8 published. Choice again made on the 12 labelled guidelines.
+
+### Harmonization
+Snapshot 8 left 3.1% (SCCM) and 4.7% (ACP) of graded recs with unmapped strength (> 2% trigger): "strong/for" labels, "Ungraded"/"good practice"/"Insufficient Evidence" counted as graded, "very low to low". Fixed on read; now SCCM 1.5%, ACP 0%. The rest are mostly the model copying the prompt template ("strong/conditional [for/against]", 23 rows), correctly unmapped. Validation unchanged.
+
+### Headline (snapshot 8, current editions)
+| Society | Guidelines | Recs | Ungraded % | Strong % | Against % | High/moderate % |
+|---------|-----------|------|------------|----------|-----------|-----------------|
+| ACP | 18 | 64 | 0.0 | 31.2 | 12.5 | 46.9 |
+| ESICM | 16 | 246 | 10.2 | 18.2 | 15.5 | 29.0 |
+| SCCM | 31 | 796 | 2.6 | 19.8 | 19.7 | 21.3 |
+| ALL | 65 | 1106 | 4.2 | 20.2 | 18.3 | 24.5 |
+
+SCCM accuracy is unvalidated (no labelled SCCM guideline). `publish` regenerates all 16 outputs byte-identically from the DB; the dashboard serves from `out/dashboard`.
+
+### Triage
+`status` outliers are mostly small guidelines (rapid practice guidelines, 1–5 recs) and rationale restatements. Probable real miss: ERC-ESICM temperature control 2022 (1 extracted, ~3 in the PDF). Spot check next.
