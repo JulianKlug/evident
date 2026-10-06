@@ -261,7 +261,7 @@ doi,society,year,title,journal,pmid,source,decision,reason,duplicate_of
 10.1007/s00134-024-07410-x,ESICM,2024,"Definitions, guidelines and opinions: the white, the black and the grey.",Intensive Care Med,38709290,pubmed,exclude,not_guideline,
 10.1007/s00134-024-07431-6,ESICM,2024,Mind the gap: understanding the discordance between the ATS and ESICM ARDS guidelines-the ATS perspective.,Intensive Care Med,38709292,pubmed,exclude,not_guideline,
 10.1007/s00134-024-07435-2,ESICM,2024,Acute respiratory distress syndrome guidelines: oceans apart or rivers that merge?,Intensive Care Med,38709291,pubmed,exclude,not_guideline,
-10.1007/s00134-024-07532-2,ESICM,2024,Guideline on positioning and early mobilisation in the critically ill by an expert panel.,Intensive Care Med,39073582,pubmed,include,,
+10.1007/s00134-024-07532-2,ESICM,2024,Guideline on positioning and early mobilisation in the critically ill by an expert panel.,Intensive Care Med,39073582,pubmed,exclude,other_society,
 10.1007/s00134-024-07579-1,ESICM,2024,European Society of Intensive Care Medicine guidelines on end of life and palliative care in the intensive care unit.,Intensive Care Med,39361081,pubmed,include,,
 10.1007/s00134-024-07601-6,ESICM,2024,Potential reevaluation needed for the meta-analysis of high-pressure recruitment maneuvers in the 2023 ESICM guidelines on acute respiratory distress syndrome.,Intensive Care Med,39162824,pubmed,exclude,not_guideline,
 10.1007/s00134-024-07702-2,ESICM,2024,Comment on: European Society of Intensive Care Medicine guidelines on end of life and palliative care in the intensive care unit.,Intensive Care Med,39503872,pubmed,exclude,not_guideline,
