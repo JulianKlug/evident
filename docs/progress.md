@@ -870,3 +870,38 @@ SCCM accuracy is unvalidated (no labelled SCCM guideline). `publish` regenerates
 
 ### Triage
 `status` outliers are mostly small guidelines (rapid practice guidelines, 1–5 recs) and rationale restatements. Probable real miss: ERC-ESICM temperature control 2022 (1 extracted, ~3 in the PDF). Spot check next.
+
+## M3 spot check: v2 on unlabelled guidelines (2026-10-07)
+
+Spec §7. Sample (seed 0, 3 current unlabelled guidelines per society) plus SSC 2026 by hand (current edition; replaces SSC 2021 in the spec). Snapshot 8 output against each guideline's own recommendation list (summary table or numbered/boxed statements), graded only; one reviewer pass per guideline, every error class re-checked against the PDF. Counts only, no GT written (Decision 3); per-guideline JSON in `out/spotcheck_m3/` (not committed).
+
+| Guideline | TP | FP | FN | Strength ok | Certainty ok |
+|-----------|----|----|----|-------------|--------------|
+| ACP hypertension ≥60 2017 | 3 | 1 | 0 | 3/3 | 3/3 |
+| ACP type 2 diabetes 2017 | 2 | 0 | 0 | 2/2 | 2/2 |
+| ACP testosterone 2020 | 3 | 0 | 0 | 3/3 | 3/3 |
+| ESICM early enteral nutrition 2017 | 24 | 16 | 0 | 24/24 | 24/24 |
+| ERC-ESICM post-resuscitation 2025 | 30 | 2 | 1 | 28/30 | 29/30 |
+| ESICM shock and monitoring 2025 | 10 | 5 | 0 | 10/10 | 10/10 |
+| SCCM glycemic control 2024 | 6 | 1 | 0 | 6/6 | 6/6 |
+| SCCM family-centered care 2024 | 15 | 9 | 0 | 13/15 | 15/15 |
+| SCCM/ASPEN pediatric nutrition 2017 | 21 | 10 | 4 | 20/21 | 21/21 |
+| SSC adult 2026 | 98 | 8 | 0 | 97/98 | 95/98 |
+
+| Society | P | R | F1 | Strength | Certainty |
+|---------|---|---|----|----------|-----------|
+| ACP | 0.889 | 1.000 | 0.941 | 8/8 | 8/8 |
+| ESICM | 0.736 | 0.985 | 0.842 | 62/64 | 63/64 |
+| SCCM | 0.833 | 0.972 | 0.897 | 136/140 | 137/140 |
+| **All** | **0.803** | **0.977** | **0.881** | 206/212 (0.972) | 208/212 (0.981) |
+
+Out of sample, recall and grade accuracy hold (labelled set: R 1.000, combined 0.935); precision drops (0.885 → 0.803). SCCM, unvalidated until now, sits between ACP and ESICM.
+
+Error causes (52 FP, 5 FN):
+- **Restatements, 38 FP.** A recommendation copied from the summary table and again from the body or rationale, worded differently enough to escape dedup 0.97 (e.g. body drops "critically ill adult patients"). Body copies often carry a guessed certainty (enteral nutrition: "low" for the table's "very low").
+- **Ungraded statements extracted as graded, 10 FP.** Good/best-practice and insufficient-evidence statements given a strength (SSC 5, family care 2, ERC 2, ACP 1). Ungraded recall is low overall: 16 of 160 ungraded statements extracted as ungraded, all in the shock guideline.
+- **Superseded recommendations from a comparison table, 4 FP.** ESICM shock 2025 Table 1 sets the 2014 consensus beside 2025; the columns interleave in the PDF text and the model extracted 2014 statements with an invented "Strong/High".
+- **Misses, 5 FN.** 3 where one extracted row covers several statements of one numbered recommendation (pediatric nutrition), 2 body bullets not extracted (ERC hyperoxaemia, pediatric Harris-Benedict).
+- **Grade errors.** Family care: 2 "we make no suggestion for or against" statements labelled "Conditional Against" by the model and kept as against. SSC: 3 recommendations print a certainty per comparator; the model took the first.
+
+Reviewer counting choices move the numbers a little (pediatric nutrition by numbered recommendation: TP 17, FP 14, FN 0; ERC insufficient-evidence items as no recommendation: TP 28, FP 4). Single reviewer, no second annotator: report as a spot check, not a validation.
