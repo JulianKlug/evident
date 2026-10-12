@@ -1,6 +1,6 @@
 # Spec: M3 MVP Snapshot
 
-Status: DRAFT · 2026-10-04 · Branch: `agent_explor`
+Status: DONE · 2026-10-12 · Branch: `agent_explor`
 Parent docs: `docs/designs/living-evidence-map.md` (decisions), `docs/roadmap.md` (M3), `docs/specs/m1-pipeline.md` (pipeline, CLI, T11, T8a)
 Tasks: corpus search + manifest · PDF acquisition (T11 run) · v1 corpus snapshot · v1 spot check · T8 analytics + publishing + dashboard
 
@@ -319,3 +319,26 @@ Lanes A and B are independent; A is mostly human time (curation, VPN). One commi
 - **`status` low-recall rule** misfires on small guidelines (M1 run). Triage costs time on ~100 guidelines; tune `_LOW_RECALL_FACTOR` only if the noise is unworkable.
 - **Year binning:** per-year trends have few guidelines per society; small denominators are shown with n, not hidden. Binning is an M4 choice.
 - **Test collection is slow** (TODOS.md); new tests add to it.
+
+## 16. Implementation notes (2026-10-12)
+All in; results in `docs/progress.md` (M3 sections). Differences from the text above:
+- **Corpus:** 73 guidelines (17 ESICM, 36 SCCM, 20 ACP) from 426 PubMed hits. New exclusion reason `other_society` (bodies outside the MVP that publish in ICM/CCM/PCCM; picked up in M6 step 6g). The search script merges into `candidates.csv` directly; `--email` is optional (NCBI does not require it).
+- **PDFs:** Annals and LWW put a Cloudflare human check in front of every page, so 46 PDFs were downloaded by hand. `fetch_pdfs.py` gained Europe PMC, Semantic Scholar and every Unpaywall location, reports `blocked`, and no longer needs an email; new `import_pdfs.py` (`missing [--open]`, `import`). Scalable acquisition: TODOS.md, before M6.
+- **No longer the same version as snapshot 5 (Decision 4 reversed).** Replaced Annals PDFs dropped v1 to F1 0.902 (snapshot 7, rejected). v2 = v1 + alphanumeric exact-dedup key (design Decision 8), snapshot 8, F1 0.939, published. The labelled 12 still served as the reproducibility check: unchanged PDFs reproduced snapshot 5 call for call.
+- **PDF bytes are provenance:** runs store `pdf_sha256` (migration 4); `status`/`publish` flag PDFs changed since their run.
+- **Harmonization on read (§6.3)** fixed slash labels, ungraded labels and "to" composites; unmapped strength now < 2% per society.
+- **Spot check:** on snapshot 8 (v2), SSC 2026 instead of SSC 2021 (current edition). F1 0.881, P 0.803, R 0.977. Per-guideline JSON in `out/spotcheck_m3/`.
+- **Environment:** uv (`pyproject.toml`, `uv.lock`, Python 3.9); base install = corpus tools, `pipeline` extra = GPU side.
+- **Dashboard:** verified with a local server (HTTP 200, no console errors); persistent serving and local-only vs LAN left to the user. `/plan-design-review` deferred to M4 (paper figures first); known issue: the common caption repeats under every figure.
+
+### 16.1 Exit criteria
+| # | Criterion | Result |
+|---|-----------|--------|
+| 1 | Tests pass, legacy golden unchanged | 556 passed |
+| 2 | Candidates ↔ manifest | `test_repo_candidates_match_manifest` |
+| 3 | All PDFs present | 74/74 at snapshot time (`import_pdfs.py missing`: 0) |
+| 4 | Published, no coverage gap | snapshot 8: 73/73 active runs, 0 exclusions |
+| 5 | Labelled 12 reproduce snapshot 5 | difference explained (replaced PDFs); unchanged PDFs identical |
+| 6 | Byte-identical regeneration | 16/16 files |
+| 7 | Dashboard reachable | local server check; persistent serving by the user |
+| 8 | Results recorded | `docs/progress.md` |

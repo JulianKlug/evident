@@ -94,6 +94,8 @@ Spec: `docs/specs/m1-pipeline.md`.
 - Every figure is regenerated from the DB by `publish`.
 - Dashboard reachable.
 
+**Status:** DONE 2026-10-12. Snapshot 8 published: 73 guidelines (17 ESICM, 36 SCCM, 20 ACP), ExtractorVersion v2 (design Decision 8), labelled F1 0.939; spot check on 10 unlabelled guidelines F1 0.881 (P 0.803, R 0.977). Design review deferred to M4. Evidence: `docs/progress.md`, `docs/specs/m3-mvp-snapshot.md` §16.
+
 ## M4 — Paper 1 (ICU + ACP)
 - Fanaroff-style tables:
   - % by certainty;
