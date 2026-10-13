@@ -143,8 +143,10 @@ Order by label availability and scheme difficulty:
 | 6f | Remaining non-surgical | per society | per society |
 | 6g | Other critical care bodies (CCCS-SSAI, ESPNIC, BTF, British and Canadian societies) | GRADE (check per body) | none: unvalidated |
 
-6g: start from the 9 `other_society` rows in `corpus/candidates.csv`, then search each body's
+6g: start from the 10 `other_society` rows in `corpus/candidates.csv`, then search each body's
 own output (M3 excluded them because only those printed in ICM/CCM/PCCM were found).
+Includes guidelines from independent expert panels without a society (e.g. positioning and
+early mobilisation 2024, `10.1007/s00134-024-07532-2`), once the corpus covers all guidelines.
 
 Per specialty:
 1. Add a scheme mapping in harmonization, with a table test.
