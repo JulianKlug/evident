@@ -929,3 +929,7 @@ Rule: a statement where the panel gives no direction is no recommendation (not g
 ## Edition links (2026-10-13)
 
 All 8 `supersedes_doi` links checked. ERC-ESICM temperature control 2022 folded into the post-resuscitation topic (the 2025 guideline covers temperature control), so it moves to trends only; current map 64 guidelines. Its Table 2 holds 2 recommendations with no text layer (vector text); v2 extracted 1, from the abstract. Focused updates (PADIS, ultrasound, corticosteroids, NMB) stay current beside the guideline they partly revise: revised questions count twice, ≤ ~25 of 1057 graded recs; Methods states it, recommendation-level supersession in TODOS.md.
+
+## SCCM held-out labels (2026-10-13)
+
+SCCM is 31 of 64 current guidelines and 73% of graded recs, with no labels. Decision: hand-label 3 new SCCM guidelines, out of sample. Random sample (seed 1) of the 27 current SCCM guidelines not in the spot check: safe medication use 2017 (`10.1097/ccm.0000000000002533`), heat stroke 2025 (`10.1097/ccm.0000000000006551`), pediatric end-of-life 2026 (`10.1097/pcc.0000000000003914`); 32 extracted recs. Blind templates (ICU xlsx format + page, rules sheet) in `<data root>/intensive_care_medicine_heldout/`, kept out of the ICU dir so the 12-guideline gate stays comparable. Ungraded statements are labelled too (for v3). `validate` will report this set separately, not gated.

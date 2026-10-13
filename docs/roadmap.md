@@ -111,6 +111,7 @@ Spec: `docs/specs/m1-pipeline.md`.
   - denominator rule;
   - extractor version and hash;
   - validation on 12 labelled guidelines with cluster-bootstrap CIs;
+  - held-out SCCM validation (3 hand-labelled guidelines, reported separately from the gate);
   - SCCM limitation;
   - reproducibility: exact recompute from stored runs.
 - Supplement: manifest, exclusions with reasons, raw-to-harmonized mapping, code SHA.
