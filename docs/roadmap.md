@@ -101,7 +101,7 @@ Spec: `docs/specs/m1-pipeline.md`.
   - % by certainty;
   - % strong;
   - against-recommendations;
-  - ungraded share;
+  - graded recommendations only (design Decision 9; ungraded share waits for v3);
   - trends by year;
   - ESICM vs SCCM vs ACP.
 - Methods:

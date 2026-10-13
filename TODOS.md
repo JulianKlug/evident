@@ -23,3 +23,11 @@
 - **Not an option:** Sci-Hub or other infringing sources.
 - **Context:** `scripts/fetch_pdfs.py` (reports `blocked`), `scripts/import_pdfs.py` (`missing --open`, `import`) make the manual path one click per paper meanwhile.
 - **Depends on:** nothing; needed before M6.
+
+## v3: ungraded statements pass
+- **What:** a second extraction pass for best-practice and no-recommendation statements (own prompt, ungraded few-shot), merged into v2's graded pass: graded rows always kept, ungraded rows dropped if they duplicate a graded row or carry a grade.
+- **Why:** v2 extracts 16 of 160 ungraded statements (spot check); the published ungraded share is 5.7% vs 42.4% true. Paper 1 is graded-only meanwhile (design Decision 9).
+- **Validation:** held out, not in-sample: tune on 5 spot-check guidelines, score on the other 5, or hand-label new ones. Check that the graded rows stay identical to v2 on the 12 labelled guidelines.
+- **Open:** inclusion rule per society (ERC-ESICM numbers 74 operational "good practice" items; ACP about one per guideline). State it in Methods.
+- **Cons:** ~2× runtime (~1.5 h per corpus snapshot); cross-pass duplicate rate to measure.
+- **Depends on:** nothing; must not block M4.

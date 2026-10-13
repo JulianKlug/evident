@@ -905,3 +905,19 @@ Error causes (52 FP, 5 FN):
 - **Grade errors.** Family care: 2 "we make no suggestion for or against" statements labelled "Conditional Against" by the model and kept as against. SSC: 3 recommendations print a certainty per comparator; the model took the first.
 
 Reviewer counting choices move the numbers a little (pediatric nutrition by numbered recommendation: TP 17, FP 14, FN 0; ERC insufficient-evidence items as no recommendation: TP 28, FP 4). Single reviewer, no second annotator: report as a spot check, not a validation.
+
+## M3 spot check: headline bias (2026-10-13)
+
+Do the spot-check errors move the headline? Same 10 guidelines, same metric definitions as `analytics._aggregate`, pooled per recommendation. Published = all snapshot 8 rows (reproduces `out/tables/guidelines.csv`: 280 rows, 264 graded); correct = rows matched to a reference statement; truth = the reference list (217 graded, 160 ungraded). CI: guideline cluster bootstrap, 2000 resamples.
+
+| Metric | Published | Correct | Truth | Published − truth | 95% CI |
+|--------|-----------|---------|-------|-------------------|--------|
+| % strong | 19.2 | 17.9 | 18.4 | +0.8 | [−2.5, +6.9] |
+| % against | 16.9 | 19.8 | 17.5 | −0.6 | [−2.5, +2.4] |
+| % high/moderate | 21.4 | 22.6 | 21.5 | −0.1 | [−2.5, +3.5] |
+| Ungraded share | 5.7 | — | 42.4 | −36.7 | [−56, −17] |
+
+- Graded metrics: unbiased within 1 point, also without SSC (max +1.1). The errors cancel: restatements raise % against and % high/moderate by ~2 points, ungraded-given-a-grade and the 2014 table lower them. Per society: SCCM within 1 point; ESICM % strong +2.2 (2014 table); ACP +8.3 on 9 recs.
+- Ungraded share: unusable. The single-pass prompt asks for best-practice statements but the model rarely emits them (16 of 160, one guideline). The validation gate never saw this (ungraded P/R not gated; labelled set has almost no ungraded rows).
+
+Decision (design Decision 9): Paper 1 graded-only; ungraded statements via a separate pass in v3, in parallel (TODOS.md).
