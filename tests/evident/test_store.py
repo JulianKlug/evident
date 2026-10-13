@@ -20,10 +20,14 @@ from evident.domain import (
     SnapshotState,
     ThinkingMode,
 )
+from evident.corpus import file_sha256
 from evident.store import (
+    AccessMode,
     DuplicatePdfError,
     ExtractorVersionConflictError,
     InvalidSnapshotTransitionError,
+    NotFoundError,
+    SchemaMismatchError,
     SchemaTooNewError,
     SnapshotIncompleteError,
     Store,
@@ -130,6 +134,50 @@ class TestMigrations:
 
         with pytest.raises(SchemaTooNewError):
             Store.open(path)
+
+
+class TestReadOnly:
+    def _frozen(self, tmp_path):
+        """A DELETE-journal file, as the frozen Paper 1 copy is made."""
+        path = str(tmp_path / "frozen.sqlite")
+        with Store.open(path) as s:
+            s.upsert_guideline(_guideline())
+        conn = sqlite3.connect(path)
+        conn.execute("PRAGMA journal_mode = DELETE")
+        conn.close()
+        return path
+
+    def test_reads_without_changing_the_file(self, tmp_path):
+        path = self._frozen(tmp_path)
+        before = file_sha256(path)
+
+        with Store.open(path, AccessMode.READ_ONLY) as s:
+            assert s.get_guideline("10.1/a") is not None
+
+        assert file_sha256(path) == before
+        assert sorted(p.name for p in tmp_path.iterdir()) == ["frozen.sqlite"]  # no -wal/-shm left
+
+    def test_write_refused(self, tmp_path):
+        path = self._frozen(tmp_path)
+        with Store.open(path, AccessMode.READ_ONLY) as s:
+            with pytest.raises(sqlite3.OperationalError):
+                s.upsert_guideline(_guideline("10.1/b"))
+
+    def test_missing_file_not_created(self, tmp_path):
+        path = tmp_path / "absent.sqlite"
+        with pytest.raises(NotFoundError):
+            Store.open(str(path), AccessMode.READ_ONLY)
+        assert not path.exists()
+
+    def test_old_schema_not_migrated(self, tmp_path):
+        path = self._frozen(tmp_path)
+        conn = sqlite3.connect(path)
+        conn.execute("UPDATE schema_version SET version = 3")
+        conn.commit()
+        conn.close()
+
+        with pytest.raises(SchemaMismatchError):
+            Store.open(path, AccessMode.READ_ONLY)
 
 
 class TestGuidelines:

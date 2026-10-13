@@ -86,6 +86,7 @@ class Candidate:
     decision: CandidateDecision
     reason: Optional[ExclusionReason]
     duplicate_of: Optional[str]
+    source: str = ""  # search query that found it first, e.g. "pubmed_broad"
     line: int = 0
 
 
@@ -188,7 +189,7 @@ def sync_to_store(entries: list[ManifestEntry], store: Store, pdf_dir: str) -> S
             report.missing_pdf.append(e.doi)
 
         existing = store.get_guideline(e.doi)
-        sha = _sha256(pdf_path) if pdf_present else None
+        sha = file_sha256(pdf_path) if pdf_present else None
         if existing and existing.pdf_sha256 and sha and sha != existing.pdf_sha256:
             report.changed_pdf.append(e.doi)
 
@@ -283,7 +284,8 @@ def _parse_candidate(row: dict, line: int, problems: list[str]) -> Optional[Cand
 
     duplicate_of = normalize_doi(strip_doi_prefix(value("duplicate_of"))) or None
     return Candidate(doi=doi, society=value("society"), year=_parse_year(value("year")), title=value("title"),
-                     decision=decision, reason=reason, duplicate_of=duplicate_of, line=line)
+                     decision=decision, reason=reason, duplicate_of=duplicate_of, source=value("source"),
+                     line=line)
 
 
 def _parse_enum(enum, raw: str):
@@ -353,7 +355,7 @@ def _parse_family(raw: str) -> Optional[GradingFamily]:
         return None
 
 
-def _sha256(path: str) -> str:
+def file_sha256(path: str) -> str:
     digest = hashlib.sha256()
     with open(path, "rb") as f:
         for block in iter(lambda: f.read(_HASH_CHUNK_BYTES), b""):

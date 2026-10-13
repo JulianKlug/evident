@@ -174,3 +174,19 @@ def test_failure_keeps_previous_outputs(tmp_path, monkeypatch):
 
     assert _files(out) == _EXPECTED  # no staging dir left behind
     assert {rel: _read(os.path.join(out, rel), "rb") for rel in _EXPECTED} == before
+
+
+def test_common_caption_stated_once(tmp_path):
+    render(_bundle(), str(tmp_path))
+    captions = _read(tmp_path / "figures" / "captions.md")
+    assert captions.count("Snapshot 7, extractor version") == 1
+    assert captions.count("SCCM: extraction accuracy unvalidated") == 1
+    assert "**Notes (all figures and Table 1).**" in captions
+
+
+def test_dashboard_banner_and_no_ungraded_share(tmp_path):
+    render(_bundle(), str(tmp_path))
+    html = _read(tmp_path / "dashboard" / "index.html")
+    assert '<div class="banner">SCCM: extraction accuracy unvalidated (no labelled SCCM guideline).</div>' in html
+    assert "Ungraded %" not in html and "ungraded_share, " not in html  # v2 ungraded share is incomplete
+    assert "ungraded_share" in _read(tmp_path / "tables" / "headline.csv")  # exports keep the column

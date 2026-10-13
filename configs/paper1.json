@@ -1,0 +1,22 @@
+{
+  "name": "paper1",
+  "snapshot_id": 8,
+  "search_start": "2016-01-01",
+  "search_cutoff": "2026-10-04",
+  "db_sha256": "145ae06aab900753313fa9df79c91aa28bc4a32d836506b0ce78c2dd3b573bc0",
+  "manifest_sha256": "24f955c44e4c9abbc2d06cc5dc6c08fbca70d48848c584e3eb9ad28caa1292a7",
+  "candidates_sha256": "323fc2ae01059ec538449f7580327637fa86b72fadb20972d426484a236f9a28",
+  "candidates_path": "corpus/candidates.csv",
+  "n_guidelines": 85,
+  "n_current": 75,
+  "bootstrap_n": 2000,
+  "bootstrap_seed": 0,
+  "heldout_dois": [
+    "10.1097/ccm.0000000000002533",
+    "10.1097/ccm.0000000000006551",
+    "10.1097/pcc.0000000000003914"
+  ],
+  "spotcheck_dir": "corpus/spotcheck_m3",
+  "template_path": "docs/paper1/draft.md.j2",
+  "focused_update_overlap_max": 25
+}

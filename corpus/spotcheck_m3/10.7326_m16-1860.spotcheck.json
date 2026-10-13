@@ -1,0 +1,48 @@
+{
+ "doi": "10.7326/m16-1860",
+ "n_reference_graded": 2,
+ "n_reference_ungraded": 0,
+ "tp": 2,
+ "fp": 0,
+ "fn": 0,
+ "strength_ok": 2,
+ "certainty_ok": 2,
+ "ungraded_extracted_as_ungraded": 0,
+ "reference": [
+  {
+   "ref_id": 1,
+   "page": 1,
+   "text": "ACP recommends that clinicians prescribe metformin to patients with type 2 diabetes when pharmacologic therapy is needed to improve glycemic control.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": 2,
+   "page": 1,
+   "text": "ACP recommends that clinicians consider adding either a sulfonylurea, a thiazolidinedione, an SGLT-2 inhibitor, or a DPP-4 inhibitor to metformin to improve glycemic control when a second oral therapy is considered.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate"
+  }
+ ],
+ "matches": [
+  {
+   "ref_id": 1,
+   "extracted_id": 1,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 2,
+   "extracted_id": 0,
+   "strength_ok": true,
+   "certainty_ok": true
+  }
+ ],
+ "false_positives": [],
+ "false_negatives": [],
+ "notes": "Two numbered recommendations (abstract p1, recommendation box p5, body p6/p7). Rec 2 lists four drug options in one sentence -> one item. Trailing sentence \"ACP recommends that clinicians and patients select among medications after discussing benefits, adverse effects, and costs\" sits inside Recommendation 2 after its grade; treated as part of Rec 2, not a separate item (not extracted separately)."
+}

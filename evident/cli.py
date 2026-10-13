@@ -5,6 +5,7 @@
       snapshot --resume             [--exclude DOI --reason TEXT]...
       validate [--snapshot ID]
       publish  [--snapshot ID] [--accept-regression REASON]
+      publish  --snapshot ID --package DIR --analysis-config FILE --heldout-labels DIR   # read-only DB
       reject   --snapshot ID --reason TEXT      # retire a candidate for good
       add PDF  [--force]                       # then re-publish
       status
@@ -20,14 +21,18 @@ import logging
 import os
 import subprocess
 import sys
+from datetime import date
 from typing import Optional
 
+import scripts.search_guidelines as search
 from evident import pipeline
 from evident.corpus import ManifestError
 from evident.extraction import ExtractionError, ExtractorConfig, Models, load_similarity_model, probe_artifacts, run
 from evident.harmonization import UnsupportedGradingFamilyError
-from evident.store import Store, StoreError
-from evident.validation import ValidationJoinError, load_labelled
+from evident.paper import AnalysisConfig
+from evident.publishing import DraftFieldError
+from evident.store import AccessMode, Store, StoreError
+from evident.validation import HeldoutLabelError, ValidationJoinError, load_labelled
 from extraction.llm_client import ModelNotFoundError
 
 _DEFAULT_DB = "out/evident.sqlite"
@@ -36,22 +41,25 @@ _DEFAULT_PDF_DIR = "/mnt/data1/klug/datasets/evidence_extraction/pdfs"
 _PUBLISH_DIR = "out"  # tables/, figures/, dashboard/
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+_PACKAGE_DEVICE = "cpu"  # held-out scoring embeddings: same numbers on any machine
+
 _EXIT_OK = 0
 _EXIT_ERROR = 1
 
 _KNOWN_ERRORS = (pipeline.PipelineError, StoreError, ManifestError, ExtractionError, ValidationJoinError,
-                 ModelNotFoundError, UnsupportedGradingFamilyError)
+                 ModelNotFoundError, UnsupportedGradingFamilyError, HeldoutLabelError, DraftFieldError)
 
 
 class _LazySimilarity:
-    """BioLORD loaded on first use, once per process; status and publish never load it."""
+    """BioLORD loaded on first use, once per process; status and plain publish never load it."""
 
-    def __init__(self):
+    def __init__(self, device: Optional[str] = None):
+        self._device = device
         self._model = None
 
     def __getattr__(self, name):
         if self._model is None:
-            self._model = load_similarity_model()
+            self._model = load_similarity_model(self._device)
         return getattr(self._model, name)
 
 
@@ -60,15 +68,20 @@ def main(argv: Optional[list[str]] = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "snapshot" and len(args.exclude) != len(args.reason):
         parser.error("each --exclude DOI needs one --reason TEXT")  # exits 2
+    if _is_package(args) and not (args.snapshot and args.analysis_config and args.heldout_labels):
+        parser.error("--package needs --snapshot ID, --analysis-config FILE and --heldout-labels DIR")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
-    os.makedirs(os.path.dirname(args.db) or ".", exist_ok=True)
-    with Store.open(args.db) as store:
-        try:
+    # A package reads a frozen copy: never created, migrated or written
+    mode = AccessMode.READ_ONLY if _is_package(args) else AccessMode.READ_WRITE
+    if mode == AccessMode.READ_WRITE:
+        os.makedirs(os.path.dirname(args.db) or ".", exist_ok=True)
+    try:
+        with Store.open(args.db, mode) as store:
             return _COMMANDS[args.command](args, _deps(args, store))
-        except _KNOWN_ERRORS as e:
-            print(f"error: {e}", file=sys.stderr)
-            return _EXIT_ERROR
+    except _KNOWN_ERRORS as e:
+        print(f"error: {e}", file=sys.stderr)
+        return _EXIT_ERROR
 
 
 # ── commands ────────────────────────────────────────────────────
@@ -101,12 +114,34 @@ def _validate(args, deps) -> int:
 
 
 def _publish(args, deps) -> int:
+    if _is_package(args):
+        return _publish_package(args, deps)
+
     report = pipeline.publish(deps, args.accept_regression, args.snapshot)
     verb = "re-published" if report.republished else "published"
     print(f"snapshot {report.snapshot_id} [{report.model}] {verb}: {len(report.paths)} files in {report.publish_dir} "
           f"({report.n_headline_guidelines} guidelines; skipped {report.n_skipped_excluded} excluded, "
           f"{report.n_skipped_superseded} superseded)")
     _print_list("warning: PDF changed since its run (re-extract with add --force)", report.pdf_changed)
+    return _EXIT_OK
+
+
+def _publish_package(args, deps) -> int:
+    with open(args.analysis_config, encoding="utf-8") as f:
+        config = AnalysisConfig.from_json(f.read())
+
+    # Exact PubMed terms, with the date window of the frozen search, for the Methods
+    cutoff = date.fromisoformat(config.search_cutoff)
+    queries = tuple((q.society, q.source.value, search.query_for(q, cutoff)) for q in search.QUERIES)
+    inputs = pipeline.PackageInputs(args.db, args.package, config, args.analysis_config, args.heldout_labels,
+                                    queries)
+    report = pipeline.publish_package(deps, args.snapshot, inputs)
+
+    h = report.heldout
+    print(f"snapshot {report.snapshot_id} [{report.model}] package: {len(report.package_paths)} files in "
+          f"{report.package_dir}, {len(report.paths)} in {report.publish_dir}")
+    print(f"  held-out ({h.n_guidelines} guidelines, not gated): F1 {_fmt(h.f1)}  P {_fmt(h.precision)}  "
+          f"R {_fmt(h.recall)}  grade {_fmt(h.combined_accuracy)}")
     return _EXIT_OK
 
 
@@ -119,7 +154,8 @@ def _add(args, deps) -> int:
         return _EXIT_ERROR
 
     # add = ingest, then re-publish that snapshot (never a pending candidate)
-    return _publish(argparse.Namespace(accept_regression=None, snapshot=report.snapshot_id), deps)
+    return _publish(argparse.Namespace(command="publish", accept_regression=None, snapshot=report.snapshot_id,
+                                       package=None), deps)
 
 
 def _reject(args, deps) -> int:
@@ -177,6 +213,10 @@ def _parser() -> argparse.ArgumentParser:
     pub = commands.add_parser("publish", help="publish the validated snapshot, write outputs")
     pub.add_argument("--snapshot", type=int, help="snapshot id (needed when several are complete)")
     pub.add_argument("--accept-regression", metavar="REASON", help="publish despite a failed gate")
+    pub.add_argument("--package", metavar="DIR", help="also write an analysis package from a frozen, read-only DB")
+    pub.add_argument("--analysis-config", metavar="FILE", help="package: what to compute and check, e.g. "
+                                                              "configs/paper1.json")
+    pub.add_argument("--heldout-labels", metavar="DIR", help="package: held-out label files, scored, never gated")
 
     rej = commands.add_parser("reject", help="retire a building or complete snapshot, with a reason")
     rej.add_argument("--snapshot", type=int, required=True)
@@ -191,7 +231,7 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def _deps(args, store: Store) -> pipeline.PipelineDeps:
-    similarity = _LazySimilarity()
+    similarity = _LazySimilarity(_PACKAGE_DEVICE if _is_package(args) else None)
     return pipeline.PipelineDeps(
         store=store,
         manifest_path=args.manifest,
@@ -203,6 +243,10 @@ def _deps(args, store: Store) -> pipeline.PipelineDeps:
         code_sha=_git_head,
         publish_dir=_PUBLISH_DIR,
     )
+
+
+def _is_package(args) -> bool:
+    return args.command == "publish" and bool(args.package)
 
 
 def _read_config(path: str) -> ExtractorConfig:

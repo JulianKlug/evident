@@ -1,0 +1,154 @@
+{#-
+  Paper 1 draft (skeleton). Rendered by `publish --package` into <package>/draft.md.
+  Every number is a field of the package exports, e.g. table1_society.ACP.strong_pct is that cell of
+  table1_society.csv. An unknown field fails the render. Do not type numbers into this file:
+  tests/evident/test_draft.py rejects numbers outside Jinja expressions, tags and comments
+  (allowlist: table/figure labels, citation years, "95%", "SHA-256").
+  Filters: pct (one decimal or NA), ci(high) on a low bound, p3 (three decimals), ci3 on a [low, high] pair.
+-#}
+{%- set t = table1_society -%}
+{%- set flow = corpus_flow -%}
+{%- set mf = methods_facts -%}
+{%- set dev = validation_development.report -%}
+{%- set held = validation_sccm_heldout.report -%}
+# Strength and certainty of graded recommendations in ESICM, SCCM and ACP clinical practice guidelines, {{ mf.search.start[:4] }}–{{ mf.search.cutoff_year }}: an automated, reproducible analysis
+
+*Draft generated from analysis package `{{ analysis.package }}`, snapshot {{ analysis.snapshot.id }}, extractor version `{{ analysis.extractor.version_id[:12] }}`. Do not edit numbers here; edit the template.*
+
+## Abstract
+
+**Background.** *(outline)* Strength of a recommendation and certainty of its evidence are distinct; how often critical care and internal medicine guidelines make strong recommendations on low-certainty evidence is not routinely tracked.
+
+**Methods.** We searched PubMed from {{ mf.search.start }} to {{ mf.search.cutoff }} for clinical practice guidelines led or co-led by ESICM, SCCM or ACP and included {{ flow.included.all }} guidelines ({{ flow.current.all }} current editions) with at least one strength- and certainty-graded recommendation. A locally run language model ({{ mf.extractor.model_name }}) extracted each recommendation with its grade; grades were harmonized to GRADE strength, direction and certainty.
+
+**Results.** Of {{ t.ALL.n_graded }} graded recommendations in current editions, {{ t.ALL.strong_pct | pct }}% were strong ({{ t.ALL.strong_num }}/{{ t.ALL.strong_den }}; 95% CI {{ t.ALL.strong_ci_low | ci(t.ALL.strong_ci_high) }}), {{ t.ALL.against_pct | pct }}% recommended against an intervention, and {{ t.ALL.high_moderate_pct | pct }}% rested on high or moderate certainty evidence ({{ t.ALL.high_moderate_num }}/{{ t.ALL.high_moderate_den }}). On {{ dev.n_guidelines }} labelled development guidelines, extraction reached graded F1 {{ dev.candidate.f1 | p3 }}; on {{ held.n_guidelines }} held-out SCCM guidelines, F1 {{ held.f1 | p3 }}.
+
+**Conclusions.** *(outline)* Descriptive distributions only; feasibility and reproducibility of an updateable extraction pipeline.
+
+## Introduction
+
+*(outline)*
+
+- Recommendation strength vs certainty of evidence (GRADE); why a strong recommendation on low certainty evidence deserves scrutiny.
+- Prior work: Fanaroff et al., JAMA 2019 (ACC/AHA cardiology levels of evidence); earlier critical care level-of-evidence studies.
+- Gap: manual audits are one-off; guidelines change. An updateable extraction pipeline makes the audit repeatable.
+- Aim: describe strength, direction and certainty of graded recommendations in ESICM, SCCM and ACP guidelines; report extraction accuracy separately on development and held-out guidelines.
+
+## Methods
+
+### Search and selection
+
+We ran {{ mf.search.queries | length }} PubMed queries ({{ (mf.search.queries | length) // (mf.corpus.included_by_society | length) }} per society; exact terms in supplement S1) for records first published online from {{ mf.search.start }} to {{ mf.search.cutoff }}, and cross-checked the three societies' guideline web pages. The search returned {{ flow.candidates.all }} candidate records{% for source, n in flow.source.items() %}{% if loop.first %} ({% endif %}{{ source }} {{ n }}{% if not loop.last %}, {% else %}){% endif %}{% endfor %}.
+
+Eligible: a clinical practice guideline led or co-led by ESICM, SCCM or ACP, in any journal, with at least one recommendation graded for both strength and certainty; adult and paediatric guidelines and GRADE-based rapid guidelines included. Excluded formats: ACP rapid living practice points (certainty without strength), ACP guidance statements and best-practice advice, consensus documents, executive summaries and other derivative papers. A co-published guideline counts once, under the society of the retained publication; the other copies are duplicate publications. {{ mf.search.cutoff_year }} is a partial calendar year.
+
+### Editions
+
+Each guideline belongs to a topic; a newer edition supersedes an older one by an explicit link. Rule: {{ mf.corpus.edition_rule }}. Cross-sectional tables use the {{ flow.current.all }} current editions; time trends use all {{ flow.included.all }} editions. Focused updates that revise only some questions stay current beside the guideline they update, so revised questions count twice (an estimated {{ mf.corpus.focused_update_overlap_max }} graded recommendations at most).
+
+### Extraction and harmonization
+
+Extractor version `{{ mf.extractor.version_id }}`: model {{ mf.extractor.model_name }} (digest `{{ mf.extractor.model_digest[:12] }}`), single pass over the full PDF text. The raw strength and certainty strings are stored as extracted and harmonized on read; the complete observed mapping is in the supplement ({{ raw_harmonized_mapping | length }} distinct raw grades). A statement offering no direction is not a graded recommendation, whatever label the model attached. No grade is inferred when the label cannot be mapped.
+
+### Outcomes and denominators
+
+The unit is one extracted, deduplicated recommendation. Only graded recommendations enter the primary tables. Strong (%) and against (%) use graded recommendations with a mapped strength; high/moderate certainty (%) uses those with a mapped certainty. Unmapped grades are reported as counts, not imputed. ALL is pooled per recommendation, so it is dominated by SCCM.
+
+### Uncertainty
+
+95% intervals come from a guideline-cluster percentile bootstrap ({{ mf.bootstrap.n }} resamples, seed {{ mf.bootstrap.seed }}): guidelines are resampled within each society and, for ALL, within each society and pooled. The intervals describe between-guideline variability in this curated corpus; they do not correct extraction error or establish representativeness.
+
+### Sensitivity analysis
+
+Table S1 weights each guideline equally: the unweighted mean of each guideline's own percentage, against the pooled estimate.
+
+### Extraction accuracy
+
+Development: {{ dev.n_guidelines }} labelled ACP and ESICM guidelines, which also informed extractor development (in-sample). Held-out: {{ held.n_guidelines }} SCCM guidelines drawn at random before any result, labelled blind to the extractor output, scored with the same matching (BioLORD similarity, Hungarian assignment) and harmonization; not used for tuning or gating.
+
+### Reproducibility
+
+All numbers in this draft come from one frozen copy of snapshot {{ analysis.snapshot.id }} (SHA-256 `{{ analysis.inputs.database.sha256 }}`), rendered by one command without a language model. Analysis code `{{ analysis.code.analysis_sha }}`; checksums of every input and output are in `analysis_manifest.json`.
+
+## Results
+
+### Corpus
+
+{{ flow.candidates.all }} records screened; {{ flow.included.all }} guidelines included ({% for s, n in flow.included.items() if s != "all" %}{{ s }} {{ n }}{% if not loop.last %}, {% endif %}{% endfor %}), {{ flow.current.all }} current and {{ flow.superseded.all }} superseded. Exclusions: {% for reason, n in flow.excluded.items() %}{{ reason | replace("_", " ") }} {{ n }}{% if not loop.last %}; {% endif %}{% endfor %}.
+
+### Table 1. Graded recommendations by society (current editions)
+
+| Society | Guidelines | Graded | Strong, n/N | Strong, % (95% CI) | Against, n/N | Against, % (95% CI) | High/moderate, n/N | High/moderate, % (95% CI) |
+|---|---|---|---|---|---|---|---|---|
+{% for r in t.values() -%}
+| {{ r.society }} | {{ r.n_guidelines }} | {{ r.n_graded }} | {{ r.strong_num }}/{{ r.strong_den }} | {{ r.strong_pct | pct }} ({{ r.strong_ci_low | ci(r.strong_ci_high) }}) | {{ r.against_num }}/{{ r.against_den }} | {{ r.against_pct | pct }} ({{ r.against_ci_low | ci(r.against_ci_high) }}) | {{ r.high_moderate_num }}/{{ r.high_moderate_den }} | {{ r.high_moderate_pct | pct }} ({{ r.high_moderate_ci_low | ci(r.high_moderate_ci_high) }}) |
+{% endfor %}
+Unmapped (not in denominators), ALL: strength {{ t.ALL.n_strength_unmapped }}, certainty {{ t.ALL.n_certainty_unmapped }}; graded without a certainty grade {{ t.ALL.n_certainty_ungraded }}.
+
+### Table 2. Certainty of evidence, and strength by certainty (current editions)
+
+| Society | High | Moderate | Low | Very low |
+|---|---|---|---|---|
+{% for s, tables in table2_certainty_strength.items() -%}
+| {{ s }} | {% for level in tables.certainty.values() %}{{ level.n }} ({{ level.pct | pct }}%){% if not loop.last %} | {% endif %}{% endfor %} |
+{% endfor -%}
+| ALL, strong | {% for level in table2_certainty_strength.ALL.strong.values() %}{{ level.n }} ({{ level.pct | pct }}%){% if not loop.last %} | {% endif %}{% endfor %} |
+| ALL, weak/conditional | {% for level in table2_certainty_strength.ALL.weak.values() %}{{ level.n }} ({{ level.pct | pct }}%){% if not loop.last %} | {% endif %}{% endfor %} |
+
+Of strong recommendations, {{ table2_certainty_strength.ALL.strong.low.pct | pct }}% rested on low and {{ table2_certainty_strength.ALL.strong.very_low.pct | pct }}% on very low certainty evidence.
+
+### Trends
+
+Figure 4 shows strong and high/moderate shares by first-online year and society (all editions; n per point; {{ mf.search.cutoff_year }} incomplete). Small year-by-society cells are descriptive; we draw no conclusion on temporal change from the plotted slopes.
+
+### Sensitivity (Table S1)
+
+Weighting each guideline equally, ALL strong was {{ table_s1_guideline_mean.ALL.strong.mean_pct | pct }}% ({{ table_s1_guideline_mean.ALL.strong.diff_pp | pct }} points from pooled), against {{ table_s1_guideline_mean.ALL.against.mean_pct | pct }}% ({{ table_s1_guideline_mean.ALL.against.diff_pp | pct }}), high/moderate {{ table_s1_guideline_mean.ALL.high_moderate.mean_pct | pct }}% ({{ table_s1_guideline_mean.ALL.high_moderate.diff_pp | pct }}).
+
+### Extraction accuracy
+
+*Development (in-sample, {{ dev.n_guidelines }} guidelines):* graded F1 {{ dev.candidate.f1 | p3 }} (95% CI {{ dev.candidate.f1_ci | ci3 }}), precision {{ dev.candidate.precision | p3 }}, recall {{ dev.candidate.recall | p3 }}; strength and certainty both correct on {{ dev.candidate.combined_accuracy | p3 }} of matched recommendations.
+
+*Held-out SCCM ({{ held.n_guidelines }} guidelines; imprecise):* TP {{ held.tp }}, FP {{ held.fp }}, FN {{ held.fn }}; precision {{ held.precision | p3 }} ({{ held.precision_ci | ci3 }}), recall {{ held.recall | p3 }} ({{ held.recall_ci | ci3 }}), F1 {{ held.f1 | p3 }}; strength and certainty both correct on {{ held.combined_accuracy | p3 }} ({{ held.combined_ci | ci3 }}) of {{ held.n_matched }} matched. Intervals: {{ held.interval_note }}.
+
+*Exploratory, single-reviewer spot check of unlabelled guidelines ({{ spotcheck_bias.strong.n_guidelines }} guidelines):* published minus reference, strong {{ spotcheck_bias.strong.diff_pp | pct }} points ({{ spotcheck_bias.strong.diff_ci_low | ci(spotcheck_bias.strong.diff_ci_high) }}), against {{ spotcheck_bias.against.diff_pp | pct }} ({{ spotcheck_bias.against.diff_ci_low | ci(spotcheck_bias.against.diff_ci_high) }}), high/moderate {{ spotcheck_bias.high_moderate.diff_pp | pct }} ({{ spotcheck_bias.high_moderate.diff_ci_low | ci(spotcheck_bias.high_moderate.diff_ci_high) }}). Ungraded statements were mostly missed (published ungraded share {{ spotcheck_bias.ungraded_share.published_pct | pct }}% vs {{ spotcheck_bias.ungraded_share.truth_pct | pct }}% in the reference), so this paper reports graded recommendations only.
+
+## Discussion
+
+*(outline)*
+
+- Main findings: share of strong recommendations, share against, certainty distribution; strong recommendations on low or very low certainty evidence.
+- Comparison with Fanaroff et al. (JAMA 2019) and earlier critical care level-of-evidence studies; differences among societies are descriptive, not causal.
+- Strengths: full corpus of three societies, prespecified denominators, cluster intervals, frozen and reproducible package, separate held-out evaluation.
+- Limitations: development-set optimism; held-out sample of {{ held.n_guidelines }} SCCM guidelines; imperfect precision (restatements, comparison tables); single-reviewer spot check; variable PDF layouts; ungraded statements not captured; residual grade-mapping uncertainty; focused-update overlap; curated corpus and search limits; partial {{ mf.search.cutoff_year }}.
+- Next: ungraded-statement pass (v3); recommendation-level supersession; other specialties.
+
+## Conclusion
+
+*(outline)* Restricted to the observed distribution of graded recommendations and to feasibility; no claim that a strong recommendation on low certainty evidence implies inappropriate care.
+
+## Figures
+
+{% for id, caption in captions.items() -%}
+- `{{ id }}`: {{ caption }}
+{% endfor %}
+Notes for all figures: {{ notes.common }}
+
+## Supplement
+
+- S1 Search: {{ mf.search.queries | length }} queries, date window {{ mf.search.start }} to {{ mf.search.cutoff }}:
+{%- for q in mf.search.queries %}
+  - {{ q.society }} ({{ q.source }}): `{{ q.term }}`
+{%- endfor %}
+- S2 Selection flow: `corpus_flow.csv`; every excluded record with its reason: `excluded_guidelines.csv` ({{ excluded_guidelines | length }} records).
+- S3 Included guidelines (manifest), editions and co-publications: superseded {% for x in mf.corpus.superseded %}`{{ x.doi }}` → `{{ x.current_edition }}`{% if not loop.last %}; {% endif %}{% endfor %}. Joint: {% for x in mf.corpus.joint %}`{{ x.doi }}` ({{ x.society }} with {{ x.joint_with | join(", ") }}){% if not loop.last %}; {% endif %}{% endfor %}.
+- S4 Raw-to-harmonized grade mapping with counts: `raw_harmonized_mapping.csv`.
+- S5 Guideline-weighted sensitivity: `table_s1_guideline_mean.csv`.
+- S6 Held-out SCCM validation per guideline:
+{%- for g in held.per_guideline %}
+  - `{{ g.doi }}`: TP {{ g.tp }}, FP {{ g.fp }}, FN {{ g.fn }}
+{%- endfor %}
+  Annotation protocol: one row per statement of the guideline's own recommendation list, text verbatim, page recorded, labelled blind to the extractor output.
+- S7 Spot-check bias (exploratory): `spotcheck_bias.csv`.
+- S8 Figure data: `figure_data.csv`. Checksums and provenance: `analysis_manifest.json`.
+- S9 Reproduction: see `docs/paper1/README.md`.

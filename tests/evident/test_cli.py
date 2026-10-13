@@ -1,21 +1,26 @@
 """Tests for evident.cli: parsing → pipeline calls with enums (pipeline patched), exit codes."""
 
 import os
+import sqlite3
 
 import pytest
 
 import evident.cli as cli
 from evident import pipeline
-from evident.domain import SnapshotState
+from evident.domain import GradingFamily, Guideline, SnapshotState
 from evident.pipeline import (
     AddReport,
     AddStatus,
     IngestMode,
+    PackageReport,
     PublishReport,
     RejectReport,
     SnapshotReport,
     SnapshotStart,
 )
+from evident.corpus import file_sha256
+from evident.store import Store
+from evident.validation import heldout_report, SnapshotScore
 from tests.evident.pipeline_fakes import CONFIG
 
 
@@ -129,3 +134,71 @@ def test_repo_config_is_v0_baseline():
     cfg = cli._read_config(os.path.join(cli._REPO_ROOT, "configs", "v0.json"))
     assert (cfg.mode.value, cfg.model, cfg.thinking.value, cfg.prompt_version, cfg.few_shot.value) == (
         "single_pass", "qwen3:14b", "off", "v0", "few_shot")
+
+
+# ── publish --package ───────────────────────────────────────────
+
+_PAPER1 = os.path.join(cli._REPO_ROOT, "configs", "paper1.json")
+
+
+@pytest.mark.parametrize("argv", [
+    ["publish", "--snapshot", "8", "--package", "p"],                                         # no config/labels
+    ["publish", "--snapshot", "8", "--package", "p", "--analysis-config", _PAPER1],          # no labels
+    ["publish", "--package", "p", "--analysis-config", _PAPER1, "--heldout-labels", "h"],    # no snapshot
+])
+def test_package_usage_errors_exit_2(calls, tmp_path, argv):
+    with pytest.raises(SystemExit) as err:
+        _main(tmp_path, *argv)
+    assert err.value.code == 2
+
+
+def _frozen_db(tmp_path) -> str:
+    path = str(tmp_path / "db.sqlite")
+    Store.open(path).close()
+    conn = sqlite3.connect(path)
+    conn.execute("PRAGMA journal_mode = DELETE")
+    conn.close()
+    return path
+
+
+def test_package_reads_frozen_db_read_only(tmp_path, monkeypatch):
+    seen = []
+
+    def fake(deps, snapshot_id, inputs):
+        seen.append((snapshot_id, inputs))
+        with pytest.raises(sqlite3.OperationalError):  # the store refuses writes
+            deps.store.upsert_guideline(Guideline("10.1/a", "ACP", 2020, "T", "t", GradingFamily.GRADE))
+        return PackageReport(8, "m@d", inputs.package_dir, [], "out", [], heldout_report(SnapshotScore(())))
+    monkeypatch.setattr(pipeline, "publish_package", fake)
+    db = _frozen_db(tmp_path)
+    before = file_sha256(db)
+
+    code = _main(tmp_path, "publish", "--snapshot", "8", "--package", "pkg", "--analysis-config", _PAPER1,
+                 "--heldout-labels", "held")
+
+    assert code == 0
+    [(snapshot_id, inputs)] = seen
+    assert (snapshot_id, inputs.db_path, inputs.package_dir, inputs.heldout_dir) == (8, db, "pkg", "held")
+    assert inputs.config.name == "paper1"
+    assert len(inputs.search_queries) == 9
+    assert all(term.endswith('"2026/10/04"[dp])') for _, _, term in inputs.search_queries)
+    assert file_sha256(db) == before
+
+
+def test_package_missing_db_not_created(tmp_path, capsys):
+    code = _main(tmp_path, "publish", "--snapshot", "8", "--package", "pkg", "--analysis-config", _PAPER1,
+                 "--heldout-labels", "held")
+    assert code == 1
+    assert "No database" in capsys.readouterr().err
+    assert not (tmp_path / "db.sqlite").exists()
+
+
+def test_repo_paper1_config_matches_the_freeze():
+    """docs/paper1/freeze.md: snapshot 8, 85 guidelines, 75 current, three prespecified SCCM DOIs."""
+    with open(_PAPER1) as f:
+        cfg = cli.AnalysisConfig.from_json(f.read())
+    assert (cfg.snapshot_id, cfg.n_guidelines, cfg.n_current, cfg.search_cutoff) == (8, 85, 75, "2026-10-04")
+    assert (cfg.bootstrap_n, cfg.bootstrap_seed) == (2000, 0)
+    assert cfg.heldout_dois == ("10.1097/ccm.0000000000002533", "10.1097/ccm.0000000000006551",
+                                "10.1097/pcc.0000000000003914")
+    assert cfg.db_sha256 == "145ae06aab900753313fa9df79c91aa28bc4a32d836506b0ce78c2dd3b573bc0"

@@ -64,8 +64,8 @@
     <span><b>Validation</b> none</span>
     {% endif %}
   </div>
-  {% for society in unvalidated %}
-  <div class="banner">{{ society }}: extraction accuracy unvalidated (no labelled {{ society }} guideline).</div>
+  {% for note in validation_notes %}
+  <div class="banner">{{ note }}</div>
   {% endfor %}
 
   <h2>Headline (current editions)</h2>
@@ -73,7 +73,7 @@
   <table>
     <thead><tr>
       <th>Society</th><th class="num">Guidelines</th><th class="num">Recs</th><th class="num">Graded</th>
-      <th class="num">Ungraded %</th><th class="num">Strong %</th><th class="num">Against %</th>
+      <th class="num">Strong %</th><th class="num">Against %</th>
       <th class="num">High/moderate %</th><th class="num">Unmapped (strength / certainty)</th>
     </tr></thead>
     <tbody>
@@ -81,7 +81,7 @@
       <tr>
         <td><span class="dot" style="background: {{ society_colours.get(r.society, '#9467bd') }}"></span>{{ r.society }}</td>
         <td class="num">{{ r.n_guidelines }}</td><td class="num">{{ r.n_recs }}</td><td class="num">{{ r.n_graded }}</td>
-        <td class="num">{{ r.ungraded_share }}</td><td class="num">{{ r.pct_strong }}</td>
+        <td class="num">{{ r.pct_strong }}</td>
         <td class="num">{{ r.pct_against }}</td><td class="num">{{ r.pct_high_moderate }}</td>
         <td class="num">{{ r.n_strength_unmapped }} / {{ r.n_certainty_unmapped }}</td>
       </tr>
@@ -107,7 +107,7 @@
   <table id="guidelines">
     <thead><tr>
       <th>Society</th><th class="num">Year</th><th>Title</th><th>Edition</th><th class="num">Recs</th>
-      <th class="num">Ungraded %</th><th class="num">Strong %</th><th class="num">High/mod %</th><th>Note</th>
+      <th class="num">Strong %</th><th class="num">High/mod %</th><th>Note</th>
     </tr></thead>
     <tbody></tbody>
   </table>
@@ -167,7 +167,6 @@
     td.appendChild(a);
     cell(tr, g.edition);
     cell(tr, g.n_recs, "num");
-    cell(tr, g.ungraded_share, "num");
     cell(tr, g.pct_strong, "num");
     cell(tr, g.pct_high_moderate, "num");
     var notes = [];

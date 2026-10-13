@@ -5,17 +5,22 @@ import json
 
 import pytest
 
-from evident.domain import Category, GateResult, GradingFamily, RawRecommendation
+from evident.domain import AxisStatus, Category, Certainty, Direction, GateResult, GradingFamily, RawRecommendation, Strength
 from evident.validation import (
     GtRow,
     GuidelineScore,
+    HeldoutLabelError,
     LabelledGuideline,
     SnapshotScore,
     ValidationJoinError,
     gate,
+    heldout_report,
+    load_heldout,
     load_labelled,
+    load_spotcheck,
     score,
 )
+from tests.evident.pipeline_fakes import write_heldout_xlsx
 from tests.legacy_golden import FakeEncoder
 
 _GRADED = Category.GRADED
@@ -128,3 +133,120 @@ def test_load_labelled_real_data():
     assert len(labelled) == 12
     assert sum(len(g.gt) for g in labelled) == 48
     assert all(g.doi == g.doi.lower() for g in labelled)
+
+
+# ── held-out labels ─────────────────────────────────────────────
+
+_H1, _H2 = "10.1097/ccm.1", "10.1097/pcc.2"
+_HELD_ROWS = [
+    (_A, "strong recommendation, against", "low certainty evidence", 3),
+    (_B, "conditional recommendation, for", "moderate certainty evidence", 4.0),
+    (_U, "Best practice statement", "NA", 4),
+]
+
+
+class TestLoadHeldout:
+    def _dir(self, tmp_path, rows=None):
+        directory = str(tmp_path / "heldout")
+        write_heldout_xlsx(directory, _H1, _HELD_ROWS if rows is None else rows)
+        write_heldout_xlsx(directory, _H2, _HELD_ROWS[:1])
+        return directory
+
+    def _problems(self, directory, expected=(_H1, _H2), labelled=frozenset()):
+        with pytest.raises(HeldoutLabelError) as e:
+            load_heldout(directory, expected, set(labelled))
+        return e.value.problems
+
+    def test_complete_set_loads_with_categories(self, tmp_path):
+        labelled = load_heldout(self._dir(tmp_path), [_H1.upper(), _H2], set())
+        assert [g.doi for g in labelled] == [_H1, _H2]
+        assert [r.category for r in labelled[0].gt] == [Category.GRADED, Category.GRADED, Category.GRADED]
+        assert labelled[0].gt[0].raw_class == "strong recommendation, against"
+
+    def test_missing_and_unexpected_files(self, tmp_path):
+        problems = self._problems(self._dir(tmp_path), expected=(_H1, "10.1/missing"))
+        assert "10.1/missing: no label file" in problems
+        assert any("10.1097/pcc.2 is not a prespecified" in p for p in problems)
+
+    def test_development_label_refused(self, tmp_path):
+        problems = self._problems(self._dir(tmp_path), labelled={_H1})
+        assert any("also a development label" in p for p in problems)
+
+    def test_empty_template_refused(self, tmp_path):
+        problems = self._problems(self._dir(tmp_path, rows=[]))
+        assert any("no labelled statement" in p for p in problems)
+
+    @pytest.mark.parametrize("row, message", [
+        ((_A, "strong recommendation", "low", None), "is not a page number"),
+        ((_A, "strong recommendation", "low", "p3"), "is not a page number"),
+        ((_A, "", "low", 3), "empty class"),
+        ((_A, "strong recommendation", None, 3), "empty LOE"),
+    ])
+    def test_incomplete_row_refused(self, tmp_path, row, message):
+        problems = self._problems(self._dir(tmp_path, rows=[row]))
+        assert any(f"line 2: {message}" in p or message in p for p in problems), problems
+
+    def test_duplicate_statement_refused(self, tmp_path):
+        rows = [_HELD_ROWS[0], (" " + _A.upper() + " ", "strong recommendation", "low", 5)]
+        problems = self._problems(self._dir(tmp_path, rows=rows))
+        assert any("line 3: duplicate of line 2" in p for p in problems)
+
+    def test_labels_sheet_must_come_first(self, tmp_path):
+        directory = self._dir(tmp_path)
+        write_heldout_xlsx(directory, _H2, _HELD_ROWS, sheet="Sheet1")
+        problems = self._problems(directory)
+        assert any("first sheet must be 'labels'" in p for p in problems)
+
+    def test_not_a_directory(self, tmp_path):
+        assert self._problems(str(tmp_path / "absent")) == [f"{tmp_path / 'absent'}: not a directory"]
+
+
+class TestHeldoutReport:
+    def test_micro_pooled_with_wilson_intervals(self):
+        s = SnapshotScore((
+            GuidelineScore("a", tp=9, fp=1, fn=0, n_matched=9, n_strength_ok=9, n_certainty_ok=8, n_combined_ok=8,
+                           ungraded_tp=0, ungraded_fp=0, ungraded_fn=2),
+            GuidelineScore("b", tp=0, fp=0, fn=1, n_matched=0, n_strength_ok=0, n_certainty_ok=0, n_combined_ok=0,
+                           ungraded_tp=0, ungraded_fp=0, ungraded_fn=0),
+        ))
+        r = heldout_report(s)
+        assert (r.n_guidelines, r.tp, r.fp, r.fn) == (2, 9, 1, 1)
+        assert r.precision == pytest.approx(0.9) and r.recall == pytest.approx(0.9)
+        assert r.precision_ci == pytest.approx((0.59585, 0.98212), abs=1e-5)
+        assert r.combined_accuracy == pytest.approx(8 / 9)
+        assert (r.ungraded_precision, r.ungraded_recall) == (None, 0.0)
+        assert "ignores clustering" in r.interval_note
+
+    def test_empty_denominators(self):
+        r = heldout_report(SnapshotScore(()))
+        assert (r.precision, r.f1, r.precision_ci) == (None, None, (None, None))
+
+
+# ── M3 spot check ───────────────────────────────────────────────
+
+def test_load_spotcheck(tmp_path):
+    data = {"doi": "10.7326/M16-1", "matches": [{"ref_id": "R2", "extracted_id": 4}, {"ref_id": "R1", "extracted_id": 0}],
+            "reference": [
+                {"category": "graded", "strength": "strong", "direction": "against", "certainty": "high"},
+                {"category": "graded", "strength": "weak", "direction": "neither", "certainty": "mixed: low/very_low"},
+                {"category": "best_practice", "strength": "", "direction": "for", "certainty": ""},
+            ]}
+    (tmp_path / "10.7326_m16-1.spotcheck.json").write_text(json.dumps(data))
+    (tmp_path / "notes.txt").write_text("ignored")
+
+    [g] = load_spotcheck(str(tmp_path))
+    assert (g.doi, g.matched_ordinals) == ("10.7326/m16-1", (0, 4))
+    strong, mixed, bps = g.reference
+    assert (strong.strength, strong.direction, strong.certainty) == (Strength.STRONG, Direction.AGAINST, Certainty.HIGH)
+    assert (mixed.direction, mixed.strength_status, mixed.certainty_status) == (None, AxisStatus.MAPPED,
+                                                                                AxisStatus.UNMAPPED)
+    assert (bps.category, bps.strength_status) == (Category.BEST_PRACTICE, AxisStatus.UNGRADED)
+
+
+def test_committed_spotcheck_reproduces_reference_counts():
+    """corpus/spotcheck_m3: 217 graded and 160 ungraded reference statements (docs/progress.md)."""
+    spot = load_spotcheck("corpus/spotcheck_m3")
+    grades = [r for g in spot for r in g.reference]
+    assert len(spot) == 10
+    assert sum(r.category == Category.GRADED for r in grades) == 217
+    assert sum(r.category != Category.GRADED for r in grades) == 160

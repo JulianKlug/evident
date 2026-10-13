@@ -1,0 +1,1927 @@
+{
+ "doi": "10.1097/ccm.0000000000007075",
+ "n_reference_graded": 98,
+ "n_reference_ungraded": 30,
+ "tp": 98,
+ "fp": 8,
+ "fn": 0,
+ "strength_ok": 97,
+ "certainty_ok": 95,
+ "ungraded_extracted_as_ungraded": 0,
+ "reference": [
+  {
+   "ref_id": 1,
+   "page": 13,
+   "text": "For hospitals and health systems, we \u201crecommend\u201d using a performance improvement program for sepsis, including sepsis screening for acutely ill, high-risk patients; standard operating procedures for t",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "mixed: moderate/very_low/moderate",
+   "printed_grade": "(strong; moderate for screening / very low for SOPs / moderate for QI strategies)"
+  },
+  {
+   "ref_id": 2,
+   "page": 14,
+   "text": "For hospitals and health systems, we \u201csuggest\u201d using a \u201ccode sepsis\u201d or \u201csepsis huddle\u201d protocol over not using such a protocol.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 3,
+   "page": 14,
+   "text": "In acutely ill adults en route to hospital by ambulance or flight, we \u201csuggest\u201d using a standard sepsis screening tool over not using a screening tool.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 4,
+   "page": 15,
+   "text": "For acutely ill patients in hospital, we \u201crecommend\u201d using NEWS, NEW2, MEWS, or SIRS over qSOFA as a single tool to screen for sepsis.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(strong recommendation, moderate certainty evidence)"
+  },
+  {
+   "ref_id": 5,
+   "page": 16,
+   "text": "Sepsis is a clinical diagnosis and should not be ruled in or ruled out using a single biomarker or diagnostic test.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 6,
+   "page": 16,
+   "text": "There is \u201cinsufficient evidence\u201d to make a recommendation regarding use of novel rapid host response diagnostics.",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  },
+  {
+   "ref_id": 7,
+   "page": 16,
+   "text": "For adults with possible, probable, or definite sepsis or septic shock, we \u201crecommend\u201d collecting blood cultures as soon as possible and ideally before the administration of antimicrobial therapy.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(strong recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 8,
+   "page": 17,
+   "text": "For adults with possible, probable, or definite sepsis or septic shock, we \u201csuggest\u201d measuring blood lactate.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 9,
+   "page": 17,
+   "text": "Sepsis and septic shock are medical emergencies; treatment and resuscitation should begin immediately.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 10,
+   "page": 18,
+   "text": "For adults with sepsis-induced hypoperfusion or septic shock, we \u201csuggest\u201d administering at least 30 mL/kg of IV crystalloid in the first 3 hr.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 11,
+   "page": 19,
+   "text": "For adults with sepsis-induced hypotension, we \u201csuggest\u201d initial IV crystalloid fluid bolus resuscitation followed by vasopressor support if hypotension persists.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 12,
+   "page": 20,
+   "text": "In adults with septic shock, we \u201csuggest\u201d starting vasopressors peripherally to restore mean arterial pressure rather than delaying initiation until central venous access is secured.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 13,
+   "page": 21,
+   "text": "For adults with septic shock, we \u201crecommend\u201d an initial MAP target of 65 mm Hg over higher MAP targets.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(strong recommendation, moderate certainty evidence)"
+  },
+  {
+   "ref_id": 14,
+   "page": 21,
+   "text": "For adults with septic shock 65 years old or older, we \u201csuggest\u201d an initial MAP range of 60\u201365 mm Hg over higher ranges.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 15,
+   "page": 21,
+   "text": "For adults with sepsis or septic shock who require ICU admission, we \u201csuggest\u201d admitting the patients to the ICU within 6 hr.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 16,
+   "page": 22,
+   "text": "For adults with possible, probable, or definite septic shock, we \u201crecommend\u201d administering antimicrobial therapy immediately, ideally within 1 hr of recognition.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(strong recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 17,
+   "page": 22,
+   "text": "For adults with probable or definite sepsis without shock, we \u201crecommend\u201d administering antimicrobial therapy immediately, ideally within 1 hr of recognition.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(strong recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 18,
+   "page": 22,
+   "text": "For adults with possible sepsis without shock, we \u201csuggest\u201d a time-limited course of rapid investigation and if concern for infection persists, the administration of antimicrobial therapy within 3 hou",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low cer- tainty of evidence)"
+  },
+  {
+   "ref_id": 19,
+   "page": 22,
+   "text": "Clinicians should perform a rapid assessment of the likelihood of infectious vs. noninfectious causes of acute illness in adults with possible sepsis without shock.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 20,
+   "page": 22,
+   "text": "For adults with a low likelihood of infection and without shock, we \u201csuggest\u201d deferring antimicrobial therapy while continuing to closely monitor the patient.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty of evidence)"
+  },
+  {
+   "ref_id": 21,
+   "page": 24,
+   "text": "For adults with definite or probable sepsis and hypotension (i.e., septic shock) and who have an anticipated time to in-hospital medical evaluation of over 60 min, we \u201csuggest\u201d administering antimicro",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 22,
+   "page": 24,
+   "text": "For adults with possible or probable sepsis or septic shock, we \u201csuggest\u201d using clinical evaluation alone over procalcitonin plus clinical evaluation to decide whether to start antimicrobial therapy.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 23,
+   "page": 25,
+   "text": "Adults with sepsis or septic shock should be rapidly evaluated for specific anatomical diagnoses or sources of infection that require emergent source control.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 24,
+   "page": 25,
+   "text": "For adults with sepsis or septic shock and a specific anatomical diagnosis or source of infection that requires source control, we \u201csuggest\u201d early source control over late source control, ideally with",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 25,
+   "page": 25,
+   "text": "For adults with sepsis or septic shock at high risk of infection with a specific multidrug resistant (MDR) pathogen, we \u201csuggest\u201d using empirical antimicrobial therapy with coverage for this MDR patho",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 26,
+   "page": 25,
+   "text": "For adults with sepsis or septic shock at low risk of infection with a specific MDR pathogen, we \u201csuggest against\u201d using empirical antimicrobial therapy with coverage for this MDR pathogen.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 27,
+   "page": 26,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest against\u201d using empirical antifungal therapy.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 28,
+   "page": 27,
+   "text": "For adults with sepsis or septic shock without risk factors for anaerobic infection, we \u201csuggest\u201d using an empiric antibiotic regimen without anaerobic coverage.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty of evidence)"
+  },
+  {
+   "ref_id": 29,
+   "page": 27,
+   "text": "For adults with sepsis or septic shock with specific risk factors for anaerobic infection, we \u201csuggest\u201d using an empiric antibiotic regimen that includes anaerobic coverage.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty of evidence)"
+  },
+  {
+   "ref_id": 30,
+   "page": 28,
+   "text": "There is \u201cinsufficient evidence\u201d to make a recommendation regarding use of departmental",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  },
+  {
+   "ref_id": 31,
+   "page": 28,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest\u201d using pathogen-specific rapid diagnostic tests on a case-by-case basis in selected patients based on clinical features, local pathogenand resistanc",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 32,
+   "page": 29,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest against\u201d using Candida fungal biomarkers to guide initiation of empiric antifungal therapy.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 33,
+   "page": 30,
+   "text": "For adults with sepsis or septic shock, we \u201crecommend\u201d using prolonged infusion of beta-lactams for maintenance (after an initial loading dose) over bolus administration.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(strong recommendation, moderate certainty evidence)"
+  },
+  {
+   "ref_id": 34,
+   "page": 30,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest\u201d using antimicrobial therapeutic drug monitoring (TDM) on a case-by-case basis in selected patients, based on clinical features, local pathogenand r",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 35,
+   "page": 31,
+   "text": "Clinicians should continuously reevaluate patients, search for alternative diagnoses, and discontinue empiric antimicrobial therapy if an alternative cause of illness is demonstrated or strongly suspe",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 36,
+   "page": 31,
+   "text": "For adults with sepsis or septic shock, we \u201crecommend\u201d de-escalation of antimicrobial therapy over no de-escalation when a confirmed microbiological diagnosis and susceptibility profile is available.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(strong recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 37,
+   "page": 31,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest\u201d de-escalation of antimicrobial therapy over no de-escalation when no pathogens are identified on final culture results.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 38,
+   "page": 32,
+   "text": "For adults with sepsis or septic shock who are receiving empiric antifungal therapy, we \u201csuggest against\u201d use of Candida fungal biomarkers to guide discontinuation of empiric antifungal therapy.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 39,
+   "page": 32,
+   "text": "For adults with an initial diagnosis of sepsis or septic shock and adequate source control, we \u201csuggest\u201d using shorter over longer duration of antimicrobial therapy.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 40,
+   "page": 33,
+   "text": "For adults with an initial diagnosis of sepsis or septic shock and adequate source control where optimal duration of therapy is unclear, we \u201csuggest\u201d using procalcitonin AND clinical evaluation to dec",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 41,
+   "page": 33,
+   "text": "In mechanically ventilated adults with sepsis or septic shock in units with a low prevalence of antimicrobial resistance, we \u201csuggest\u201d using selective decontamination of the digestive tract.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(conditional recommendation, moderate certainty evidence)"
+  },
+  {
+   "ref_id": 42,
+   "page": 35,
+   "text": "For adults with septic shock, we \u201csuggest\u201d using either invasive or noninvasive blood pressure monitoring.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation; very low certainty evidence)"
+  },
+  {
+   "ref_id": 43,
+   "page": 36,
+   "text": "For adults with sepsis or septic shock, we \u201crecommend\u201d using crystalloids as first-line fluid for resuscitation.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(strong recommendation, moderate certainty evidence)"
+  },
+  {
+   "ref_id": 44,
+   "page": 36,
+   "text": "For adults with sepsis or septic shock undergoing initial resuscitation, we \u201csuggest\u201d using balanced crystalloids over 0.9% saline.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(conditional recommendation, moderate cer- tainty evidence)"
+  },
+  {
+   "ref_id": 45,
+   "page": 36,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest\u201d using crystalloids alone over crystalloids with supplemental albumin for fluid resuscitation.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(conditional recommendation; moderate cer- tainty evidence)"
+  },
+  {
+   "ref_id": 46,
+   "page": 36,
+   "text": "For adults with sepsis or septic shock, we \u201crecommend against\u201d using starches for resuscitation.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "against",
+   "certainty": "high",
+   "printed_grade": "(strong recommendation, high-certainty evidence)"
+  },
+  {
+   "ref_id": 47,
+   "page": 36,
+   "text": "For adults with sepsis and septic shock, we \u201csuggest against\u201d using gelatin for resuscitation.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "moderate",
+   "printed_grade": "(conditional recommendation, moderate certainty evidence)"
+  },
+  {
+   "ref_id": 48,
+   "page": 37,
+   "text": "For adults with sepsis or septic shock who have already received fluid resuscitation with 30 mL/kg and have persistent hypoperfusion, we \u201csuggest\u201d using either a liberal or a restrictive fluid resusci",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 49,
+   "page": 38,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest\u201d using dynamic measures to guide fluid resuscitation over physical examination or static measures alone.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 50,
+   "page": 39,
+   "text": "For adults with septic shock, there is \u201cinsufficient evidence\u201d to make a recommendation on using minimally invasive or noninvasive cardiac output monitoring in addition to usual care. Remark: Minimall",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  },
+  {
+   "ref_id": 51,
+   "page": 39,
+   "text": "For adults with sepsis and elevated lactate or septic shock, we \u201csuggest\u201d using serial lactate measurements to guide resuscitation.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 52,
+   "page": 40,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest\u201d using capillary refill time to guide resuscitation as an adjunct to other measures of perfusion.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 53,
+   "page": 41,
+   "text": "For adults with septic shock, we \u201crecommend\u201d using norepinephrine as the first-line agent over dopamine, epinephrine, or selepressin.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "mixed: high/low/low",
+   "printed_grade": "(strong recommendation; dopamine high, epinephrine low, selepressin low)"
+  },
+  {
+   "ref_id": 54,
+   "page": 41,
+   "text": "For adults with septic shock, we \u201csuggest against\u201d using terlipressin.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 55,
+   "page": 41,
+   "text": "For adults with septic shock, we \u201csuggest\u201d using norepinephrine as the first-line agent over vasopressin or angiotensin II.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "mixed: low/very_low",
+   "printed_grade": "(conditional recommendation; vasopressin low, angiotensin II very low)"
+  },
+  {
+   "ref_id": 56,
+   "page": 41,
+   "text": "For adults with septic shock on escalating doses of norepinephrine, we \u201csuggest\u201d adding vasopressin.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(conditional recommendation, moderate cer- tainty evidence)"
+  },
+  {
+   "ref_id": 57,
+   "page": 41,
+   "text": "For adults with septic shock and inadequate MAP levels despite norepinephrine and vasopressin, we \u201csuggest\u201d adding epinephrine.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 58,
+   "page": 41,
+   "text": "For adults with septic shock with concomitant cardiac dysfunction, we \u201csuggest\u201d using either norepinephrine or epinephrine as first line vasopressor.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 59,
+   "page": 43,
+   "text": "For adults with refractory septic shock and escalating vasopressor requirements, there is \u201cinsufficient evidence\u201d to make a recommendation on IV methylene blue. Remark: Although methylene blue may imp",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  },
+  {
+   "ref_id": 60,
+   "page": 43,
+   "text": "For adults with septic shock and cardiac dysfunction with persistent hypoperfusion despite adequate fluid status and arterial blood pressure, we \u201csuggest\u201d using inotropes over no inotropes.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 61,
+   "page": 43,
+   "text": "For adults with septic shock with persistent hypoperfusion and cardiac dysfunction despite adequate fluid resuscitation and arterial blood pressure, we \u201csuggest\u201d adding dobutamine to norepinephrine or",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 62,
+   "page": 44,
+   "text": "For adults with septic shock and cardiac dysfunction with persistent hypoperfusion despite adequate volume status and arterial blood pressure, we \u201csuggest against\u201d using levosimendan.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 63,
+   "page": 44,
+   "text": "For adults with septic shock and ongoing requirement for vasopressors, there is \u201cinsufficient evidence\u201d to make a recommendation on use of oral midodrine.",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  },
+  {
+   "ref_id": 64,
+   "page": 45,
+   "text": "For adults with septic shock, we \u201csuggest against\u201d using beta-blockers as a treatment for septic shock.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation; very low certainty evidence)"
+  },
+  {
+   "ref_id": 65,
+   "page": 46,
+   "text": "For adults with sepsis, we \u201csuggest\u201d measuring oxygenation by either pulse oximeter (Spo 2) or arterial blood gas (Sao 2) in conjunction with physical examination and clinical acumen.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 66,
+   "page": 47,
+   "text": "For adults with sepsis and acute hypoxemic respiratory failure, we \u201csuggest\u201d titrating Fio 2 to target either higher, more liberal oxygen levels or lower, conservative oxygen levels depending on patie",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 67,
+   "page": 47,
+   "text": "For adults with sepsis and acute hypoxemic respiratory failure, we \u201csuggest\u201d using high flow nasal cannula (HFNC) therapy over conventional oxygen therapy.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 68,
+   "page": 48,
+   "text": "For adults with sepsis and acute hypoxemic respiratory failure, we \u201csuggest\u201d using HFNC as the initial therapy over noninvasive positive pressure ventilation.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 69,
+   "page": 48,
+   "text": "For adults with sepsis and acute hypoxemic respiratory failure, we \u201csuggest\u201d using HFNC over high flow alternating with noninvasive positive pressure ventilation.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 70,
+   "page": 49,
+   "text": "For adults with sepsis and acute hypoxemic respiratory failure who are not intubated, we \u201csuggest\u201d a trial of awake proning.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 71,
+   "page": 49,
+   "text": "For adults with sepsis and ARDS, we \u201crecommend\u201d using a low tidal volume ventilation strategy (6 mL/kg) over a high tidal volume strategy (> 10 mL/kg).",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "high",
+   "printed_grade": "(strong recommendation, high certainty of evidence)"
+  },
+  {
+   "ref_id": 72,
+   "page": 49,
+   "text": "For adults with sepsis-associated hypoxemic respiratory failure without ARDS, we \u201csuggest\u201d using a tidal volume of 6\u20148 mL/kg ideal body weight (IBW) over a lower (4 to < 6 mL/kg IBW) tidal volume.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 73,
+   "page": 50,
+   "text": "For adults with sepsis and ARDS, we \u201crecommend\u201d using an upper limited goal for plateau pressure of 30 cm H2o) over higher plateau pressures.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "high",
+   "printed_grade": "(strong recommendation, high certainty of evidence)"
+  },
+  {
+   "ref_id": 74,
+   "page": 50,
+   "text": "For adults with sepsis and moderate-severe ARDS, we \u201csuggest\u201d using higher positive end-expiratory pressure (PEEP) over lower PEEP .",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(conditional recommendation, moderate cer- tainty of evidence)"
+  },
+  {
+   "ref_id": 75,
+   "page": 50,
+   "text": "For adults with sepsis and moderate-severe ARDS, we \u201crecommend against\u201d using an incremental PEEP titration strategy",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "against",
+   "certainty": "moderate",
+   "printed_grade": "(strong recommendation, moderate certainty of evidence)"
+  },
+  {
+   "ref_id": 76,
+   "page": 50,
+   "text": "For adults with sepsis and moderate-severe ARDS, we \u201csuggest\u201d using prone ventilation for greater than 12 hr daily.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(conditional recommendation, moderate cer- tainty of evidence)"
+  },
+  {
+   "ref_id": 77,
+   "page": 50,
+   "text": "For adults with sepsis and moderate-severe ARDS, we \u201csuggest\u201d using intermittent NMBA boluses over continuous NMBA infusion.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(conditional recommendation, moderate certainty of evidence)"
+  },
+  {
+   "ref_id": 78,
+   "page": 50,
+   "text": "For adults with severe ARDS due to sepsis, we \u201csuggest\u201d using veno-venous ECMO when conventional mechanical ventilation fails in experienced centers with infrastructure to support its use.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty of evidence)"
+  },
+  {
+   "ref_id": 79,
+   "page": 51,
+   "text": "For adults with septic shock, we \u201csuggest\u201d using IV corticosteroids.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 80,
+   "page": 51,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest against\u201d the use of antipyretic therapy, either pharmacologic or surface cooling, for the purpose of improving clinical outcomes.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty of evidence)"
+  },
+  {
+   "ref_id": 81,
+   "page": 52,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest against\u201d using IV vitamin C in patients with sepsis or septic shock.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 82,
+   "page": 52,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest against\u201d using IV immunoglobulins.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 83,
+   "page": 52,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest against\u201d using blood purification techniques, including hemoperfusion, highdose hemofiltration, or plasma exchange.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 84,
+   "page": 52,
+   "text": "For adults with sepsis or septic shock we \u201csuggest against\u201d using polymyxin B hemoperfusion.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 85,
+   "page": 53,
+   "text": "For adults with sepsis and septic shock, we \u201csuggest against\u201d using Vitamin D therapy for sepsis treatment.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty of evidence)"
+  },
+  {
+   "ref_id": 86,
+   "page": 54,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest against\u201d using XueBiJing injection outside of jurisdictions where it has regulatory approval.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 87,
+   "page": 54,
+   "text": "For adults with sepsis or septic shock, and who have risk factors for GI bleeding, we \u201csuggest\u201d using stress ulcer prophylaxis with proton-pump inhibitors over not using stress ulcer prophylaxis.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(conditional recommendation, moderate certainty of evidence)"
+  },
+  {
+   "ref_id": 88,
+   "page": 55,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest against\u201d using probiotics.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty of evidence)"
+  },
+  {
+   "ref_id": 89,
+   "page": 55,
+   "text": "For adults with septic shock after the acute resuscitation phase, we \u201csuggest\u201d using active fluid removal.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation; very low certainty evidence)."
+  },
+  {
+   "ref_id": 90,
+   "page": 56,
+   "text": "For adults with sepsis or septic shock, we \u201crecommend\u201d using a restrictive transfusion strategy over a liberal transfusion strategy.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(strong recommendation, moderate certainty of evidence)"
+  },
+  {
+   "ref_id": 91,
+   "page": 56,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest\u201d early (within 72 h) initiation of enteral nutrition.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty of evidence)"
+  },
+  {
+   "ref_id": 92,
+   "page": 56,
+   "text": "For adults with sepsis or septic shock, we \u201crecommend\u201d initiating insulin therapy at a glucose level of \u2265180 mg/dL (10 mmol/L)",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(strong recommendation, moderate certainty of evidence)"
+  },
+  {
+   "ref_id": 93,
+   "page": 56,
+   "text": "For adults with sepsis or septic shock and acute kidney injury, with no definitive indication for renal replacement therapy, we \u201csuggest against\u201d using renal replacement therapy.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "moderate",
+   "printed_grade": "(conditional recommendation, moderate certainty of evidence)"
+  },
+  {
+   "ref_id": 94,
+   "page": 56,
+   "text": "For adults with sepsis or septic shock and acute kidney injury warranting renal replacement therapy, we \u201csuggest\u201d either continuous or intermittent renal replacement therapy.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty of evidence)"
+  },
+  {
+   "ref_id": 95,
+   "page": 56,
+   "text": "For adults with septic shock and hypoperfusion-induced lactic acidemia, we \u201csuggest against\u201d using sodium bicarbonate therapy to improve hemodynamics or to reduce vasopressor requirements.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty of evidence)"
+  },
+  {
+   "ref_id": 96,
+   "page": 56,
+   "text": "For adults with septic shock, severe metabolic acidemia (pH \u22647 .2), and acute kidney injury (AKIN score 2 or 3), we \u201csuggest\u201d using sodium bicarbonate therapy.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty of evidence)"
+  },
+  {
+   "ref_id": 97,
+   "page": 57,
+   "text": "For adults with sepsis or septic shock, we \u201crecommend\u201d using pharmacologic venous thromboembolism (VTE) prophylaxis unless a contraindication exists.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(strong recommendation, moderate certainty of evidence)"
+  },
+  {
+   "ref_id": 98,
+   "page": 57,
+   "text": "For adults with sepsis or septic shock, we \u201crecommend\u201d using low molecular weight heparin over unfractionated heparin for VTE prophylaxis",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(strong recommendation, moderate certainty of evidence)"
+  },
+  {
+   "ref_id": 99,
+   "page": 57,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest\u201d using pharmacological VTE prophylaxis alone over pharmacological VTE prophylaxis plus mechanical VTE prophylaxis.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_grade": "(conditional recommendation, moderate certainty of evidence)"
+  },
+  {
+   "ref_id": 100,
+   "page": 57,
+   "text": "For adults with sepsis or septic shock, clinicians should discuss goals of care and prognosis with patients and/or families.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 101,
+   "page": 57,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest\u201d addressing goals of care early",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty of evidence)"
+  },
+  {
+   "ref_id": 102,
+   "page": 57,
+   "text": "For adult patients with sepsis or septic shock, there is \u201cinsufficient evidence\u201d to issue a recommendation regarding the use of a specific standardized criterion to identify patients for goals of care",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  },
+  {
+   "ref_id": 103,
+   "page": 57,
+   "text": "Health systems should implement strategies to ensure that patients being discharged from hospital after sepsis or septic shock have the opportunity to execute advanced directives.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 104,
+   "page": 57,
+   "text": "For adults with sepsis or septic shock, there is \u201cinsufficient evidence\u201d to issue a recommendation on the systematic establishment of advanced care directives before hospital discharge.",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  },
+  {
+   "ref_id": 105,
+   "page": 58,
+   "text": "For adults with sepsis or septic shock, there is \u201cinsufficient evidence\u201d to issue a recommendation regarding formal time-limited trials (TLTs) of critical care. Remark: A TLT is a collaborative plan t",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  },
+  {
+   "ref_id": 106,
+   "page": 59,
+   "text": "The principles of palliative care (which may include palliative care consultation based on clinician judgement) should be integrated into the treatment plan, when appropriate, to address patient and f",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 107,
+   "page": 59,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest against\u201d routine formal palliative care consultation for all patients over palliative care consultation based on clinician judgement.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty of evidence)"
+  },
+  {
+   "ref_id": 108,
+   "page": 59,
+   "text": "For adults with sepsis and septic shock admitted to ICU, we \u201csuggest\u201d using a critical care transition program, compared with usual care, upon transfer to the floor.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 109,
+   "page": 59,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest\u201d using a handoff process of critically important information at transitions of care over no such handoff process.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 110,
+   "page": 59,
+   "text": "Hospitals and health systems should screen patients with sepsis or septic shock for economic and social support needs",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 111,
+   "page": 59,
+   "text": "For adults with sepsis or septic shock, comprehensive medication reconciliation should be performed at transitions in care, including at ICU and hospital discharge.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 112,
+   "page": 59,
+   "text": "For adults with sepsis or septic shock, we \u201csuggest\u201d comprehensive medication reconciliation using a pharmacist-based approach at transitions in care.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 113,
+   "page": 60,
+   "text": "Clinical teams should provide adults with sepsis or septic shock and their families the opportunity to participate in shared decision making in post-ICU and hospital discharge planning to ensure disch",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 114,
+   "page": 60,
+   "text": "For adult survivors of sepsis or septic shock and their families, clinicians should provide information about the hospital stay, sepsis and related diagnoses, treatments, and common impairments after ",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 115,
+   "page": 60,
+   "text": "For adults with sepsis or septic shock who developed new impairments, hospital discharge plans should include follow-up with clinicians able to support and manage new and long-term sequelae.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 116,
+   "page": 60,
+   "text": "Healthcare systems should implement strategies to ensure that patients, their families, and their primary care providers are provided with adequate information to navigate the transition out of hospit",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 117,
+   "page": 60,
+   "text": "For adults who survive hospitalization with sepsis or septic shock, there is insufficient evidence to issue a recommendation regarding a specific structured multi-component discharge planning process.",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  },
+  {
+   "ref_id": 119,
+   "page": 60,
+   "text": "For adults with sepsis and septic shock and their families, we \u201csuggest\u201d offering written and verbal sepsis education",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_grade": "(conditional recommendation, very low certainty evidence)"
+  },
+  {
+   "ref_id": 120,
+   "page": 60,
+   "text": "Health systems should implement strategies to ensure clinicians have the knowledge and competency to support sepsis survivors and their families during the post-hospital recovery.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 121,
+   "page": 61,
+   "text": "There is \u201cinsufficient evidence\u201d to issue a recommendation regarding providing sepsisfocused educational material to primary care providers as compared with usual care.",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  },
+  {
+   "ref_id": 122,
+   "page": 61,
+   "text": "Health systems should implement strategies to support sepsis survivors and their families during the post-hospital recovery.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 123,
+   "page": 61,
+   "text": "There is \u201cinsufficient evidence\u201d to make a recommendation on early post-hospital discharge follow-up vs. routine posthospital discharge follow-up.",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  },
+  {
+   "ref_id": 124,
+   "page": 61,
+   "text": "Health systems should facilitate assessment and follow-up for physical, cognitive, and emotional problems after hospital discharge for sepsis or septic shock.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 125,
+   "page": 61,
+   "text": "For adult survivors of hospitalization for sepsis or septic shock, we \u201csuggest\u201d offering post critical illness follow-up services.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 126,
+   "page": 62,
+   "text": "For adult survivors of hospitalization for sepsis or septic shock who received invasive mechanical ventilation >48 hr, we \u201csuggest\u201d offering physical rehabilitation services after hospital discharge.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation; low certainty evidence)"
+  },
+  {
+   "ref_id": 127,
+   "page": 62,
+   "text": "For adult survivors of hospitalization for sepsis or septic shock, we \u201csuggest\u201d offering services that support mental health after hospital discharge.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_grade": "(conditional recommendation, low certainty evidence)"
+  },
+  {
+   "ref_id": 128,
+   "page": 62,
+   "text": "Adult survivors of hospitalization for sepsis or septic shock who demonstrate clinical symptoms of mental health disorders should be referred to appropriate healthcare professionals for evaluation and",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": "(good practice statement)"
+  },
+  {
+   "ref_id": 129,
+   "page": 63,
+   "text": "For adult survivors of hospitalization for sepsis or septic shock, there is \u201cinsufficient evidence\u201d to issue a recommendation regarding cognitiontargeted therapies vs. usual care. Remark: Where cognit",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "printed_grade": ""
+  }
+ ],
+ "matches": [
+  {
+   "ref_id": 1,
+   "extracted_id": 97,
+   "strength_ok": true,
+   "certainty_ok": false
+  },
+  {
+   "ref_id": 2,
+   "extracted_id": 98,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 3,
+   "extracted_id": 101,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 4,
+   "extracted_id": 1,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 7,
+   "extracted_id": 11,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 8,
+   "extracted_id": 12,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 10,
+   "extracted_id": 34,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 11,
+   "extracted_id": 35,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 12,
+   "extracted_id": 102,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 13,
+   "extracted_id": 87,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 14,
+   "extracted_id": 79,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 15,
+   "extracted_id": 75,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 16,
+   "extracted_id": 13,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 17,
+   "extracted_id": 15,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 18,
+   "extracted_id": 14,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 20,
+   "extracted_id": 6,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 21,
+   "extracted_id": 9,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 22,
+   "extracted_id": 10,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 24,
+   "extracted_id": 38,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 25,
+   "extracted_id": 40,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 26,
+   "extracted_id": 41,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 27,
+   "extracted_id": 56,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 28,
+   "extracted_id": 76,
+   "strength_ok": false,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 29,
+   "extracted_id": 77,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 31,
+   "extracted_id": 70,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 32,
+   "extracted_id": 55,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 33,
+   "extracted_id": 50,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 34,
+   "extracted_id": 66,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 36,
+   "extracted_id": 44,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 37,
+   "extracted_id": 63,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 38,
+   "extracted_id": 72,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 39,
+   "extracted_id": 7,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 40,
+   "extracted_id": 8,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 41,
+   "extracted_id": 103,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 42,
+   "extracted_id": 91,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 43,
+   "extracted_id": 47,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 44,
+   "extracted_id": 42,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 45,
+   "extracted_id": 68,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 46,
+   "extracted_id": 43,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 47,
+   "extracted_id": 31,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 48,
+   "extracted_id": 74,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 49,
+   "extracted_id": 69,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 51,
+   "extracted_id": 24,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 52,
+   "extracted_id": 67,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 53,
+   "extracted_id": 88,
+   "strength_ok": true,
+   "certainty_ok": false
+  },
+  {
+   "ref_id": 54,
+   "extracted_id": 90,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 55,
+   "extracted_id": 93,
+   "strength_ok": true,
+   "certainty_ok": false
+  },
+  {
+   "ref_id": 56,
+   "extracted_id": 85,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 57,
+   "extracted_id": 84,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 58,
+   "extracted_id": 94,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 60,
+   "extracted_id": 81,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 61,
+   "extracted_id": 95,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 62,
+   "extracted_id": 82,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 64,
+   "extracted_id": 89,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 65,
+   "extracted_id": 78,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 66,
+   "extracted_id": 17,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 67,
+   "extracted_id": 20,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 68,
+   "extracted_id": 18,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 69,
+   "extracted_id": 19,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 70,
+   "extracted_id": 21,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 71,
+   "extracted_id": 22,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 72,
+   "extracted_id": 33,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 73,
+   "extracted_id": 23,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 74,
+   "extracted_id": 26,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 75,
+   "extracted_id": 25,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 76,
+   "extracted_id": 28,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 77,
+   "extracted_id": 27,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 78,
+   "extracted_id": 96,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 79,
+   "extracted_id": 92,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 80,
+   "extracted_id": 53,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 81,
+   "extracted_id": 58,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 82,
+   "extracted_id": 57,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 83,
+   "extracted_id": 54,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 84,
+   "extracted_id": 59,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 85,
+   "extracted_id": 32,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 86,
+   "extracted_id": 61,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 87,
+   "extracted_id": 39,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 88,
+   "extracted_id": 60,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 89,
+   "extracted_id": 80,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 90,
+   "extracted_id": 46,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 91,
+   "extracted_id": 64,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 92,
+   "extracted_id": 45,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 93,
+   "extracted_id": 37,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 94,
+   "extracted_id": 36,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 95,
+   "extracted_id": 83,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 96,
+   "extracted_id": 86,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 97,
+   "extracted_id": 49,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 98,
+   "extracted_id": 48,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 99,
+   "extracted_id": 71,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 101,
+   "extracted_id": 51,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 107,
+   "extracted_id": 52,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 108,
+   "extracted_id": 29,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 109,
+   "extracted_id": 65,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 112,
+   "extracted_id": 62,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 119,
+   "extracted_id": 30,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 125,
+   "extracted_id": 2,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 126,
+   "extracted_id": 4,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 127,
+   "extracted_id": 3,
+   "strength_ok": true,
+   "certainty_ok": true
+  }
+ ],
+ "false_positives": [
+  {
+   "extracted_id": 0,
+   "cause": "restatement",
+   "note": "Rationale sentence (p23) restating refs 16+17 (antimicrobials within 1 hr); grade high is wrong (printed very low)."
+  },
+  {
+   "extracted_id": 104,
+   "cause": "restatement",
+   "note": "Rationale sentence (p23) restating ref 18 (rapid assessment within 3 hr); fragment."
+  },
+  {
+   "extracted_id": 105,
+   "cause": "restatement",
+   "note": "Rationale restatement of ref 127 (mental health services), already matched by row 3."
+  },
+  {
+   "extracted_id": 16,
+   "cause": "category",
+   "note": "Ref 59 is \"insufficient evidence\" (no recommendation) on methylene blue; extracted as graded weak/for/very_low."
+  },
+  {
+   "extracted_id": 5,
+   "cause": "category",
+   "note": "Ref 114 good practice statement; extracted graded with placeholder strength and certainty very_low."
+  },
+  {
+   "extracted_id": 73,
+   "cause": "category",
+   "note": "Ref 115 good practice statement; extracted graded with placeholder grade."
+  },
+  {
+   "extracted_id": 99,
+   "cause": "category",
+   "note": "Ref 116 good practice statement; extracted graded with placeholder grade."
+  },
+  {
+   "extracted_id": 100,
+   "cause": "category",
+   "note": "Ref 120 good practice statement; extracted graded with placeholder grade."
+  }
+ ],
+ "false_negatives": [],
+ "notes": "Reference built from the 129 numbered boxed statements in the body (pp13-63); Table 1 (pp3-10) is an image with no extractable text. Statement 118 is a verbatim repeat of 114 (both GPS) and counted once -> 128 reference items: 98 graded, 18 good practice, 12 insufficient evidence. Rec 1 is one sentence with three components each separately graded (strong; moderate/very low/moderate certainty): counted as one item. Recs 53 and 55 print certainty per comparator (53: high/low/low; 55: low/very low). For 1, 53, 55 the extractor gave the first-listed certainty; scored certainty_ok=false strictly (lenient count would be 98/98). Rec 28 'suggest using an empiric regimen without anaerobic coverage' is phrased as for; extractor coded direction=against (semantically against anaerobic coverage) -> strength_ok=false; arguably acceptable. Ungraded: 30 reference items, 4 GPS and 1 insufficient-evidence item were extracted but all as category graded (0 as ungraded); the other 25 ungraded items were not extracted. All 3 restatement FPs come from rationale prose; 2 of them (rows 0, 104) are paraphrases not verbatim statements."
+}

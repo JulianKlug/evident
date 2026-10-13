@@ -1,0 +1,79 @@
+{
+ "doi": "10.7326/m16-1785",
+ "n_reference_graded": 3,
+ "n_reference_ungraded": 1,
+ "tp": 3,
+ "fp": 1,
+ "fn": 0,
+ "strength_ok": 3,
+ "certainty_ok": 3,
+ "ungraded_extracted_as_ungraded": 0,
+ "reference": [
+  {
+   "ref_id": "R1",
+   "page": 1,
+   "text": "ACP and AAFP recommend that clinicians initiate treatment in adults aged 60 years or older with systolic blood pressure persistently at or above 150 mm Hg to achieve a target systolic blood pressure of less than 150 mm Hg",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "high"
+  },
+  {
+   "ref_id": "R2",
+   "page": 1,
+   "text": "ACP and AAFP recommend that clinicians consider initiating or intensifying pharmacologic treatment in adults aged 60 years or older with a history of stroke or transient ischemic attack to achieve a target SBP < 140 mm Hg",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "R3",
+   "page": 1,
+   "text": "ACP and AAFP recommend that clinicians consider initiating or intensifying pharmacologic treatment in some adults aged 60 years or older at high cardiovascular risk, based on individualized assessment, to achieve a target SBP < 140 mm Hg",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "U1",
+   "page": 1,
+   "text": "ACP and AAFP recommend that clinicians select the treatment goals for adults aged 60 years or older based on a periodic discussion of the benefits and harms of specific blood pressure targets with the patient.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "Appended after the Grade parenthesis of each of Recs 1-3; no grade of its own"
+  }
+ ],
+ "matches": [
+  {
+   "ref_id": "R1",
+   "extracted_id": 2,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R2",
+   "extracted_id": 0,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R3",
+   "extracted_id": 1,
+   "strength_ok": true,
+   "certainty_ok": true
+  }
+ ],
+ "false_positives": [
+  {
+   "extracted_id": 3,
+   "cause": "category",
+   "note": "Shared-decision sentence (U1) follows the grade parenthesis in each recommendation and carries no grade; extractor assigned Rec 1's strong/high."
+  }
+ ],
+ "false_negatives": [],
+ "notes": "3 numbered graded recommendations (abstract p1, body p4, figure p5, correction notice p11 repeats Rec 1/3 wording). The 'select treatment goals ... periodic discussion' sentence is repeated after each graded rec, outside the Grade parenthesis; counted once as ungraded. If instead read as the second half of Rec 1 (strong, high), row 3 would be a 'split' FP rather than 'category'; FP count unchanged. Extractor produced no ungraded rows."
+}

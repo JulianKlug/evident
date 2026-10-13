@@ -14,9 +14,11 @@ Only raw extracted values are stored; harmonization is applied on read.
 from __future__ import annotations
 
 import json
+import pathlib
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Iterator, Optional
 
 from evident.domain import (
@@ -148,6 +150,13 @@ _MIGRATIONS = [
 ]
 _CODE_SCHEMA_VERSION = _MIGRATIONS[-1][0]
 
+
+
+class AccessMode(str, Enum):
+    READ_WRITE = "read_write"  # migrates on open
+    READ_ONLY = "read_only"    # frozen analysis source: never written, never migrated
+
+
 _THINKING_TO_DB = {ThinkingMode.OFF: 0, ThinkingMode.ON: 1}
 _THINKING_FROM_DB = {v: k for k, v in _THINKING_TO_DB.items()}
 
@@ -159,6 +168,14 @@ class StoreError(Exception):
 class SchemaTooNewError(StoreError):
     def __init__(self, db_version: int, code_version: int):
         super().__init__(f"DB schema v{db_version} is newer than code v{code_version}")
+        self.db_version = db_version
+        self.code_version = code_version
+
+
+class SchemaMismatchError(StoreError):
+    def __init__(self, db_version: int, code_version: int):
+        super().__init__(f"Read-only DB schema v{db_version} differs from code v{code_version}; "
+                         "it cannot be migrated")
         self.db_version = db_version
         self.code_version = code_version
 
@@ -206,7 +223,10 @@ class Store:
         self._conn = conn
 
     @classmethod
-    def open(cls, path: str) -> "Store":
+    def open(cls, path: str, mode: AccessMode = AccessMode.READ_WRITE) -> "Store":
+        if mode == AccessMode.READ_ONLY:
+            return cls._open_read_only(path)
+
         # Autocommit mode; transactions are explicit via _transaction()
         conn = sqlite3.connect(path, isolation_level=None)
         conn.row_factory = sqlite3.Row
@@ -214,6 +234,22 @@ class Store:
         conn.execute("PRAGMA journal_mode = WAL")
         store = cls(conn)
         store._migrate()
+        return store
+
+    @classmethod
+    def _open_read_only(cls, path: str) -> "Store":
+        """SQLite refuses every write (mode=ro); the file bytes stay as they are."""
+        if not pathlib.Path(path).is_file():
+            raise NotFoundError(f"No database at {path}")
+        uri = pathlib.Path(path).absolute().as_uri() + "?mode=ro"
+        conn = sqlite3.connect(uri, uri=True, isolation_level=None)
+        conn.row_factory = sqlite3.Row
+        store = cls(conn)
+
+        db_version = store._schema_version()
+        if db_version != _CODE_SCHEMA_VERSION:
+            conn.close()
+            raise SchemaMismatchError(db_version, _CODE_SCHEMA_VERSION)
         return store
 
     def close(self) -> None:
