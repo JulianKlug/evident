@@ -933,3 +933,16 @@ All 8 `supersedes_doi` links checked. ERC-ESICM temperature control 2022 folded 
 ## SCCM held-out labels (2026-10-13)
 
 SCCM is 31 of 64 current guidelines and 73% of graded recs, with no labels. Decision: hand-label 3 new SCCM guidelines, out of sample. Random sample (seed 1) of the 27 current SCCM guidelines not in the spot check: safe medication use 2017 (`10.1097/ccm.0000000000002533`), heat stroke 2025 (`10.1097/ccm.0000000000006551`), pediatric end-of-life 2026 (`10.1097/pcc.0000000000003914`); 32 extracted recs. Blind templates (ICU xlsx format + page, rules sheet) in `<data root>/intensive_care_medicine_heldout/`, kept out of the ICU dir so the 12-guideline gate stays comparable. Ungraded statements are labelled too (for v3). `validate` will report this set separately, not gated.
+
+## Corpus search extended before the Paper 1 freeze (2026-10-13)
+
+Society-page cross-check (ESICM guidelines page, SCCM list of guidelines, ACP clinical guidelines page) found graded guidelines the M3 title search missed: titles saying "recommendations"/"consensus"/"practice parameters", and co-led guidelines published outside ICM/CCM/PCCM/Annals. Decision: include society-led or co-led guidelines wherever published; widen the search.
+
+`scripts/search_guidelines.py` now runs three queries per society (source column): `pubmed` (M3 title query, unchanged, still 426 hits), `pubmed_broad` (society journal + recommendation/consensus/statement/practice-parameter titles or guideline publication type), `pubmed_society` (society name in title or corporate author, any journal). Re-run with `--until 2026-10-04`: 566 new hits, screened with publication types and abstracts (GRADE/strength wording), then by hand for every society-named or GRADE-flagged hit. Plus 5 society-page-only and 2 same-series rows. 999 candidates, 85 included (+12):
+
+- ESICM: ATS/ESICM/SCCM ARDS ventilation 2017 (AJRCCM, joint SCCM); ERS/ESICM/ESCMID/ALAT HAP/VAP 2017 (ERJ); neuro fluid therapy 2018; ventilation in acute brain injury 2020; resource-limited-settings series (ESICM Global Intensive Care Working Group + MORU, GRADE 1A–2D): infection 2016, malaria/dengue 2016, pediatric sepsis 2016, supportive care 2017, ICU infrastructure 2017.
+- SCCM: NCS/SCCM antithrombotic ICH reversal 2016 and its 2026 focused update (Neurocrit Care); ACCM pediatric/neonatal septic shock parameters 2017 (GRADE 1C).
+- Co-publications of included guidelines (Resuscitation, ERJ, EJA, JPEN, Acta Anaesthesiol Scand) excluded as duplicate publications; PALICC-2, TAXI, PEACE, Korean/Indian/Chinese societies as other_society (M6 6g); ACP menopause 2026 published after the cutoff (later living update).
+- 9 PubMed records without a DOI (family-physician summaries, case reports): not added.
+
+Society attribution for co-led guidelines: the first corpus society in the byline; the others in `joint_with`. 6 PDFs downloaded (open access), 6 still needed by hand (`import_pdfs.py missing`); then `add` with v2 and re-publish before the freeze.

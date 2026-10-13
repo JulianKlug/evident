@@ -18,7 +18,7 @@ from evident.store import DuplicatePdfError, Store
 
 _REPO_MANIFEST = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "manifest.csv")
 _REPO_CANDIDATES = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "candidates.csv")
-_N_REPO_GUIDELINES = 73
+_N_REPO_GUIDELINES = 85
 _HEADER = "doi,society,year,title,topic_id,supersedes_doi,grading_family,pdf_filename"
 _A = "10.1007/a,ESICM,2016,Fluids v1,fluids,,grade,"
 _B = "10.1007/b,ESICM,2020,Fluids v2,fluids,10.1007/a,grade,"

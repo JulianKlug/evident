@@ -72,3 +72,15 @@ doi,society,year,title,topic_id,supersedes_doi,grading_family,pdf_filename,joint
 10.1097/ccm.0000000000007085,SCCM,2026,Society of Critical Care Medicine Guidelines on Caring for Older Adults in the ICU,sccm-older-adults,,grade,,
 10.1097/pcc.0000000000003914,SCCM,2026,Society of Critical Care Medicine 2026 Guidelines on the Care and Management of Pediatric and Neonatal Intensive Care Patients at the End of Life,sccm-end-of-life-pediatric,,grade,,
 10.1097/pcc.0000000000003927,SCCM,2026,Surviving Sepsis Campaign International Guidelines for the Management of Sepsis and Septic Shock in Children 2026,ssc-children,10.1097/pcc.0000000000002198,grade,,ESICM
+10.1164/rccm.201703-0548st,ESICM,2017,An Official American Thoracic Society/European Society of Intensive Care Medicine/Society of Critical Care Medicine Clinical Practice Guideline: Mechanical Ventilation in Adult Patients with Acute Respiratory Distress Syndrome,ats-esicm-sccm-ards-ventilation,,grade,,SCCM
+10.1183/13993003.00582-2017,ESICM,2017,International ERS/ESICM/ESCMID/ALAT guidelines for the management of hospital-acquired pneumonia and ventilator-associated pneumonia,ers-esicm-hap-vap,,grade,,
+10.1007/s00134-018-5086-z,ESICM,2018,Fluid therapy in neurointensive care patients: ESICM consensus and clinical practice recommendations,esicm-neuro-fluid-therapy,,grade,,
+10.1007/s00134-020-06283-0,ESICM,2020,Mechanical ventilation in patients with acute brain injury: recommendations of the European Society of Intensive Care Medicine consensus,esicm-brain-injury-ventilation,,grade,,
+10.1007/s12028-015-0222-x,SCCM,2016,Guideline for Reversal of Antithrombotics in Intracranial Hemorrhage: A Statement for Healthcare Professionals from the Neurocritical Care Society and Society of Critical Care Medicine,ncs-sccm-ich-antithrombotic-reversal,,grade,,
+10.1007/s12028-026-02601-4,SCCM,2026,Treatment of Antithrombotic-Associated Intracranial Hemorrhage in Adults: A Focused Guideline Update from the Neurocritical Care Society and the Society of Critical Care Medicine,ncs-sccm-ich-antithrombotic-focused-update,,grade,,
+10.1097/ccm.0000000000002425,SCCM,2017,American College of Critical Care Medicine Clinical Practice Parameters for Hemodynamic Support of Pediatric and Neonatal Septic Shock,accm-pediatric-septic-shock-hemodynamics,,grade,,
+10.1007/s00134-016-4415-3,ESICM,2016,Recommendations for infection management in patients with sepsis and septic shock in resource-limited settings,esicm-rls-infection,,grade,,
+10.1007/s00134-016-4602-2,ESICM,2016,Recommendations for the management of severe malaria and severe dengue in resource-limited settings,esicm-rls-malaria-dengue,,grade,,
+10.1007/s00134-017-4972-0,ESICM,2017,Recommendations on infrastructure and organization of adult ICUs in resource-limited settings,esicm-rls-icu-infrastructure,,grade,,
+10.1007/s00134-017-4831-z,ESICM,2017,Core elements of general supportive care for patients with sepsis and septic shock in resource-limited settings,esicm-rls-supportive-care,,grade,,
+10.1007/s00134-016-4382-8,ESICM,2016,Pediatric sepsis and septic shock management in resource-limited settings,esicm-rls-pediatric-sepsis,,grade,,
