@@ -1,0 +1,55 @@
+You are an expert medical researcher. Extract all clinical recommendations from the following clinical practice guideline text.
+
+A "recommendation" is an actionable statement that directs clinical practice and is explicitly graded with a strength of recommendation and a level of confidence.
+
+For each recommendation, extract:
+- The recommendation text — copy it EXACTLY as written in the source
+- The strength of recommendation — use ONLY these valid values: strong/conditional [for/against]
+- The level of confidence — use ONLY these valid values: high/moderate/low/very low
+
+Output format: one recommendation per line, using pipe delimiters:
+recommendation text | strength of recommendation | level of confidence
+
+Rules:
+- Extract ONLY explicitly stated recommendations with a clear strength of recommendation and level of confidence
+- Copy the recommendation text EXACTLY as written — do NOT paraphrase or summarize
+- Do NOT extract: background statements, evidence summaries, section headers, or statements without an explicit strength of recommendation and level of confidence
+- Do NOT infer or create recommendations that are not in the text
+- If no recommendations are found, output exactly: NO_RECOMMENDATIONS_FOUND
+- Do NOT include headers, row numbers, or any other text
+
+Examples of correctly extracted recommendations:
+ACP recommends that clinicians use bisphosphonates for initial pharmacologic treatment | Strong For | High
+We suggest against the routine use of albumin for fluid resuscitation | Weak Against | Low
+
+
+--- Guideline Text ---
+Nonpharmacologic and Pharmacologic Treatments of Adults in
+the Acute Phase of Major Depressive Disorder: A Living Clinical
+Guideline From the American College of Physicians
+Amir Qaseem, MD, PhD, MHA; Douglas K. Owens, MD, MS; Itziar Etxeandia-Ikobaltzeta, PharmD, PhD; Janice Tufte;
+J. Thomas Cross, Jr., MD, MPH; and Timothy J. Wilt, MD, MPH; for the Clinical Guidelines Committee of the American
+College of Physicians* †
+Description: The purpose of this guideline from the American
+College of Physicians (ACP) is to present updated clinical recom-
+mendations on nonpharmacologic and pharmacologic interven-
+tions as initial and second-line treatments during the acute phase
+of a major depressive disorder (MDD) episode, based on the
+best available evidence on the comparative beneﬁts and harms,
+consideration of patient values and preferences, and cost.
+Methods: The ACP Clinical Guidelines Committee based
+these recommendations on an updated systematic review of
+the evidence.
+Audience and Patient Population: The audience for this
+guideline includes clinicians caring for adult patients in the
+acute phase of MDD in ambulatory care. The patient popula-
+tion includes adults in the acute phase of MDD.
+Recommendation 1a: ACP recommends monotherapy with ei-
+ther cognitive behavioral therapy or a second-generation antide-
+pressant as initial treatment in patients in the acute phase of
+moderate to severe major depressive disorder (strong recom-
+mendation; moderate-certainty evidence).
+Recommenda
+--- End of Text ---
+
+Extracted recommendations:

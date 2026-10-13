@@ -1,0 +1,42 @@
+{
+ "pages": [
+  "Nonpharmacologic and Pharmacologic Treatments of Adults in\nthe Acute Phase of Major Depressive Disorder: A Living Clinical\nGuideline From the American College of Physicians\nAmir Qaseem, MD, PhD, MHA; Douglas K. Owens, MD, MS; Itziar Etxeandia-Ikobaltzeta, PharmD, PhD; Janice Tufte;\nJ. Thomas Cross, Jr., MD, MPH; and Timothy J. Wilt, MD, MPH; for the Clinical Guidelines Committee of the American\nCollege of Physicians* †\nDescription: The purpose of this guideline from the American\nCollege of Physicians (ACP) is to present updated clinical recom-\nmendations on nonpharmacologic and pharmacologic interven-\ntions as initial and second-line treatments during the acute phase\nof a major depressive disorder (MDD) episode, based on the\nbest available evidence on the comparative beneﬁts and harms,\nconsideration of patient values and preferences, and cost.\nMethods: The ACP Clinical Guidelines Committee based\nthese recommendations on an updated systematic review of\nthe evidence.\nAudience and Patient Population: The audience for this\nguideline includes clinicians caring for adult patients in the\nacute phase of MDD in ambulatory care. The patient popula-\ntion includes adults in the acute phase of MDD.\nRecommendation 1a: ACP recommends monotherapy with ei-\nther cognitive behavioral therapy or a second-generation antide-\npressant as initial treatment in patients in the acute phase of\nmoderate to severe major depressive disorder (strong recom-\nmendation; moderate-certainty evidence).\nRecommenda",
+  "The estimated economic burden attributable to MDD in\nthe United States was $120 billion in 2020, including direct\nmedical and pharmaceutical costs ($36 billion) of treating\nMDD, suicide-related costs ($13 billion), and effects on\nworkplace productivity ($70 billion) (6).\nMajor depressive disorder is deﬁned as the presence\nof a depressed mood or a loss of interest or pleasure in\nnormally enjoyable activities that occurs along with at least\n4 additional diagnostic criteria or symptoms for at least 2\nw e e k s( 7 )a n dc a u s e sc l i n i c a l l ys i g n iﬁcant distress or impair-\nment in social, occupational, or other important areas of\nfunctioning (seeTable 1aof Supplement 1[available at Annals.\norg] for diagnostic criteria for MDD). Based on severity of symp-\ntoms, functional impairment, and level of patient distress, MDD\ncan be characterized as mild, moderate, or severe (Table\n1b of Supplement 1)( 8 –13). One third of patients with\nMDD have severe MDD, which is associated with more dif-\nﬁculty in achieving treatment response and remission (8).\nIn addition, about 75% of people with MDD also have a\nco-occurring anxiety disorder (2), which can make their\nsymptoms worse and recovery more difﬁcult (14).\nTreatment of MDD can be characterized by 3 phases\n(Figure 1 ): acute, continuation, and maintenance (16).\nDuring the acute phase —the focus of this guideline —\nsymptoms are treated to remission, which is de ﬁned as\nthe resolution of symptoms. Response to treatment refers\nto subs",
+  "Figure 2. Initial and second-line treatments of adults in the acute phase of MDD: recommendations summary.\nInitial Treatments of Adults in the Acute Phase of Major Depressive Disorder\nRecommendations\nRECOMMENDATION 1a: ACP recommends monotherapy with either cognitive behavioral therapy or a second-generation\nantidepressant as initial treatment in patients in the acute phase of moderate to severe major depressive disorder (strong\nrecommendation; moderate-certainty evidence).\nRECOMMENDATION 1b: ACP suggests combination therapy with cognitive behavioral therapy and a second-generation\nantidepressant as initial treatment in patients in the acute phase of moderate to severe major depressive disorder (conditional\nrecommendation; low-certainty evidence).\nThe informed decision on the options of monotherapy with cognitive behavioral therapy versus second-generation\nantidepressants or combination therapy should be personalized and based on discussion of potential treatment\nbenefits, harms, adverse effect profiles, cost, feasibility, patients’ specific symptoms (such as insomnia, hypersomnia, or\nfluctuation in appetite), comorbidities, concomitant medication use, and patient preferences.\nRECOMMENDATION 2: ACP suggests monotherapy with cognitive behavioral therapy as initial treatment in patients in the\nacute phase of mild major depressive disorder (conditional recommendation; low-certainty evidence).\nRATIONALE\nModerate to severe MDD: Use of SGAs is common because of their availability, "
+ ],
+ "pages_per_chunk": 1,
+ "examples": [
+  {
+   "recommendation": "ACP recommends that clinicians use bisphosphonates for initial pharmacologic treatment",
+   "class": "Strong For",
+   "LOE": "High"
+  },
+  {
+   "recommendation": "We suggest against the routine use of albumin for fluid resuscitation",
+   "class": "Weak Against",
+   "LOE": "Low"
+  }
+ ],
+ "responses": [
+  "Here are the extracted recommendations:\n1. ACP recommends monotherapy with either cognitive behavioral therapy or a second-generation antidepressant as initial treatment in patients in the acute phase of moderate to severe major depressive disorder | strong recommendation | moderate-certainty evidence\n2. **ACP suggests combination therapy with cognitive behavioral therapy and a second-generation antidepressant as initial treatment in patients in the acute phase of moderate to severe major depressive disorder** | conditional recommendation | low-certainty evidence",
+  "ACP RECOMMENDS MONOTHERAPY WITH EITHER COGNITIVE BEHAVIORAL THERAPY OR A SECOND-GENERATION ANTIDEPRESSANT AS INITIAL TREATMENT IN PATIENTS IN THE ACUTE PHASE OF MODERATE TO SEVERE MAJOR DEPRESSIVE DISORDER  | Strong | Moderate\nthis line has no delimiters\nACP suggests monotherapy with cognitive behavioral therapy as initial treatment in patients in the acute phase of mild major depressive disorder | onditional | Low certainty",
+  "NO_RECOMMENDATIONS_FOUND"
+ ],
+ "sc_responses": [
+  [
+   "Here are the extracted recommendations:\n1. ACP recommends monotherapy with either cognitive behavioral therapy or a second-generation antidepressant as initial treatment in patients in the acute phase of moderate to severe major depressive disorder | strong recommendation | moderate-certainty evidence\n2. **ACP suggests combination therapy with cognitive behavioral therapy and a second-generation antidepressant as initial treatment in patients in the acute phase of moderate to severe major depressive disorder** | conditional recommendation | low-certainty evidence",
+   "ACP RECOMMENDS MONOTHERAPY WITH EITHER COGNITIVE BEHAVIORAL THERAPY OR A SECOND-GENERATION ANTIDEPRESSANT AS INITIAL TREATMENT IN PATIENTS IN THE ACUTE PHASE OF MODERATE TO SEVERE MAJOR DEPRESSIVE DISORDER  | Strong | Moderate\nthis line has no delimiters\nACP suggests monotherapy with cognitive behavioral therapy as initial treatment in patients in the acute phase of mild major depressive disorder | onditional | Low certainty",
+   "NO_RECOMMENDATIONS_FOUND"
+  ],
+  [
+   "ACP recommends monotherapy with either cognitive behavioral therapy or a second-generation antidepressant as initial treatment in patients in the acute phase of moderate to severe major depressive disorder | Strong | Moderate",
+   "ACP suggests monotherapy with cognitive behavioral therapy as initial treatment in patients in the acute phase of mild major depressive disorder | Conditional | Low",
+   "NO_RECOMMENDATIONS_FOUND"
+  ],
+  [
+   "ACP recommends monotherapy with either cognitive behavioral therapy or a second-generation antidepressant as initial treatment in patients in the acute phase of moderate to severe major depressive disorder (see text) | strong recommendation | high",
+   "Background statement only | Weak | Low",
+   "NO_RECOMMENDATIONS_FOUND"
+  ]
+ ]
+}

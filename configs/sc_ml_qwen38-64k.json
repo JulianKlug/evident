@@ -1,0 +1,21 @@
+{
+  "classifier_path": "artifacts/classifier/rec_classifier.joblib",
+  "dedup_threshold": 0.97,
+  "embedding_model": "FremyCompany/BioLORD-2023",
+  "few_shot": "few_shot",
+  "few_shot_seed": 0,
+  "ml_filter": "on",
+  "ml_filter_threshold": 0.3,
+  "mode": "self_consistency",
+  "model": "qwen38-64k:latest",
+  "n_examples": 3,
+  "pages_per_chunk": 1,
+  "prompt_version": "v0",
+  "sc_consensus": "adaptive",
+  "sc_consensus_threshold": 2,
+  "sc_samples": 3,
+  "sc_similarity_threshold": 0.97,
+  "sc_temperature": 0.3,
+  "seed": 0,
+  "thinking": "off"
+}

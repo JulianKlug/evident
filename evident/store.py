@@ -1,0 +1,597 @@
+"""SQLite repository for the evidence map: schema, migrations, CRUD, snapshot state machine.
+
+    extractor_version ─┐
+                       ▼
+    guideline ──▶ snapshot_member ◀── snapshot
+        │                               │
+        └────────▶ extraction_run ◀─────┘
+                     │        │
+            recommendation  llm_call
+
+Only raw extracted values are stored; harmonization is applied on read.
+"""
+
+from __future__ import annotations
+
+import json
+import sqlite3
+from contextlib import contextmanager
+from datetime import datetime, timezone
+from typing import Iterator, Optional
+
+from evident.domain import (
+    Category,
+    ExtractionRun,
+    ExtractorVersion,
+    GateResult,
+    GradingFamily,
+    Guideline,
+    LlmCall,
+    MemberOrigin,
+    RawRecommendation,
+    RunStatus,
+    Snapshot,
+    SnapshotMember,
+    SnapshotState,
+    ThinkingMode,
+    Validation,
+)
+from utils.doi import normalize_doi
+
+# Legal snapshot transitions: BUILDING → COMPLETE → PUBLISHED; REJECTED via reject_snapshot
+_ALLOWED_TRANSITIONS = {
+    SnapshotState.BUILDING: SnapshotState.COMPLETE,
+    SnapshotState.COMPLETE: SnapshotState.PUBLISHED,
+}
+_REJECTABLE = {SnapshotState.BUILDING, SnapshotState.COMPLETE}
+
+# Ordered migrations: (version, statements). Never edit a released one; append.
+_MIGRATIONS = [
+    (1, [
+        "CREATE TABLE schema_version (version INTEGER NOT NULL)",
+        """CREATE TABLE guideline (
+            id             INTEGER PRIMARY KEY,
+            doi            TEXT NOT NULL UNIQUE,
+            society        TEXT NOT NULL,
+            year           INTEGER NOT NULL,
+            title          TEXT NOT NULL,
+            topic_id       TEXT NOT NULL,
+            supersedes_doi TEXT,
+            grading_family TEXT NOT NULL,
+            pdf_path       TEXT,
+            pdf_sha256     TEXT UNIQUE,
+            added_at       TEXT NOT NULL
+        )""",
+        """CREATE TABLE extractor_version (
+            id                 TEXT PRIMARY KEY,
+            config_json        TEXT NOT NULL,
+            model_name         TEXT NOT NULL,
+            model_digest       TEXT NOT NULL,
+            classifier_sha256  TEXT,
+            embedding_revision TEXT,
+            created_at         TEXT NOT NULL
+        )""",
+        """CREATE TABLE snapshot (
+            id                   INTEGER PRIMARY KEY,
+            extractor_version_id TEXT NOT NULL REFERENCES extractor_version(id),
+            state                TEXT NOT NULL,
+            created_at           TEXT NOT NULL,
+            completed_at         TEXT,
+            published_at         TEXT,
+            accept_reason        TEXT
+        )""",
+        """CREATE TABLE snapshot_member (
+            snapshot_id     INTEGER NOT NULL REFERENCES snapshot(id),
+            guideline_id    INTEGER NOT NULL REFERENCES guideline(id),
+            excluded_reason TEXT,
+            PRIMARY KEY (snapshot_id, guideline_id)
+        )""",
+        """CREATE TABLE extraction_run (
+            id            INTEGER PRIMARY KEY,
+            snapshot_id   INTEGER NOT NULL REFERENCES snapshot(id),
+            guideline_id  INTEGER NOT NULL REFERENCES guideline(id),
+            status        TEXT NOT NULL,
+            started_at    TEXT NOT NULL,
+            finished_at   TEXT,
+            duration_s    REAL,
+            n_pages       INTEGER,
+            n_llm_calls   INTEGER,
+            thinking      INTEGER NOT NULL DEFAULT 0,
+            few_shot_json TEXT,
+            error         TEXT
+        )""",
+        "CREATE INDEX ix_run_member ON extraction_run(snapshot_id, guideline_id, status)",
+        """CREATE TABLE recommendation (
+            id            INTEGER PRIMARY KEY,
+            run_id        INTEGER NOT NULL REFERENCES extraction_run(id) ON DELETE CASCADE,
+            ordinal       INTEGER NOT NULL,
+            text          TEXT NOT NULL,
+            raw_strength  TEXT NOT NULL,
+            raw_certainty TEXT NOT NULL,
+            raw_category  TEXT NOT NULL,
+            page          INTEGER,
+            chunk_id      INTEGER
+        )""",
+        """CREATE TABLE llm_call (
+            id            INTEGER PRIMARY KEY,
+            run_id        INTEGER NOT NULL REFERENCES extraction_run(id) ON DELETE CASCADE,
+            sample_idx    INTEGER NOT NULL DEFAULT 0,
+            chunk_id      INTEGER NOT NULL,
+            seed          INTEGER,
+            prompt_sha256 TEXT NOT NULL,
+            raw_text      TEXT NOT NULL,
+            prompt_tokens INTEGER,
+            eval_tokens   INTEGER,
+            duration_ms   REAL
+        )""",
+    ]),
+    (2, [
+        "ALTER TABLE snapshot_member ADD COLUMN origin TEXT NOT NULL DEFAULT 'initial'",
+        "ALTER TABLE extraction_run ADD COLUMN code_sha TEXT",
+        """CREATE TABLE validation (
+            id                   INTEGER PRIMARY KEY,
+            snapshot_id          INTEGER NOT NULL REFERENCES snapshot(id),
+            baseline_snapshot_id INTEGER REFERENCES snapshot(id),
+            gate                 TEXT NOT NULL,
+            report_json          TEXT NOT NULL,
+            created_at           TEXT NOT NULL
+        )""",
+    ]),
+    (3, [
+        "ALTER TABLE snapshot ADD COLUMN rejected_at TEXT",
+        "ALTER TABLE snapshot ADD COLUMN reject_reason TEXT",
+    ]),
+    (4, [
+        # The PDF bytes a run read: a replaced PDF changes results under the same version
+        "ALTER TABLE extraction_run ADD COLUMN pdf_sha256 TEXT",
+    ]),
+]
+_CODE_SCHEMA_VERSION = _MIGRATIONS[-1][0]
+
+_THINKING_TO_DB = {ThinkingMode.OFF: 0, ThinkingMode.ON: 1}
+_THINKING_FROM_DB = {v: k for k, v in _THINKING_TO_DB.items()}
+
+
+class StoreError(Exception):
+    """Base class for all store errors."""
+
+
+class SchemaTooNewError(StoreError):
+    def __init__(self, db_version: int, code_version: int):
+        super().__init__(f"DB schema v{db_version} is newer than code v{code_version}")
+        self.db_version = db_version
+        self.code_version = code_version
+
+
+class DuplicatePdfError(StoreError):
+    def __init__(self, doi_existing: str, doi_new: str):
+        super().__init__(f"PDF of {doi_new} is already stored for {doi_existing}")
+        self.doi_existing = doi_existing
+        self.doi_new = doi_new
+
+
+class ExtractorVersionConflictError(StoreError):
+    def __init__(self, version_id: str):
+        super().__init__(f"Extractor version {version_id} already registered with a different config")
+        self.version_id = version_id
+
+
+class InvalidSnapshotTransitionError(StoreError):
+    def __init__(self, from_state: SnapshotState, to_state: Optional[SnapshotState]):
+        target = to_state.value if to_state else "member change"
+        super().__init__(f"Snapshot cannot go from {from_state.value} to {target}")
+        self.from_state = from_state
+        self.to_state = to_state
+
+
+class SnapshotIncompleteError(StoreError):
+    def __init__(self, pending: list[int]):
+        super().__init__(f"Snapshot has members without a succeeded run: {pending}")
+        self.pending = pending
+
+
+class NotFoundError(StoreError):
+    """Referenced snapshot, member or run does not exist."""
+
+
+def _now() -> str:
+    # Microseconds keep finished_at ordering strict between fast consecutive runs
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds")
+
+
+class Store:
+    """The only public entry point to the evidence-map database."""
+
+    def __init__(self, conn: sqlite3.Connection):
+        self._conn = conn
+
+    @classmethod
+    def open(cls, path: str) -> "Store":
+        # Autocommit mode; transactions are explicit via _transaction()
+        conn = sqlite3.connect(path, isolation_level=None)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        conn.execute("PRAGMA journal_mode = WAL")
+        store = cls(conn)
+        store._migrate()
+        return store
+
+    def close(self) -> None:
+        self._conn.close()
+
+    def __enter__(self) -> "Store":
+        return self
+
+    def __exit__(self, *exc) -> None:
+        self.close()
+
+    # ── guidelines ──────────────────────────────────────────────
+
+    def upsert_guideline(self, g: Guideline) -> int:
+        doi = normalize_doi(g.doi)
+
+        # A PDF belongs to exactly one DOI
+        if g.pdf_sha256:
+            clash = self._conn.execute(
+                "SELECT doi FROM guideline WHERE pdf_sha256 = ? AND doi != ?", (g.pdf_sha256, doi),
+            ).fetchone()
+            if clash:
+                raise DuplicatePdfError(clash["doi"], doi)
+
+        with self._transaction():
+            self._conn.execute(
+                """INSERT INTO guideline (doi, society, year, title, topic_id, supersedes_doi,
+                                          grading_family, pdf_path, pdf_sha256, added_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(doi) DO UPDATE SET
+                     society = excluded.society, year = excluded.year, title = excluded.title,
+                     topic_id = excluded.topic_id, supersedes_doi = excluded.supersedes_doi,
+                     grading_family = excluded.grading_family, pdf_path = excluded.pdf_path,
+                     pdf_sha256 = excluded.pdf_sha256""",
+                (doi, g.society, g.year, g.title, g.topic_id,
+                 normalize_doi(g.supersedes_doi) if g.supersedes_doi else None,
+                 GradingFamily(g.grading_family).value, g.pdf_path, g.pdf_sha256, _now()),
+            )
+        return self._conn.execute("SELECT id FROM guideline WHERE doi = ?", (doi,)).fetchone()["id"]
+
+    def get_guideline(self, doi: str) -> Optional[Guideline]:
+        row = self._conn.execute(
+            "SELECT * FROM guideline WHERE doi = ?", (normalize_doi(doi),),
+        ).fetchone()
+        return self._guideline_from_row(row) if row else None
+
+    def list_guidelines(self) -> list[Guideline]:
+        rows = self._conn.execute("SELECT * FROM guideline ORDER BY id").fetchall()
+        return [self._guideline_from_row(r) for r in rows]
+
+    # ── extractor versions ──────────────────────────────────────
+
+    def register_extractor_version(self, v: ExtractorVersion) -> None:
+        existing = self.get_extractor_version(v.id)
+        if existing:
+            if existing.config_json != v.config_json:
+                raise ExtractorVersionConflictError(v.id)
+            return
+
+        with self._transaction():
+            self._conn.execute(
+                """INSERT INTO extractor_version (id, config_json, model_name, model_digest,
+                                                  classifier_sha256, embedding_revision, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (v.id, v.config_json, v.model_name, v.model_digest,
+                 v.classifier_sha256, v.embedding_revision, _now()),
+            )
+
+    def get_extractor_version(self, version_id: str) -> Optional[ExtractorVersion]:
+        row = self._conn.execute(
+            "SELECT * FROM extractor_version WHERE id = ?", (version_id,),
+        ).fetchone()
+        return ExtractorVersion(**dict(row)) if row else None
+
+    # ── snapshots ───────────────────────────────────────────────
+
+    def create_snapshot(self, version_id: str, guideline_ids: list[int]) -> int:
+        with self._transaction():
+            cur = self._conn.execute(
+                "INSERT INTO snapshot (extractor_version_id, state, created_at) VALUES (?, ?, ?)",
+                (version_id, SnapshotState.BUILDING.value, _now()),
+            )
+            snapshot_id = cur.lastrowid
+            self._conn.executemany(
+                "INSERT INTO snapshot_member (snapshot_id, guideline_id, origin) VALUES (?, ?, ?)",
+                [(snapshot_id, gid, MemberOrigin.INITIAL.value) for gid in guideline_ids],
+            )
+        return snapshot_id
+
+    def add_snapshot_member(self, snapshot_id: int, guideline_id: int,
+                            origin: MemberOrigin = MemberOrigin.RESCAN) -> None:
+        self._require_building(snapshot_id)
+        self._insert_member(snapshot_id, guideline_id, origin)
+
+    def add_published_member(self, snapshot_id: int, guideline_id: int) -> None:
+        # `add` attaches a late guideline to the published version, never to a building one
+        state = self._snapshot_state(snapshot_id)
+        if state != SnapshotState.PUBLISHED:
+            raise InvalidSnapshotTransitionError(state, None)
+        self._insert_member(snapshot_id, guideline_id, MemberOrigin.POST_PUBLISH)
+
+    def members(self, snapshot_id: int) -> list[SnapshotMember]:
+        rows = self._conn.execute(
+            """SELECT guideline_id, excluded_reason, origin FROM snapshot_member
+               WHERE snapshot_id = ? ORDER BY guideline_id""",
+            (snapshot_id,),
+        ).fetchall()
+        return [SnapshotMember(r["guideline_id"], r["excluded_reason"], MemberOrigin(r["origin"])) for r in rows]
+
+    def exclude_member(self, snapshot_id: int, guideline_id: int, reason: str) -> None:
+        if not reason or not reason.strip():
+            raise ValueError("Exclusion reason must be non-empty")
+
+        self._require_building(snapshot_id)
+        with self._transaction():
+            cur = self._conn.execute(
+                "UPDATE snapshot_member SET excluded_reason = ? WHERE snapshot_id = ? AND guideline_id = ?",
+                (reason, snapshot_id, guideline_id),
+            )
+        if cur.rowcount == 0:
+            raise NotFoundError(f"Guideline {guideline_id} is not a member of snapshot {snapshot_id}")
+
+    def transition_snapshot(self, snapshot_id: int, to: SnapshotState,
+                            accept_reason: Optional[str] = None) -> None:
+        current = self._snapshot_state(snapshot_id)
+        if _ALLOWED_TRANSITIONS.get(current) != to:
+            raise InvalidSnapshotTransitionError(current, to)
+
+        # COMPLETE means every included member has a succeeded run
+        if to == SnapshotState.COMPLETE:
+            pending = self.pending_members(snapshot_id)
+            if pending:
+                raise SnapshotIncompleteError(pending)
+
+        timestamp_column = "completed_at" if to == SnapshotState.COMPLETE else "published_at"
+        with self._transaction():
+            self._conn.execute(
+                f"UPDATE snapshot SET state = ?, {timestamp_column} = ? WHERE id = ?",
+                (to.value, _now(), snapshot_id),
+            )
+            # Why a gate failure was overridden; kept for the paper
+            if to == SnapshotState.PUBLISHED and accept_reason:
+                self._conn.execute(
+                    "UPDATE snapshot SET accept_reason = ? WHERE id = ?", (accept_reason, snapshot_id),
+                )
+
+    def reject_snapshot(self, snapshot_id: int, reason: str) -> None:
+        """Retire a building or complete candidate for good; publish and add never pick it up."""
+        if not reason or not reason.strip():
+            raise ValueError("Reject reason must be non-empty")
+
+        current = self._snapshot_state(snapshot_id)
+        if current not in _REJECTABLE:
+            raise InvalidSnapshotTransitionError(current, SnapshotState.REJECTED)
+        with self._transaction():
+            self._conn.execute(
+                "UPDATE snapshot SET state = ?, rejected_at = ?, reject_reason = ? WHERE id = ?",
+                (SnapshotState.REJECTED.value, _now(), reason, snapshot_id),
+            )
+
+    def complete_snapshots(self) -> list[Snapshot]:
+        rows = self._conn.execute(
+            "SELECT * FROM snapshot WHERE state = ? ORDER BY id", (SnapshotState.COMPLETE.value,),
+        ).fetchall()
+        return [self._snapshot_from_row(r) for r in rows]
+
+    def latest_snapshot(self, state: SnapshotState) -> Optional[Snapshot]:
+        row = self._conn.execute(
+            "SELECT * FROM snapshot WHERE state = ? ORDER BY id DESC LIMIT 1", (state.value,),
+        ).fetchone()
+        return self._snapshot_from_row(row) if row else None
+
+    def get_snapshot(self, snapshot_id: int) -> Optional[Snapshot]:
+        row = self._conn.execute("SELECT * FROM snapshot WHERE id = ?", (snapshot_id,)).fetchone()
+        return self._snapshot_from_row(row) if row else None
+
+    def pending_members(self, snapshot_id: int) -> list[int]:
+        rows = self._conn.execute(
+            """SELECT m.guideline_id FROM snapshot_member m
+               WHERE m.snapshot_id = ? AND m.excluded_reason IS NULL
+                 AND NOT EXISTS (SELECT 1 FROM extraction_run r
+                                 WHERE r.snapshot_id = m.snapshot_id AND r.guideline_id = m.guideline_id
+                                   AND r.status = ?)
+               ORDER BY m.guideline_id""",
+            (snapshot_id, RunStatus.SUCCEEDED.value),
+        ).fetchall()
+        return [r["guideline_id"] for r in rows]
+
+    # ── runs ────────────────────────────────────────────────────
+
+    def start_run(self, snapshot_id: int, guideline_id: int, thinking: ThinkingMode,
+                  few_shot: list[dict], code_sha: Optional[str] = None, pdf_sha256: Optional[str] = None) -> int:
+        with self._transaction():
+            cur = self._conn.execute(
+                """INSERT INTO extraction_run (snapshot_id, guideline_id, status, started_at,
+                                               thinking, few_shot_json, code_sha, pdf_sha256)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (snapshot_id, guideline_id, RunStatus.RUNNING.value, _now(),
+                 _THINKING_TO_DB[thinking], json.dumps(few_shot), code_sha, pdf_sha256),
+            )
+        return cur.lastrowid
+
+    def finish_run(self, run_id: int, recs: list[RawRecommendation],
+                   calls: list[LlmCall], n_pages: int,
+                   few_shot: Optional[list[dict]] = None) -> RunStatus:
+        """few_shot: examples the extractor actually used, known only after the run; replaces start_run's."""
+        status = RunStatus.SUCCEEDED if recs else RunStatus.FAILED_EMPTY
+        started_at = self._run_started_at(run_id)
+        finished_at = _now()
+        duration_s = (datetime.fromisoformat(finished_at) - datetime.fromisoformat(started_at)).total_seconds()
+
+        # One transaction: a crash mid-write leaves the run RUNNING with no rows
+        with self._transaction():
+            self._insert_recommendations(run_id, recs)
+            self._insert_calls(run_id, calls)
+            self._conn.execute(
+                """UPDATE extraction_run SET status = ?, finished_at = ?, duration_s = ?,
+                                              n_pages = ?, n_llm_calls = ?
+                   WHERE id = ?""",
+                (status.value, finished_at, duration_s, n_pages, len(calls), run_id),
+            )
+            if few_shot is not None:
+                self._conn.execute(
+                    "UPDATE extraction_run SET few_shot_json = ? WHERE id = ?", (json.dumps(few_shot), run_id),
+                )
+        return status
+
+    def fail_run(self, run_id: int, error: str) -> None:
+        self._run_started_at(run_id)
+        with self._transaction():
+            self._conn.execute(
+                "UPDATE extraction_run SET status = ?, finished_at = ?, error = ? WHERE id = ?",
+                (RunStatus.FAILED.value, _now(), error, run_id),
+            )
+
+    def active_run(self, snapshot_id: int, guideline_id: int) -> Optional[ExtractionRun]:
+        # Latest SUCCEEDED run wins; FAILED_EMPTY and stale RUNNING are never active
+        row = self._conn.execute(
+            """SELECT * FROM extraction_run
+               WHERE snapshot_id = ? AND guideline_id = ? AND status = ?
+               ORDER BY finished_at DESC, id DESC LIMIT 1""",
+            (snapshot_id, guideline_id, RunStatus.SUCCEEDED.value),
+        ).fetchone()
+        return self._run_from_row(row) if row else None
+
+    def runs(self, snapshot_id: int) -> list[ExtractionRun]:
+        """Every run of the snapshot, all statuses, oldest first."""
+        rows = self._conn.execute(
+            "SELECT * FROM extraction_run WHERE snapshot_id = ? ORDER BY id", (snapshot_id,),
+        ).fetchall()
+        return [self._run_from_row(r) for r in rows]
+
+    def recommendations(self, run_id: int) -> list[RawRecommendation]:
+        rows = self._conn.execute(
+            """SELECT ordinal, text, raw_strength, raw_certainty, raw_category, page, chunk_id
+               FROM recommendation WHERE run_id = ? ORDER BY ordinal""",
+            (run_id,),
+        ).fetchall()
+        return [
+            RawRecommendation(**{**dict(r), "raw_category": Category(r["raw_category"])})
+            for r in rows
+        ]
+
+    # ── validations ─────────────────────────────────────────────
+
+    def save_validation(self, snapshot_id: int, baseline_snapshot_id: Optional[int],
+                        gate: GateResult, report_json: str) -> int:
+        self._snapshot_state(snapshot_id)
+        with self._transaction():
+            cur = self._conn.execute(
+                """INSERT INTO validation (snapshot_id, baseline_snapshot_id, gate, report_json, created_at)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (snapshot_id, baseline_snapshot_id, GateResult(gate).value, report_json, _now()),
+            )
+        return cur.lastrowid
+
+    def latest_validation(self, snapshot_id: int) -> Optional[Validation]:
+        # Re-validation appends; the newest row is the one that counts
+        row = self._conn.execute(
+            "SELECT * FROM validation WHERE snapshot_id = ? ORDER BY id DESC LIMIT 1", (snapshot_id,),
+        ).fetchone()
+        if not row:
+            return None
+        return Validation(**{**dict(row), "gate": GateResult(row["gate"])})
+
+    # ── private ─────────────────────────────────────────────────
+
+    @contextmanager
+    def _transaction(self) -> Iterator[None]:
+        self._conn.execute("BEGIN")
+        try:
+            yield
+        except BaseException:
+            self._conn.execute("ROLLBACK")
+            raise
+        self._conn.execute("COMMIT")
+
+    def _migrate(self) -> None:
+        db_version = self._schema_version()
+        if db_version > _CODE_SCHEMA_VERSION:
+            raise SchemaTooNewError(db_version, _CODE_SCHEMA_VERSION)
+
+        pending = [(v, stmts) for v, stmts in _MIGRATIONS if v > db_version]
+        if not pending:
+            return
+
+        # All pending migrations in one transaction, in order
+        with self._transaction():
+            for _, statements in pending:
+                for statement in statements:
+                    self._conn.execute(statement)
+            self._conn.execute("DELETE FROM schema_version")
+            self._conn.execute("INSERT INTO schema_version (version) VALUES (?)", (pending[-1][0],))
+
+    def _schema_version(self) -> int:
+        has_table = self._conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'schema_version'",
+        ).fetchone()
+        if not has_table:
+            return 0
+        row = self._conn.execute("SELECT MAX(version) AS v FROM schema_version").fetchone()
+        return row["v"] or 0
+
+    def _snapshot_state(self, snapshot_id: int) -> SnapshotState:
+        row = self._conn.execute("SELECT state FROM snapshot WHERE id = ?", (snapshot_id,)).fetchone()
+        if not row:
+            raise NotFoundError(f"Snapshot {snapshot_id} does not exist")
+        return SnapshotState(row["state"])
+
+    def _insert_member(self, snapshot_id: int, guideline_id: int, origin: MemberOrigin) -> None:
+        with self._transaction():
+            self._conn.execute(
+                "INSERT OR IGNORE INTO snapshot_member (snapshot_id, guideline_id, origin) VALUES (?, ?, ?)",
+                (snapshot_id, guideline_id, origin.value),
+            )
+
+    def _require_building(self, snapshot_id: int) -> None:
+        state = self._snapshot_state(snapshot_id)
+        if state != SnapshotState.BUILDING:
+            raise InvalidSnapshotTransitionError(state, None)
+
+    def _run_started_at(self, run_id: int) -> str:
+        row = self._conn.execute("SELECT started_at FROM extraction_run WHERE id = ?", (run_id,)).fetchone()
+        if not row:
+            raise NotFoundError(f"Run {run_id} does not exist")
+        return row["started_at"]
+
+    def _insert_recommendations(self, run_id: int, recs: list[RawRecommendation]) -> None:
+        self._conn.executemany(
+            """INSERT INTO recommendation (run_id, ordinal, text, raw_strength, raw_certainty,
+                                           raw_category, page, chunk_id)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            [(run_id, r.ordinal, r.text, r.raw_strength, r.raw_certainty,
+              Category(r.raw_category).value, r.page, r.chunk_id) for r in recs],
+        )
+
+    def _insert_calls(self, run_id: int, calls: list[LlmCall]) -> None:
+        self._conn.executemany(
+            """INSERT INTO llm_call (run_id, sample_idx, chunk_id, seed, prompt_sha256, raw_text,
+                                     prompt_tokens, eval_tokens, duration_ms)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            [(run_id, c.sample_idx, c.chunk_id, c.seed, c.prompt_sha256, c.raw_text,
+              c.prompt_tokens, c.eval_tokens, c.duration_ms) for c in calls],
+        )
+
+    @staticmethod
+    def _guideline_from_row(row: sqlite3.Row) -> Guideline:
+        data = dict(row)
+        data["grading_family"] = GradingFamily(data["grading_family"])
+        return Guideline(**data)
+
+    @staticmethod
+    def _snapshot_from_row(row: sqlite3.Row) -> Snapshot:
+        return Snapshot(**{**dict(row), "state": SnapshotState(row["state"])})
+
+    @staticmethod
+    def _run_from_row(row: sqlite3.Row) -> ExtractionRun:
+        data = dict(row)
+        data["status"] = RunStatus(data["status"])
+        data["thinking"] = _THINKING_FROM_DB[data["thinking"]]
+        return ExtractionRun(**data)

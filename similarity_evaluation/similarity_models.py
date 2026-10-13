@@ -1,3 +1,4 @@
+import numpy as np
 import spacy
 from sentence_transformers import SentenceTransformer, CrossEncoder, util
 import torch
@@ -67,7 +68,30 @@ class CrossEncoderSimilarityModel(SimilarityModel):
     
     def compute_similarity(self, text1, text2):
         return float(self.model.predict([[text1, text2]])[0])
-    
+
+
+class NLICrossEncoderSimilarityModel(SimilarityModel):
+    """NLI cross-encoder that returns entailment probability as similarity.
+
+    NLI models output logits for [contradiction, entailment, neutral].
+    We apply softmax and return the entailment probability, which directly
+    captures whether two sentences mean the same thing (entailment) vs
+    opposite (contradiction).
+    """
+
+    def __init__(self, model_name):
+        super().__init__(f'nli_cross_encoder_{model_name}')
+        self.model = CrossEncoder(model_name)
+
+    def compute_similarity(self, text1, text2):
+        scores = self.model.predict([[text1, text2]])
+        logits = scores[0] if scores.ndim > 1 else scores
+        # softmax over [contradiction, entailment, neutral]
+        exp = np.exp(logits - np.max(logits))
+        probs = exp / exp.sum()
+        return float(probs[1])  # entailment probability
+
+
 # angLE model
 class AngLEModel(SimilarityModel):
     def __init__(self):
@@ -125,3 +149,55 @@ class AngLEModel(SimilarityModel):
             {'text': text2}
         ], prompt=Prompts.A)
         return cosine_similarity(vec1, vec2)
+
+
+# ---------------------------------------------------------------------------
+# Model factory
+# ---------------------------------------------------------------------------
+
+_MODEL_REGISTRY: dict[str, str] = {
+    # Bi-encoders (SentenceTransformer)
+    "sentence-transformers/all-MiniLM-L12-v2": "bi-encoder",
+    "neuml/pubmedbert-base-embeddings": "bi-encoder",
+    "FremyCompany/BioLORD-2023": "bi-encoder",
+    "distilbert-base-nli-mean-tokens": "bi-encoder",
+    # Cross-encoders
+    "cross-encoder/stsb-distilroberta-base": "cross-encoder",
+    # NLI cross-encoders
+    "cross-encoder/nli-deberta-v3-base": "nli-cross-encoder",
+}
+
+DEFAULT_MODEL = "FremyCompany/BioLORD-2023"
+
+
+def get_similarity_model(model_name: str | None = None) -> SimilarityModel:
+    """Create a similarity model by name.
+
+    Parameters
+    ----------
+    model_name : str or None
+        A model identifier present in ``_MODEL_REGISTRY``.  When *None*,
+        ``DEFAULT_MODEL`` is used.
+
+    Returns
+    -------
+    SimilarityModel
+    """
+    if model_name is None:
+        model_name = DEFAULT_MODEL
+
+    model_type = _MODEL_REGISTRY.get(model_name)
+    if model_type is None:
+        raise ValueError(
+            f"Unknown model '{model_name}'. "
+            f"Available models: {list(_MODEL_REGISTRY.keys())}"
+        )
+
+    if model_type == "bi-encoder":
+        return SentenceTransformerSimilarityModel(model_name)
+    elif model_type == "cross-encoder":
+        return CrossEncoderSimilarityModel(model_name)
+    elif model_type == "nli-cross-encoder":
+        return NLICrossEncoderSimilarityModel(model_name)
+    else:
+        raise ValueError(f"Unknown model type '{model_type}' for model '{model_name}'")

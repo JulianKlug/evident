@@ -1,0 +1,37 @@
+[project]
+name = "evident"
+version = "0.1.0"
+description = "Living evidence map: recommendations, strength and certainty extracted from clinical guidelines by a local LLM"
+requires-python = "==3.9.*"  # the version the legacy golden replay was recorded on
+# Corpus tools (search, fetch, import PDFs) need only this; they run on any machine
+dependencies = [
+    "pypdf==6.7.5",
+]
+
+[project.optional-dependencies]
+# Snapshot, validate, publish: the GPU machine with Ollama. Pinned to the versions the
+# published snapshots and the golden replay were produced with.
+pipeline = [
+    "huggingface-hub==0.36.2",
+    "jinja2==3.1.6",
+    "joblib==1.5.3",
+    "matplotlib==3.9.4",
+    "numpy==1.26.4",
+    "ollama==0.6.1",
+    "openpyxl==3.1.5",
+    "pandas==2.3.3",
+    "pdfplumber==0.11.8",
+    "scikit-learn==1.6.1",
+    "scipy==1.13.1",
+    "sentence-transformers==2.7.0",
+    "torch==2.8.0",
+    "transformers==4.57.6",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==8.4.2",
+]
+
+[tool.uv]
+package = false  # scripts import from the repo root; nothing is installed

@@ -1,3 +1,13 @@
+artifacts/
+out/
+benchmark_log*
+*.log
+*.csv
 .idea/
 .ipynb_checkpoints/
 **/__pycache__/*
+unsloth_compiled_cache/
+!tests/fixtures/**/*.csv
+!corpus/manifest.csv
+!corpus/candidates.csv
+.venv/
