@@ -946,3 +946,5 @@ Society-page cross-check (ESICM guidelines page, SCCM list of guidelines, ACP cl
 - 9 PubMed records without a DOI (family-physician summaries, case reports): not added.
 
 Society attribution for co-led guidelines: the first corpus society in the byline; the others in `joint_with`. 6 PDFs downloaded (open access), 6 still needed by hand (`import_pdfs.py missing`); then `add` with v2 and re-publish before the freeze.
+
+NCS/SCCM antithrombotic ICH 2026 is a focused update that reprints every still-valid 2016 recommendation (its Table 2), unlike PADIS and the other focused updates; linked as superseding 2016 (2016 → trends only). Its Table 1 sets each updated recommendation beside the 2016 version; v2 extracted some of those prior versions (~5–8 of 58 rows), the comparison-table error class seen in the M3 spot check. Kept as extracted; stated as a limitation.
