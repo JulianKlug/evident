@@ -43,7 +43,14 @@ class TestLoadManifest:
         entries = load_manifest(_REPO_MANIFEST)
         assert len(entries) == _N_REPO_GUIDELINES
         assert {e.society for e in entries} == {"ACP", "ESICM", "SCCM"}
-        assert current_editions(entries) == {e.doi for e in entries} - {e.supersedes_doi for e in entries}
+
+        # Current = latest edition of its topic. Most older editions are linked by supersedes_doi;
+        # ERC-ESICM temperature control 2022 is only folded into the post-resuscitation topic
+        # (2025 already supersedes 2021 and the field takes one DOI)
+        latest = {}
+        for e in entries:
+            latest[e.topic_id] = max(latest.get(e.topic_id, e.year), e.year)
+        assert current_editions(entries) == {e.doi for e in entries if e.year == latest[e.topic_id]}
 
     def test_repo_candidates_match_manifest(self):
         check_candidates(load_candidates(_REPO_CANDIDATES), load_manifest(_REPO_MANIFEST))

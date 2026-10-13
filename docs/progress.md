@@ -925,3 +925,7 @@ Decision (design Decision 9): Paper 1 graded-only; ungraded statements via a sep
 ## Grade label mapping: statements without a direction (2026-10-13)
 
 Rule: a statement where the panel gives no direction is no recommendation (not graded), whatever grade the model attached. Matched on text, since the model labels them "Conditional Against" or "Conditional". Snapshot 8, 4 rows move out of graded: "no suggestion for or against" (SCCM family care, 2), "unable to issue a recommendation for or against" (SCCM delirium 2025), "cannot suggest for or against" (PCCM 2020, superseded). Headline ALL: graded 1060 → 1057, % against 18.3 → 18.2; SCCM % against 19.7 → 19.5. Validation unchanged (F1 0.939). "We suggest either X or Y" (SCCM CCUS 2025) stays graded: a conditional recommendation that accepts both options.
+
+## Edition links (2026-10-13)
+
+All 8 `supersedes_doi` links checked. ERC-ESICM temperature control 2022 folded into the post-resuscitation topic (the 2025 guideline covers temperature control), so it moves to trends only; current map 64 guidelines. Its Table 2 holds 2 recommendations with no text layer (vector text); v2 extracted 1, from the abstract. Focused updates (PADIS, ultrasound, corticosteroids, NMB) stay current beside the guideline they partly revise: revised questions count twice, ≤ ~25 of 1057 graded recs; Methods states it, recommendation-level supersession in TODOS.md.

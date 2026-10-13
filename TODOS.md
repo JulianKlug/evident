@@ -31,3 +31,9 @@
 - **Open:** inclusion rule per society (ERC-ESICM numbers 74 operational "good practice" items; ACP about one per guideline). State it in Methods.
 - **Cons:** ~2× runtime (~1.5 h per corpus snapshot); cross-pass duplicate rate to measure.
 - **Depends on:** nothing; must not block M4.
+
+## Recommendation-level supersession
+- **What:** mark the individual recommendations a focused update replaces as superseded, instead of whole guidelines.
+- **Why:** focused updates revise a few questions and leave the rest in force (PADIS 2018 → 2025, ultrasound 2016 → 2025, CIRCI part 1 2017 → corticosteroids 2024, NMB 2016 → NMB in ARDS 2026). Both editions stay current, so revised questions count twice (≤ ~25 of 1057 graded recs). Paper 1 states this in Methods.
+- **Cons:** a manual mapping per update (old rec ↔ new rec) and a store/manifest mechanism to hold it.
+- **Depends on:** M5 (new editions arrive routinely there).
