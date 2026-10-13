@@ -11,7 +11,7 @@ M4 is a publication and validation milestone, **not another extractor-selection 
 
 ### Done at M3; reuse rather than rebuild
 
-- Published **snapshot 8**, ExtractorVersion **v2** (`39ac17093b65…`, `configs/v2_qwen38-64k_alnum.json`), with 73 manifest guidelines and complete runs at M3; the pre-freeze search extension (2026-10-13) adds 12 guidelines, extracted into snapshot 8 with `add` (same v2 version): **85 guidelines, 76 current**; historical analyses retain the superseded editions.
+- Published **snapshot 8**, ExtractorVersion **v2** (`39ac17093b65…`, `configs/v2_qwen38-64k_alnum.json`), with 73 manifest guidelines and complete runs at M3; the pre-freeze search extension (2026-10-13) adds 12 guidelines, extracted into snapshot 8 with `add` (same v2 version): **85 guidelines, 75 current** (the 2026 NCS/SCCM ICH update supersedes 2016); historical analyses retain the superseded editions.
 - Existing `evident/analytics.py` produces headline, certainty distribution, strength-by-certainty cross-tabulation and publication-year trends. `evident/publishing.py` writes six CSVs, four SVG/PNG figures, captions and a static HTML dashboard. Outputs have a byte-identical regeneration test.
 - Twelve labelled ACP/ESICM guidelines (48 reference graded recommendations) give v2 graded F1 **0.939** (95% guideline-cluster bootstrap CI **0.867–0.989**), precision **0.885**, recall **1.000**; these labels also informed tuning, so this is **development-set performance**, not an external test.
 - The M3 ten-guideline spot check found graded F1 **0.881** but low coverage of ungraded statements (16/160). Its reference lists (`out/spotcheck_m3/`, not yet committed) and the bias computation move into the package as an exploratory supplement table, since Decision 9 (graded-only) rests on it. Its graded headline bias was small on that sample, but it was single-reviewer and is **not** a replacement for an independent validation set.
@@ -28,7 +28,7 @@ No retraining, new extraction or threshold tuning is allowed in the primary Pape
 ## 3. Freeze the analysis source before drafting
 
 1. Freeze a read-only **copy** of the snapshot 8 SQLite DB (not in git) and record its SHA-256; tag the repository commit holding the final `corpus/manifest.csv` and `corpus/candidates.csv` as `paper1-freeze` (git pins them; no copies). Input PDF SHA-256 hashes are already stored per run (`extraction_run.pdf_sha256`, 73/73). Do **not** use the evolving live `out/evident.sqlite` as a permanent paper source: `add` can append runs to a published snapshot.
-2. Confirm the frozen source has one active successful v2 run for every included guideline (85/85), no unexplained exclusions, no PDF/hash drift, and that the edition resolver marks 76 current guidelines. Fail closed on a coverage mismatch, ambiguous edition link, mixed extractor version, or unresolved provenance.
+2. Confirm the frozen source has one active successful v2 run for every included guideline (85/85), no unexplained exclusions, no PDF/hash drift, and that the edition resolver marks 75 current guidelines. Fail closed on a coverage mismatch, ambiguous edition link, mixed extractor version, or unresolved provenance.
 3. Record the extractor version ID, full config JSON and prompt/example/model/embedding provenance already held by the version/run records; separate the **extraction code SHA** from the **analysis/publishing code SHA** (they need not be the same).
 4. Keep the analysis as of the **2026-10-04 PubMed search**. Any guidelines added after the freeze belong to a later living-map update, not silently to this paper.
 5. Make `publish` optionally write an analysis package that consumes the frozen DB and external held-out labels read-only; standard `publish` and the living dashboard continue to work without them. The option is generic (Paper 2 reuses it), not named after one paper.
@@ -147,7 +147,7 @@ The supplement contains the complete DOI manifest, exclusion list with one reaso
 
 | # | Criterion | Verification |
 |---|---|---|
-| 1 | Frozen source is coherent; 85 active v2 runs, 76 current editions, no hidden exclusions or altered PDFs | Frozen-DB audit; repository manifest/candidate checks; `status` and source-hash inventory |
+| 1 | Frozen source is coherent; 85 active v2 runs, 75 current editions, no hidden exclusions or altered PDFs | Frozen-DB audit; repository manifest/candidate checks; `status` and source-hash inventory |
 | 2 | Paper 1 uses graded rows only with correct axis-specific denominators | Unit fixtures: unmapped, ungraded, no-direction, strong-against, empty group |
 | 3 | Superseded editions are absent from cross-sectional tables but included in trends; joint copies count once | Deterministic fixture with an old/current topic and a co-publication |
 | 4 | Pooled vs guideline-mean sensitivity differs where guideline sizes differ; zero denominators handled | Two unequal-size guideline fixture with known hand-calculated results |
