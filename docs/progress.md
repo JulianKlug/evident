@@ -921,3 +921,7 @@ Do the spot-check errors move the headline? Same 10 guidelines, same metric defi
 - Ungraded share: unusable. The single-pass prompt asks for best-practice statements but the model rarely emits them (16 of 160, one guideline). The validation gate never saw this (ungraded P/R not gated; labelled set has almost no ungraded rows).
 
 Decision (design Decision 9): Paper 1 graded-only; ungraded statements via a separate pass in v3, in parallel (TODOS.md).
+
+## Grade label mapping: statements without a direction (2026-10-13)
+
+Rule: a statement where the panel gives no direction is no recommendation (not graded), whatever grade the model attached. Matched on text, since the model labels them "Conditional Against" or "Conditional". Snapshot 8, 4 rows move out of graded: "no suggestion for or against" (SCCM family care, 2), "unable to issue a recommendation for or against" (SCCM delirium 2025), "cannot suggest for or against" (PCCM 2020, superseded). Headline ALL: graded 1060 → 1057, % against 18.3 → 18.2; SCCM % against 19.7 → 19.5. Validation unchanged (F1 0.939). "We suggest either X or Y" (SCCM CCUS 2025) stays graded: a conditional recommendation that accepts both options.

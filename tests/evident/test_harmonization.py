@@ -89,6 +89,12 @@ SYNTHETIC = [
     # categories from label, text, or parser
     (("No recommendation", "Moderate", "X", G), (Category.NO_RECOMMENDATION, None, None, None, NG, NG)),
     (("", "", "We cannot recommend for or against X", G), (Category.NO_RECOMMENDATION, None, None, None, NG, NG)),
+    # SCCM family care 2024: the model labels these "Conditional Against"; the panel made no recommendation
+    (("Conditional Against", "Low", "We make no suggestion for or against X", G),
+     (Category.NO_RECOMMENDATION, None, None, None, NG, NG)),
+    (("Weak Against", "Low", "We cannot suggest for or against X", G), (Category.NO_RECOMMENDATION, None, None, None, NG, NG)),
+    (("Conditional", "Low", "We are unable to issue a recommendation for or against X", G),
+     (Category.NO_RECOMMENDATION, None, None, None, NG, NG)),
     (("Best practice statement", "", "Reassess", G), (Category.BEST_PRACTICE, None, None, None, NG, NG)),
     (("", "", "Good practice statement: reassess", G), (Category.BEST_PRACTICE, None, None, None, NG, NG)),
     (("BEST_PRACTICE", "NA", "Reassess", Category.BEST_PRACTICE), (Category.BEST_PRACTICE, None, None, None, NG, NG)),

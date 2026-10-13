@@ -26,7 +26,11 @@ from evident.domain import (
 _AGAINST_PATTERNS = (r"\b(recommends?|suggests?)\s+against\b",
                      r"\b(recommends?|suggests?)\s+not\b",
                      r"\bshould\s+not\b", r"\bdo\s+not\s+(use|give|administer|perform)\b")
-_NO_REC_PATTERNS = (r"\bcannot\s+recommend\b", r"\bno\s+recommendation\b",
+# Panel declined to give a direction, e.g. "We make no suggestion for or against X",
+# "We are unable to issue a recommendation for or against X"
+_NO_REC_PATTERNS = (r"\bcannot\s+(recommend|suggest)\b", r"\bno\s+recommendation\b",
+                    r"\bno\s+suggestion\s+for\s+or\s+against\b",
+                    r"\bunable\s+to\s+(make|issue)\s+a\s+recommendation\b",
                     r"\bevidence\s+(was|is)\s+(inconclusive|insufficient)\b")
 _BEST_PRACTICE_PATTERN = r"best practice|good practice statement"
 

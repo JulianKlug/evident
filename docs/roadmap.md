@@ -175,6 +175,6 @@ Revisit the validation decision at 6a, as logged: the ceiling is ICU accuracy re
 | Harmonization disputes (ACP insufficient, best practice) | reviewer pushback | raw grade stored; mapping table published |
 
 ## Open questions
-- ACP coding of "insufficient evidence" and best-practice statements (blocks T2's final mapping).
+- ~~ACP coding of "insufficient evidence" and best-practice statements~~ Resolved 2026-10-13: neither is graded. Every statement without a direction ("no suggestion for or against", "unable to issue a recommendation") counts as no recommendation.
 - Dashboard access: local only or LAN (decide at T8).
 - Supersession matching beyond a manual `topic_id` (deferred).
