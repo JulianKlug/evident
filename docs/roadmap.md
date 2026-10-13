@@ -104,6 +104,7 @@ Spec: `docs/specs/m1-pipeline.md`.
   - graded recommendations only (design Decision 9; ungraded share waits for v3);
   - trends by year;
   - ESICM vs SCCM vs ACP.
+  - supplement: per-guideline-mean sensitivity table, written by `publish` (design Decision 10).
 - Methods:
   - corpus and inclusion rule;
   - harmonization table;
