@@ -16,7 +16,7 @@ from __future__ import annotations
 import json
 import math
 import os
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Optional, Sequence
 
 import numpy as np
@@ -51,6 +51,7 @@ _EXCEL_LOCK_PREFIX = "~$"
 _HELDOUT_SHEET = "labels"
 _HELDOUT_COLUMNS = ("Key", "Title", "DOI", "recommendation", "class", "LOE", "page")
 _FIRST_EXCEL_DATA_LINE = 2  # line 1 is the header
+_EVIDENCE_STATEMENT_CLASS = "evidence statement"  # certainty without strength or direction: kept in the file, not scored
 _HELDOUT_INTERVAL_NOTE = "Wilson 95% interval on recommendations; ignores clustering within guidelines"
 
 _SPOTCHECK_SUFFIX = ".spotcheck.json"
@@ -186,7 +187,9 @@ def load_heldout(directory: str, expected_dois: Sequence[str], labelled_dois: se
                                  {normalize_doi(d) for d in labelled_dois})
     if problems:
         raise HeldoutLabelError(problems)
-    return _to_labelled(load_icu_datasets(GtMode.WITH_UNGRADED, directory))
+
+    labelled = _to_labelled(load_icu_datasets(GtMode.WITH_UNGRADED, directory))
+    return [replace(g, gt=[r for r in g.gt if not _is_evidence_statement(r.raw_class)]) for g in labelled]
 
 
 def heldout_report(s: SnapshotScore) -> HeldoutReport:
@@ -350,7 +353,7 @@ def _heldout_file_problems(path: str, name: str, problems: list[str]) -> Optiona
             problems.append(f"{name} line {line}: empty class")
         elif not _filled(row["LOE"]) and _is_graded(row):
             problems.append(f"{name} line {line}: empty LOE")  # 'NA' is allowed for ungraded statements only
-        if not _is_page(row["page"]):
+        if _filled(row["page"]) and not _is_page(row["page"]):  # page is optional; a filled one must be valid
             problems.append(f"{name} line {line}: page '{row['page']}' is not a page number")
 
         text = " ".join(str(row["recommendation"]).lower().split())
@@ -359,6 +362,10 @@ def _heldout_file_problems(path: str, name: str, problems: list[str]) -> Optiona
             continue
         seen[text] = line
     return doi
+
+
+def _is_evidence_statement(raw_class: str) -> bool:
+    return str(raw_class).strip().lower() == _EVIDENCE_STATEMENT_CLASS
 
 
 def _filled(value) -> bool:

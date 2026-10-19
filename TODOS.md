@@ -37,3 +37,9 @@
 - **Why:** focused updates revise a few questions and leave the rest in force (PADIS 2018 → 2025, ultrasound 2016 → 2025, CIRCI part 1 2017 → corticosteroids 2024, NMB 2016 → NMB in ARDS 2026). Both editions stay current, so revised questions count twice (≤ ~25 of 1057 graded recs). Paper 1 states this in Methods.
 - **Cons:** a manual mapping per update (old rec ↔ new rec) and a store/manifest mechanism to hold it.
 - **Depends on:** M5 (new editions arrive routinely there).
+
+## ERS labels in M6 validation
+- **What:** score the 3 labelled pneumology guidelines (`Pneumology/ERS_guidelines/*_extraction.xlsx`: NI9RV3E7 ESC_ERS, CMCZFLU4 GRADE, BDYDTUHA ABCD_123) once M6 harmonizes those schemes.
+- **Why:** cross-specialty extraction accuracy; deferred from Paper 1 (2026-10-18).
+- **Cons:** not independent: they guided the legacy A/B tuning. NI9RV3E7 is table-heavy (v2 has no vision). Needs new extraction, outside snapshot 8.
+- **Depends on:** M6 ESC_ERS and ABCD_123 harmonization.

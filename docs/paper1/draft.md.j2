@@ -64,7 +64,7 @@ Table S1 weights each guideline equally: the unweighted mean of each guideline's
 
 ### Extraction accuracy
 
-Development: {{ dev.n_guidelines }} labelled ACP and ESICM guidelines, which also informed extractor development (in-sample). Held-out: {{ held.n_guidelines }} SCCM guidelines drawn at random before any result, labelled blind to the extractor output, scored with the same matching (BioLORD similarity, Hungarian assignment) and harmonization; not used for tuning or gating.
+Development: {{ dev.n_guidelines }} labelled ACP and ESICM guidelines, which also informed extractor development (in-sample). Held-out: {{ held.n_guidelines }} SCCM guidelines drawn at random before any result, labelled blind to the extractor output, scored with the same matching (BioLORD similarity, Hungarian assignment) and harmonization, which also reads the GRADE notation of numbered strength and lettered certainty; not used for tuning or gating.
 
 ### Reproducibility
 
@@ -148,7 +148,7 @@ Notes for all figures: {{ notes.common }}
 {%- for g in held.per_guideline %}
   - `{{ g.doi }}`: TP {{ g.tp }}, FP {{ g.fp }}, FN {{ g.fn }}
 {%- endfor %}
-  Annotation protocol: one row per statement of the guideline's own recommendation list, text verbatim, page recorded, labelled blind to the extractor output.
+  Annotation protocol: one row per statement of the guideline's own recommendation list, text verbatim; evidence statements (certainty without strength or direction) are not scored; labelled blind to the extractor output.
 - S7 Spot-check bias (exploratory): `spotcheck_bias.csv`.
 - S8 Figure data: `figure_data.csv`. Checksums and provenance: `analysis_manifest.json`.
 - S9 Reproduction: see `docs/paper1/README.md`.

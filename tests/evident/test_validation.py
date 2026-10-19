@@ -177,7 +177,6 @@ class TestLoadHeldout:
         assert any("no labelled statement" in p for p in problems)
 
     @pytest.mark.parametrize("row, message", [
-        ((_A, "strong recommendation", "low", None), "is not a page number"),
         ((_A, "strong recommendation", "low", "p3"), "is not a page number"),
         ((_A, "", "low", 3), "empty class"),
         ((_A, "strong recommendation", None, 3), "empty LOE"),
@@ -185,6 +184,15 @@ class TestLoadHeldout:
     def test_incomplete_row_refused(self, tmp_path, row, message):
         problems = self._problems(self._dir(tmp_path, rows=[row]))
         assert any(f"line 2: {message}" in p or message in p for p in problems), problems
+
+    def test_evidence_statements_not_scored(self, tmp_path):
+        rows = [_HELD_ROWS[0], ("ICU patients have more ADEs", " Evidence statement ", "B", None)]
+        labelled = load_heldout(self._dir(tmp_path, rows=rows), [_H1, _H2], set())
+        assert [r.text for r in labelled[0].gt] == [_A]
+
+    def test_blank_page_allowed(self, tmp_path):
+        rows = [(_A, "strong recommendation", "low", None)]
+        assert [g.doi for g in load_heldout(self._dir(tmp_path, rows=rows), [_H1, _H2], set())] == [_H1, _H2]
 
     def test_duplicate_statement_refused(self, tmp_path):
         rows = [_HELD_ROWS[0], (" " + _A.upper() + " ", "strong recommendation", "low", 5)]
