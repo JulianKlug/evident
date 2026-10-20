@@ -151,7 +151,6 @@ _MIGRATIONS = [
 _CODE_SCHEMA_VERSION = _MIGRATIONS[-1][0]
 
 
-
 class AccessMode(str, Enum):
     READ_WRITE = "read_write"  # migrates on open
     READ_ONLY = "read_only"    # frozen analysis source: never written, never migrated

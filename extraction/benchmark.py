@@ -27,11 +27,13 @@ class _BioLORDSimilarityModel:
     Avoids importing similarity_evaluation.similarity_models which requires spacy.
     """
 
-    def __init__(self, device: str | None = None):
-        """device: torch device, e.g. "cpu"; None lets sentence-transformers choose (GPU if present)."""
+    def __init__(self, device: str | None = None, revision: str | None = None):
+        """device: torch device, e.g. "cpu"; None lets sentence-transformers choose (GPU if present).
+        revision: Hugging Face commit, e.g. an ExtractorVersion's embedding_revision; None = latest.
+        """
         from sentence_transformers import SentenceTransformer
         self.name = "FremyCompany/BioLORD-2023"
-        self._model = SentenceTransformer(self.name, device=device)
+        self._model = SentenceTransformer(self.name, device=device, revision=revision)
 
     def compute_similarity(self, text1: str, text2: str) -> float:
         from sentence_transformers import util

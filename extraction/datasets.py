@@ -19,6 +19,7 @@ _DATA_ROOT = "/mnt/data1/klug/datasets/evidence_extraction"
 _ACP_DIR = os.path.join(_DATA_ROOT, "General internal medicine", "ACP")
 _ERS_DIR = os.path.join(_DATA_ROOT, "Pneumology", "ERS_guidelines")
 _ICU_DIR = os.path.join(_DATA_ROOT, "intensive_care_medicine")
+_LOCK_PREFIXES = ("~$", ".")  # editor lock files while a label file is open: ~$x.xlsx (Excel), .~lock.x.xlsx# (LibreOffice)
 
 _INVALID_CLASSES = ["0.0", "nan", ""]
 _NO_RECOMMENDATION_CLASS = "no recommendation"
@@ -197,7 +198,7 @@ def load_icu_datasets(gt_mode: GtMode = GtMode.GRADED_ONLY, directory: str | Non
     directory = directory or _ICU_DIR
     if not os.path.isdir(directory):
         return []
-    xlsx_files = sorted(f for f in os.listdir(directory) if f.endswith('.xlsx'))
+    xlsx_files = sorted(f for f in os.listdir(directory) if f.endswith('.xlsx') and not f.startswith(_LOCK_PREFIXES))
     if not xlsx_files:
         return []
 

@@ -13,9 +13,14 @@ python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
 ```
 
 - The DB opens read-only; nothing in it changes (its SHA-256 is checked before and recorded after).
-- Fails closed when the DB, manifest or candidates differ from `configs/paper1.json`, a guideline lacks an active run or its PDF hash, the edition count differs, or the held-out labels are incomplete or include other DOIs.
+- Fails closed when:
+  - the code has uncommitted changes (`analysis_sha` must name it);
+  - the DB, manifest, candidates or held-out label files differ from the hashes in `configs/paper1.json`, or a DB `-wal` file exists;
+  - a guideline lacks an active run, its recommendations or its PDF hash, or the edition count differs;
+  - the held-out labels are incomplete or include other DOIs;
+  - `--package DIR` exists and is neither empty nor a previous package (the swap deletes it).
 - Also rewrites `out/tables`, `out/figures` and `out/dashboard` from the frozen source.
-- Held-out scoring loads BioLORD on CPU (same similarities on any machine).
+- Held-out scoring loads BioLORD on CPU at the runs' embedding revision (same similarities on any machine).
 - A rerun gives byte-identical files; compare against `analysis_manifest.json` → `outputs`.
 
 ## Files (`out/paper1/`)

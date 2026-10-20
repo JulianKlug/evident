@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import zipfile
 from dataclasses import asdict, dataclass, replace
 from typing import Optional, Sequence
 
@@ -324,8 +325,12 @@ def _heldout_problems(directory: str, expected: set[str], labelled: set[str]) ->
 
 
 def _heldout_file_problems(path: str, name: str, problems: list[str]) -> Optional[str]:
-    """Check one label file; append its problems; return its normalized DOI, or None if unreadable."""
-    sheets = pd.ExcelFile(path).sheet_names
+    """Check one label file; append its problems; return its normalized DOI, or None if unusable."""
+    try:
+        sheets = pd.ExcelFile(path).sheet_names
+    except (ValueError, OSError, zipfile.BadZipFile) as e:
+        problems.append(f"{name}: unreadable ({e})")
+        return None
     if not sheets or sheets[0] != _HELDOUT_SHEET:
         problems.append(f"{name}: first sheet must be '{_HELDOUT_SHEET}' (the loader reads the first sheet)")
         return None

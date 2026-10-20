@@ -20,6 +20,7 @@ from evident.pipeline import (
     PackageAuditError,
     PackageInputs,
     SnapshotStart,
+    TreeState,
     ValidationMissingError,
     publish,
     publish_package,
@@ -30,6 +31,7 @@ from evident.publishing import DraftFieldError
 from evident.store import AccessMode, Store
 from evident.validation import HeldoutLabelError
 from tests.evident.pipeline_fakes import CONFIG, GUIDELINES, World, write_heldout_xlsx
+from tests.legacy_golden import FakeEncoder
 
 _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _TEMPLATE = os.path.join(_REPO, "docs", "paper1", "draft.md.j2")
@@ -76,6 +78,7 @@ class Frozen:
         ])
         self.package = os.path.join(self.root, "paper")
         self.config_path = os.path.join(self.root, "paper.json")
+        self.revisions = []  # embedding revisions the package asked for
         self.write_config()
 
     def write_config(self, **overrides):
@@ -86,6 +89,7 @@ class Frozen:
             n_guidelines=len(_DOIS), n_current=len(_DOIS), bootstrap_n=200, bootstrap_seed=0,
             heldout_dois=[_HELDOUT], spotcheck_dir=self.spotcheck, template_path=_TEMPLATE,
             focused_update_overlap_max=0,
+            heldout_labels_sha256={n: file_sha256(os.path.join(self.heldout, n)) for n in os.listdir(self.heldout)},
         )
         values.update(overrides)
         with open(self.config_path, "w") as f:
@@ -94,8 +98,24 @@ class Frozen:
     def inputs(self, **overrides) -> PackageInputs:
         with open(self.config_path) as f:
             config = AnalysisConfig.from_json(f.read())
-        inputs = PackageInputs(self.db, self.package, config, self.config_path, self.heldout, _QUERIES)
+        inputs = PackageInputs(self.db, self.package, config, self.config_path, self.heldout, _QUERIES,
+                               TreeState.CLEAN, self._load_similarity)
         return dataclasses.replace(inputs, **overrides)
+
+    def reopen_writable(self):
+        """Close the read-only store; return a writable connection. Call refreeze() after the edit."""
+        self.store.close()
+        return sqlite3.connect(self.db)
+
+    def refreeze(self, conn):
+        conn.commit()
+        conn.close()
+        self.store = Store.open(self.db, AccessMode.READ_ONLY)
+        self.write_config()
+
+    def _load_similarity(self, revision: str):
+        self.revisions.append(revision)
+        return FakeEncoder()
 
     def deps(self):
         return dataclasses.replace(self.world.deps(), store=self.store)
@@ -111,13 +131,13 @@ class Frozen:
             f.write("doi,society,year,title,journal,pmid,source,decision,reason,duplicate_of\n" + "\n".join(rows) + "\n")
         return path
 
-    def _write_spotcheck(self) -> str:
+    def _write_spotcheck(self, matched=(0, 1)) -> str:
         directory = os.path.join(self.root, "spotcheck")
-        os.makedirs(directory)
+        os.makedirs(directory, exist_ok=True)
         reference = [{"category": "graded", "strength": "weak", "direction": "for", "certainty": "low"},
                      {"category": "graded", "strength": "strong", "direction": "against", "certainty": "high"},
                      {"category": "best_practice"}]
-        data = {"doi": _SPOT, "matches": [{"extracted_id": 0}, {"extracted_id": 1}], "reference": reference}
+        data = {"doi": _SPOT, "matches": [{"extracted_id": i} for i in matched], "reference": reference}
         with open(os.path.join(directory, "10.1000_b.spotcheck.json"), "w") as f:
             json.dump(data, f)
         return directory
@@ -231,6 +251,7 @@ def test_corpus_flow_and_spotcheck(frozen):
     # 10.1000/b published: weak/low, strong/high, weak/very low; reference: weak/low, strong/high (+1 ungraded)
     assert (bias["strong"]["published_num"], bias["strong"]["published_den"]) == ("1", "3")
     assert (bias["strong"]["truth_num"], bias["strong"]["truth_den"]) == ("1", "2")
+    assert (bias["strong"]["correct_num"], bias["strong"]["correct_den"]) == ("1", "2")  # rows 0, 1
     assert bias["ungraded_share"]["correct_num"] == "NA"
 
 
@@ -253,6 +274,10 @@ def test_draft_rendered_from_exports(frozen):
     ({"snapshot_id": 2}, "config paper_test names 2"),
     ({"template_path": "/nope.j2"}, "draft template /nope.j2 missing"),
     ({"heldout_dois": ["10.1000/zz"]}, "held-out 10.1000/zz is not a manifest guideline"),
+    ({"candidates_sha256": "0" * 64}, "candidates"),
+    ({"spotcheck_dir": "/nope"}, "spot-check dir /nope missing"),
+    ({"heldout_labels_sha256": {"10.1000_e.xlsx": "0" * 64}}, "held-out labels"),
+    ({"heldout_labels_sha256": {}}, "held-out labels"),
 ])
 def test_audit_refuses_a_different_source(frozen, override, message):
     frozen.write_config(**override)
@@ -290,6 +315,97 @@ def test_audit_refuses_pdf_drift(frozen):
         frozen.run()
 
 
+def test_audit_refuses_run_without_pdf_hash(frozen):
+    conn = frozen.reopen_writable()
+    conn.execute("UPDATE extraction_run SET pdf_sha256 = NULL WHERE id = 1")
+    frozen.refreeze(conn)
+    with pytest.raises(PackageAuditError, match="run 1 has no PDF hash"):
+        frozen.run()
+
+
+def test_audit_refuses_guideline_without_recommendations(frozen):
+    conn = frozen.reopen_writable()
+    conn.execute("DELETE FROM recommendation WHERE run_id = 1")
+    frozen.refreeze(conn)
+    with pytest.raises(PackageAuditError, match="run 1 has no recommendations"):
+        frozen.run()
+
+
+def test_audit_refuses_member_not_in_manifest(frozen):
+    rows = _read(frozen.world.manifest).splitlines(keepends=True)
+    with open(frozen.world.manifest, "w") as f:
+        f.writelines(r for r in rows if not r.startswith("10.1000/c,"))
+    frozen.write_config(n_guidelines=3, n_current=3)
+    with pytest.raises(PackageAuditError) as e:
+        frozen.run()
+    assert "10.1000/c: snapshot member not in the manifest" in e.value.problems
+
+
+def test_audit_refuses_wal_sidecar(frozen):
+    with open(frozen.db + "-wal", "wb") as f:
+        f.write(b"frames the DB hash does not cover")
+    with pytest.raises(PackageAuditError, match="-wal"):
+        frozen.run()
+
+
+def test_audit_refuses_uncommitted_code(frozen):
+    with pytest.raises(PackageAuditError, match="uncommitted"):
+        frozen.run(tree_state=TreeState.DIRTY)
+    assert not os.path.exists(frozen.package)
+
+
+@pytest.mark.parametrize("contents", [["evident.sqlite"], ["tables/"]])
+def test_audit_refuses_a_target_that_is_not_a_package(frozen, contents):
+    target = os.path.join(frozen.root, "elsewhere")
+    for name in contents:
+        path = os.path.join(target, name)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        if not name.endswith("/"):
+            with open(path, "w") as f:
+                f.write("keep me")
+        else:
+            os.makedirs(path, exist_ok=True)
+
+    with pytest.raises(PackageAuditError, match="not a previous package"):
+        frozen.run(package_dir=target)
+    assert sorted(os.listdir(target)) == sorted(n.rstrip("/") for n in contents)
+
+
+def test_audit_refuses_a_file_as_target(frozen):
+    target = os.path.join(frozen.root, "file")
+    with open(target, "w") as f:
+        f.write("x")
+    with pytest.raises(PackageAuditError, match="not a directory"):
+        frozen.run(package_dir=target)
+
+
+def test_empty_target_accepted(frozen):
+    os.makedirs(frozen.package)
+    frozen.run()
+    assert _files(frozen.package) == _EXPECTED
+
+
+def test_spotcheck_row_missing_from_run_refused(frozen):
+    frozen._write_spotcheck(matched=(0, 99))
+    with pytest.raises(ValueError, match="99"):
+        frozen.run()
+
+
+def test_editor_lock_files_ignored(frozen):
+    for name in ("~$10.1000_e.xlsx", ".~lock.10.1000_e.xlsx#"):
+        with open(os.path.join(frozen.heldout, name), "wb") as f:
+            f.write(b"lock")
+    frozen.run()
+    manifest = json.loads(_read(os.path.join(frozen.package, "analysis_manifest.json")))
+    assert list(manifest["inputs"]["heldout_labels"]) == ["10.1000_e.xlsx"]
+
+
+def test_similarity_loaded_at_the_stored_embedding_revision(frozen):
+    frozen.run()
+    version = frozen.store.get_extractor_version(frozen.store.get_snapshot(1).extractor_version_id)
+    assert frozen.revisions == [version.embedding_revision]
+
+
 def test_audit_refuses_unpublished_snapshot(frozen):
     with pytest.raises(PackageAuditError, match="snapshot 9 is missing"):
         publish_package(frozen.deps(), 9, frozen.inputs())
@@ -297,6 +413,7 @@ def test_audit_refuses_unpublished_snapshot(frozen):
 
 def test_incomplete_heldout_labels_refused(frozen):
     write_heldout_xlsx(frozen.heldout, _HELDOUT, [])  # the blank template
+    frozen.write_config()
     with pytest.raises(HeldoutLabelError, match="no labelled statement"):
         frozen.run()
     assert not os.path.exists(frozen.package)

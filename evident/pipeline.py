@@ -82,7 +82,7 @@ from evident.paper import (
     table2,
     trend_points,
 )
-from evident.publishing import PublishBundle, ValidationSummary, render, render_package
+from evident.publishing import PublishBundle, ValidationSummary, package_target_problem, render, render_package
 from evident.store import Store
 from evident.validation import (
     GateReport,
@@ -104,6 +104,14 @@ _LOW_RECALL_FACTOR = 0.5     # fewer recs than half the society median is flagge
 _UNGRADED_SHARE_MARGIN = 0.25  # ungraded share above society median + 0.25 is flagged
 _DIGEST_PREFIX = 12  # same length as `ollama list` IDs
 _BOOTSTRAP_UNIT = "guideline, resampled within society; ALL stratified by society"
+_WAL_SUFFIX = "-wal"  # SQLite write-ahead log beside the DB: readers see its frames, the DB hash does not
+_IGNORED_FILE_PREFIXES = ("~$", ".")  # editor lock files beside label files, e.g. .~lock.x.xlsx#
+
+
+class TreeState(str, Enum):
+    """Git working tree of the analysis code; a package needs CLEAN so analysis_sha names the code."""
+    CLEAN = "clean"
+    DIRTY = "dirty"
 
 
 class SnapshotStart(str, Enum):
@@ -144,6 +152,8 @@ class PackageInputs:
     config_path: str
     heldout_dir: str
     search_queries: tuple[tuple[str, str, str], ...]  # (society, source, term with date window)
+    tree_state: TreeState
+    load_similarity: Callable[[str], object]  # embedding revision → BioLORD for held-out matching
 
 
 # ── errors ──────────────────────────────────────────────────────
@@ -459,12 +469,12 @@ def publish_package(deps: PipelineDeps, snapshot_id: int, inputs: PackageInputs)
 
     rows, facts = _harmonized_rows(deps.store, snap, entries)
     recs_by_doi = {g.doi: recs for g, recs in _active_recs_by_guideline(deps.store, snap.id)}
-    heldout_scores = heldout_report(score({lg.doi: recs_by_doi[lg.doi] for lg in heldout},
-                                          heldout, deps.similarity_model))
+    version = deps.store.get_extractor_version(snap.extractor_version_id)
+    similarity = inputs.load_similarity(version.embedding_revision)  # same embeddings as the runs
+    heldout_scores = heldout_report(score({lg.doi: recs_by_doi[lg.doi] for lg in heldout}, heldout, similarity))
 
     current = current_editions(entries)
     t1, t2 = table1(rows, cfg.bootstrap_n, cfg.bootstrap_seed), table2(rows)
-    version = deps.store.get_extractor_version(snap.extractor_version_id)
     society_of = {e.doi: e.society for e in entries}
     paper = PaperPackage(
         config=cfg,
@@ -852,6 +862,13 @@ def _audit_package(store: Store, snapshot_id: int, manifest_path: str, entries: 
                                  "not published"])
 
     problems = []
+    if inputs.tree_state != TreeState.CLEAN:
+        problems.append("analysis code has uncommitted changes; commit them so analysis_sha names the code")
+    target = package_target_problem(inputs.package_dir)
+    if target:
+        problems.append(target)
+    if os.path.exists(inputs.db_path + _WAL_SUFFIX):
+        problems.append(f"{inputs.db_path}{_WAL_SUFFIX} exists: its frames are outside the DB hash")
     if snapshot_id != cfg.snapshot_id:
         problems.append(f"snapshot {snapshot_id} requested, config {cfg.name} names {cfg.snapshot_id}")
     for label, path, expected in (("database", inputs.db_path, cfg.db_sha256),
@@ -865,6 +882,12 @@ def _audit_package(store: Store, snapshot_id: int, manifest_path: str, entries: 
         problems.append(f"draft template {cfg.template_path} missing")
     if not os.path.isdir(cfg.spotcheck_dir):
         problems.append(f"spot-check dir {cfg.spotcheck_dir} missing")
+    label_hashes = _dir_hashes(inputs.heldout_dir) if os.path.isdir(inputs.heldout_dir) else None
+    if label_hashes is None:
+        problems.append(f"held-out label dir {inputs.heldout_dir} missing")
+    elif label_hashes != cfg.heldout_labels_sha256:
+        problems.append(f"held-out labels in {inputs.heldout_dir} differ from the config's heldout_labels_sha256: "
+                        f"{_hash_diff(label_hashes, cfg.heldout_labels_sha256)}")
 
     if len(entries) != cfg.n_guidelines:
         problems.append(f"{len(entries)} manifest guidelines, expected {cfg.n_guidelines}")
@@ -904,6 +927,8 @@ def _member_problems(store: Store, snapshot_id: int, entries: list[ManifestEntry
         run = store.active_run(snapshot_id, m.guideline_id)
         if run is None:
             continue
+        if not store.recommendations(run.id):
+            problems.append(f"{g.doi}: run {run.id} has no recommendations")  # it would vanish from every table
         if run.pdf_sha256 is None:
             problems.append(f"{g.doi}: run {run.id} has no PDF hash")
         elif run.pdf_sha256 != g.pdf_sha256:
@@ -940,9 +965,19 @@ def _provenance(deps: PipelineDeps, snap: Snapshot, version: ExtractorVersion, i
 
 
 def _dir_hashes(directory: str) -> dict[str, str]:
-    """{file name: SHA-256} of the regular files in a directory, e.g. the held-out label set."""
-    names = sorted(f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)))
+    """{file name: SHA-256} of the regular files in a directory, e.g. the held-out label set; lock files skipped."""
+    names = sorted(f for f in os.listdir(directory)
+                   if os.path.isfile(os.path.join(directory, f)) and not f.startswith(_IGNORED_FILE_PREFIXES))
     return {name: file_sha256(os.path.join(directory, name)) for name in names}
+
+
+def _hash_diff(actual: dict[str, str], expected: dict[str, str]) -> str:
+    """'changed a.xlsx; unexpected b.xlsx; missing c.xlsx'."""
+    changed = sorted(n for n in actual.keys() & expected.keys() if actual[n] != expected[n])
+    parts = [f"{label} {', '.join(names)}" for label, names in (
+        ("changed", changed), ("unexpected", sorted(actual.keys() - expected.keys())),
+        ("missing", sorted(expected.keys() - actual.keys()))) if names]
+    return "; ".join(parts)
 
 
 def _sha_or_none(path: str) -> Optional[str]:

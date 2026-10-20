@@ -199,13 +199,14 @@ def check_artifacts(version: ExtractorVersion, live: Artifacts) -> None:
                                     live.few_shot_pool_sha256)
 
 
-def load_similarity_model(device: Optional[str] = None) -> object:
+def load_similarity_model(device: Optional[str] = None, revision: Optional[str] = None) -> object:
     """BioLORD (the only supported embedding model); slow, so load once per process.
 
-    device "cpu" pins the embeddings for reproducible scoring (publish --package); None: GPU if present.
+    publish --package pins both for reproducible scoring: device "cpu", revision = the runs' embedding_revision.
+    None: GPU if present, latest cached revision.
     """
     from extraction.benchmark import _BioLORDSimilarityModel
-    return _BioLORDSimilarityModel(device)
+    return _BioLORDSimilarityModel(device, revision)
 
 
 def load_models(cfg: ExtractorConfig) -> Models:

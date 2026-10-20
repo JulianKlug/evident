@@ -145,6 +145,8 @@ _PAPER1 = os.path.join(cli._REPO_ROOT, "configs", "paper1.json")
     ["publish", "--snapshot", "8", "--package", "p"],                                         # no config/labels
     ["publish", "--snapshot", "8", "--package", "p", "--analysis-config", _PAPER1],          # no labels
     ["publish", "--package", "p", "--analysis-config", _PAPER1, "--heldout-labels", "h"],    # no snapshot
+    ["publish", "--snapshot", "8", "--package", "p", "--analysis-config", _PAPER1, "--heldout-labels", "h",
+     "--accept-regression", "x"],                                                           # no gate in a package
 ])
 def test_package_usage_errors_exit_2(calls, tmp_path, argv):
     with pytest.raises(SystemExit) as err:
@@ -163,9 +165,13 @@ def _frozen_db(tmp_path) -> str:
 
 def test_package_reads_frozen_db_read_only(tmp_path, monkeypatch):
     seen = []
+    loaded = []
+    monkeypatch.setattr(cli, "load_similarity_model", lambda *args: loaded.append(args))
+    monkeypatch.setattr(cli, "_tree_state", lambda: pipeline.TreeState.DIRTY)
 
     def fake(deps, snapshot_id, inputs):
         seen.append((snapshot_id, inputs))
+        inputs.load_similarity("rev1")
         with pytest.raises(sqlite3.OperationalError):  # the store refuses writes
             deps.store.upsert_guideline(Guideline("10.1/a", "ACP", 2020, "T", "t", GradingFamily.GRADE))
         return PackageReport(8, "m@d", inputs.package_dir, [], "out", [], heldout_report(SnapshotScore(())))
@@ -182,6 +188,8 @@ def test_package_reads_frozen_db_read_only(tmp_path, monkeypatch):
     assert inputs.config.name == "paper1"
     assert len(inputs.search_queries) == 9
     assert all(term.endswith('"2026/10/04"[dp])') for _, _, term in inputs.search_queries)
+    assert inputs.tree_state == pipeline.TreeState.DIRTY  # the audit refuses it
+    assert loaded == [("cpu", "rev1")]  # CPU, at the extraction runs' embedding revision
     assert file_sha256(db) == before
 
 
@@ -193,6 +201,17 @@ def test_package_missing_db_not_created(tmp_path, capsys):
     assert not (tmp_path / "db.sqlite").exists()
 
 
+def test_tree_state_from_git_status(monkeypatch):
+    class Done:
+        def __init__(self, stdout):
+            self.stdout = stdout
+
+    monkeypatch.setattr(cli.subprocess, "run", lambda *a, **k: Done(" M evident/paper.py\n"))
+    assert cli._tree_state() == pipeline.TreeState.DIRTY
+    monkeypatch.setattr(cli.subprocess, "run", lambda *a, **k: Done(""))
+    assert cli._tree_state() == pipeline.TreeState.CLEAN
+
+
 def test_repo_paper1_config_matches_the_freeze():
     """docs/paper1/freeze.md: snapshot 8, 85 guidelines, 75 current, three prespecified SCCM DOIs."""
     with open(_PAPER1) as f:
@@ -202,3 +221,8 @@ def test_repo_paper1_config_matches_the_freeze():
     assert cfg.heldout_dois == ("10.1097/ccm.0000000000002533", "10.1097/ccm.0000000000006551",
                                 "10.1097/pcc.0000000000003914")
     assert cfg.db_sha256 == "145ae06aab900753313fa9df79c91aa28bc4a32d836506b0ce78c2dd3b573bc0"
+    assert cfg.heldout_labels_sha256 == {  # freeze.md, labels of 2026-10-19
+        "10.1097_ccm.0000000000002533.xlsx": "113466fb6392049784829b81cd2f26a4136f00fe8f6a5b998bc9ae8011d0dc7f",
+        "10.1097_ccm.0000000000006551.xlsx": "7fee54aa6c5fa5382779eceef928335fe4b10803c667c594fc70fdbba2fdd58f",
+        "10.1097_pcc.0000000000003914.xlsx": "fdb835f7ca6ebaeb4711ab45171aaea7e6c2511639f3bfcb98082c5cdc2051eb",
+    }

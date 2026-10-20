@@ -51,15 +51,14 @@ _KNOWN_ERRORS = (pipeline.PipelineError, StoreError, ManifestError, ExtractionEr
 
 
 class _LazySimilarity:
-    """BioLORD loaded on first use, once per process; status and plain publish never load it."""
+    """BioLORD loaded on first use, once per process; status and publish never load it."""
 
-    def __init__(self, device: Optional[str] = None):
-        self._device = device
+    def __init__(self):
         self._model = None
 
     def __getattr__(self, name):
         if self._model is None:
-            self._model = load_similarity_model(self._device)
+            self._model = load_similarity_model()
         return getattr(self._model, name)
 
 
@@ -70,6 +69,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         parser.error("each --exclude DOI needs one --reason TEXT")  # exits 2
     if _is_package(args) and not (args.snapshot and args.analysis_config and args.heldout_labels):
         parser.error("--package needs --snapshot ID, --analysis-config FILE and --heldout-labels DIR")
+    if _is_package(args) and args.accept_regression:
+        parser.error("--package reads a published snapshot; --accept-regression does not apply")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
     # A package reads a frozen copy: never created, migrated or written
@@ -134,7 +135,8 @@ def _publish_package(args, deps) -> int:
     cutoff = date.fromisoformat(config.search_cutoff)
     queries = tuple((q.society, q.source.value, search.query_for(q, cutoff)) for q in search.QUERIES)
     inputs = pipeline.PackageInputs(args.db, args.package, config, args.analysis_config, args.heldout_labels,
-                                    queries)
+                                    queries, _tree_state(),
+                                    lambda revision: load_similarity_model(_PACKAGE_DEVICE, revision))
     report = pipeline.publish_package(deps, args.snapshot, inputs)
 
     h = report.heldout
@@ -231,7 +233,7 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def _deps(args, store: Store) -> pipeline.PipelineDeps:
-    similarity = _LazySimilarity(_PACKAGE_DEVICE if _is_package(args) else None)
+    similarity = _LazySimilarity()
     return pipeline.PipelineDeps(
         store=store,
         manifest_path=args.manifest,
@@ -252,6 +254,16 @@ def _is_package(args) -> bool:
 def _read_config(path: str) -> ExtractorConfig:
     with open(path, encoding="utf-8") as f:
         return ExtractorConfig.from_json(f.read())
+
+
+def _tree_state() -> pipeline.TreeState:
+    """DIRTY on any change git sees (tracked or untracked), or when git cannot tell."""
+    try:
+        out = subprocess.run(["git", "status", "--porcelain"], cwd=_REPO_ROOT, capture_output=True, text=True,
+                             check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return pipeline.TreeState.DIRTY
+    return pipeline.TreeState.DIRTY if out.stdout.strip() else pipeline.TreeState.CLEAN
 
 
 def _git_head() -> Optional[str]:

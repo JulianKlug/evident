@@ -68,6 +68,7 @@ class AnalysisConfig:
     spotcheck_dir: str
     template_path: str
     focused_update_overlap_max: int  # estimated graded recs counted twice by focused updates
+    heldout_labels_sha256: dict[str, str]  # {label file: SHA-256}, frozen with the labels
 
     @classmethod
     def from_json(cls, text: str) -> "AnalysisConfig":
@@ -484,7 +485,7 @@ def spotcheck_bias(rows: Sequence[HarmonizedRow], spot: Sequence[SpotcheckGuidel
     """Published (all extracted rows) vs correct (rows matched to a reference) vs truth (reference list).
 
     Same metric definitions as the headline. CI: unstratified guideline-cluster bootstrap of the
-    published − truth difference. Raises ValueError for a spot-check DOI without extracted rows.
+    published − truth difference. Raises ValueError for a spot-check DOI or matched row without extracted rows.
     """
     by_doi: dict[str, list[HarmonizedRow]] = {}
     for r in rows:
@@ -492,6 +493,11 @@ def spotcheck_bias(rows: Sequence[HarmonizedRow], spot: Sequence[SpotcheckGuidel
     missing = sorted(g.doi for g in spot if g.doi not in by_doi)
     if missing:
         raise ValueError(f"Spot-check guideline(s) without extracted rows: {', '.join(missing)}")
+    # The JSONs name rows by ordinal of the reviewed run; one that the stored run lacks means another run
+    ordinals = {g.doi: {r.ordinal for r in by_doi[g.doi]} for g in spot}
+    unknown = [f"{g.doi} row {o}" for g in spot for o in g.matched_ordinals if o not in ordinals[g.doi]]
+    if unknown:
+        raise ValueError(f"Spot-check rows missing from the extracted run: {', '.join(unknown)}")
 
     published = {g.doi: [r.grade for r in by_doi[g.doi]] for g in spot}
     correct = {g.doi: [r.grade for r in by_doi[g.doi] if r.ordinal in set(g.matched_ordinals)] for g in spot}

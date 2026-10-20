@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import base64
 import csv
-import hashlib
 import json
 import math
 import os
@@ -45,6 +44,7 @@ from evident.analytics import (
     HeadlineRow,
     TrendRow,
 )
+from evident.corpus import file_sha256
 from evident.domain import Certainty, GateResult, Strength
 from evident.paper import BiasRow, PaperPackage, Proportion
 
@@ -471,6 +471,9 @@ def render_package(bundle: PublishBundle, package_dir: str) -> list[str]:
     """Write the paper package; returns the final paths. A failure leaves the previous package intact."""
     if bundle.paper is None:
         raise ValueError("render_package needs a bundle with a paper payload")
+    problem = package_target_problem(package_dir)
+    if problem:
+        raise ValueError(problem)
 
     parent = os.path.dirname(os.path.abspath(package_dir))
     os.makedirs(parent, exist_ok=True)
@@ -484,6 +487,22 @@ def render_package(bundle: PublishBundle, package_dir: str) -> list[str]:
     names = sorted(os.listdir(staging))
     _swap_dir(staging, os.path.abspath(package_dir))
     return [os.path.join(package_dir, n) for n in names]
+
+
+def package_target_problem(package_dir: str) -> Optional[str]:
+    """Why package_dir cannot be replaced, or None: it must be missing, empty or a previous package.
+
+    The swap deletes the old directory, so e.g. `--package out` (the live DB beside the outputs) is refused.
+    """
+    if not os.path.exists(package_dir):
+        return None
+    if not os.path.isdir(package_dir):
+        return f"package target {package_dir} is not a directory"
+    names = os.listdir(package_dir)
+    if names and _MANIFEST_FILE not in names:
+        return (f"package target {package_dir} is not empty and not a previous package (no {_MANIFEST_FILE}); "
+                "refusing to replace it")
+    return None
 
 
 def _write_package(bundle: PublishBundle, directory: str) -> None:
@@ -506,7 +525,7 @@ def _write_package(bundle: PublishBundle, directory: str) -> None:
         f.write(_render_draft(bundle, exports))
 
     # Last: hashes of every other file; the manifest never lists itself
-    outputs = {name: _file_sha256(os.path.join(directory, name)) for name in sorted(os.listdir(directory))}
+    outputs = {name: file_sha256(os.path.join(directory, name)) for name in sorted(os.listdir(directory))}
     _write_json({**p.provenance, "outputs": outputs}, os.path.join(directory, _MANIFEST_FILE))
 
 
@@ -531,7 +550,7 @@ def _package_json(bundle: PublishBundle) -> dict[str, dict]:
 def _write_package_csv(rows: list, path: str) -> None:
     flat = [_flat(r) for r in rows]
     _write_dicts([{k: _package_cell(v) for k, v in r.items()} for r in flat], path,
-                 list(_flat_names(rows[0])) if rows else [])
+                 list(flat[0]) if flat else [])
 
 
 def _flat(row) -> dict:
@@ -550,10 +569,6 @@ def _flat(row) -> dict:
         else:
             out[f.name] = value.value if isinstance(value, Enum) else value
     return out
-
-
-def _flat_names(row) -> list[str]:
-    return list(_flat(row))
 
 
 def _package_cell(value):
@@ -640,11 +655,6 @@ def _plain(value):
     if isinstance(value, (list, tuple)):
         return [_plain(v) for v in value]
     return value
-
-
-def _file_sha256(path: str) -> str:
-    with open(path, "rb") as f:
-        return hashlib.sha256(f.read()).hexdigest()
 
 
 def _fmt_pct(value: Optional[float]) -> str:

@@ -2,6 +2,7 @@
 
 import dataclasses
 import json
+import os
 
 import pytest
 
@@ -22,6 +23,8 @@ from evident.validation import (
 )
 from tests.evident.pipeline_fakes import write_heldout_xlsx
 from tests.legacy_golden import FakeEncoder
+
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 _GRADED = Category.GRADED
 _A = "ACP recommends against routine imaging in acute low back pain"
@@ -199,6 +202,18 @@ class TestLoadHeldout:
         problems = self._problems(self._dir(tmp_path, rows=rows))
         assert any("line 3: duplicate of line 2" in p for p in problems)
 
+    def test_corrupt_file_reported(self, tmp_path):
+        directory = self._dir(tmp_path)
+        with open(os.path.join(directory, "bad.xlsx"), "wb") as f:
+            f.write(b"not a zip")
+        assert any("bad.xlsx: unreadable" in p for p in self._problems(directory))
+
+    def test_excel_lock_file_ignored(self, tmp_path):
+        directory = self._dir(tmp_path)
+        with open(os.path.join(directory, "~$10.1097_ccm.1.xlsx"), "wb") as f:
+            f.write(b"lock")
+        assert [g.doi for g in load_heldout(directory, [_H1, _H2], set())] == [_H1, _H2]
+
     def test_labels_sheet_must_come_first(self, tmp_path):
         directory = self._dir(tmp_path)
         write_heldout_xlsx(directory, _H2, _HELD_ROWS, sheet="Sheet1")
@@ -253,7 +268,7 @@ def test_load_spotcheck(tmp_path):
 
 def test_committed_spotcheck_reproduces_reference_counts():
     """corpus/spotcheck_m3: 217 graded and 160 ungraded reference statements (docs/progress.md)."""
-    spot = load_spotcheck("corpus/spotcheck_m3")
+    spot = load_spotcheck(os.path.join(_REPO, "corpus", "spotcheck_m3"))
     grades = [r for g in spot for r in g.reference]
     assert len(spot) == 10
     assert sum(r.category == Category.GRADED for r in grades) == 217
