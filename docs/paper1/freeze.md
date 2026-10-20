@@ -15,7 +15,7 @@ Spec: `docs/specs/m4-paper1.md` §3. Git tag `paper1-freeze` marks the commit ho
 | `corpus/candidates.csv` SHA-256 | `323fc2ae01059ec538449f7580327637fa86b72fadb20972d426484a236f9a28` |
 | Search cutoff | 2026-10-04 (`scripts/search_guidelines.py --until 2026-10-04`) |
 | Held-out SCCM labels (2026-10-19) | `<data root>/intensive_care_medicine_heldout/`; SHA-256 `…002533.xlsx` `113466fb6392049784829b81cd2f26a4136f00fe8f6a5b998bc9ae8011d0dc7f`, `…006551.xlsx` `7fee54aa6c5fa5382779eceef928335fe4b10803c667c594fc70fdbba2fdd58f`, `…003914.xlsx` `fdb835f7ca6ebaeb4711ab45171aaea7e6c2511639f3bfcb98082c5cdc2051eb` |
-| Package | analysis code `3738471`; `out/paper1/analysis_manifest.json` SHA-256 `34140fa9a1060be5a30d04b52c6d8e26d45053e75374f20401c726ba68282e21`; two runs byte-identical, DB hash unchanged |
+| Package (2026-10-20) | analysis code `17efa60`; `out/paper1/analysis_manifest.json` SHA-256 `56eb7263641e4f6ad07fd64e82ae264bdfbfc7197c54afd04e6529c31a44ec07`; two runs byte-identical, DB hash unchanged; tables and validation identical to the `3738471` package (only the code SHA differs) |
 
 Made with `sqlite3 out/evident.sqlite ".backup …"` from the live DB, then `PRAGMA journal_mode=DELETE`, `chmod 444`.
 
