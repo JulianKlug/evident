@@ -182,11 +182,18 @@ def test_common_caption_stated_once(tmp_path):
     assert captions.count("Snapshot 7, extractor version") == 1
     assert captions.count("SCCM: extraction accuracy unvalidated") == 1
     assert "**Notes (all figures and Table 1).**" in captions
+    notes, provenance = captions.split("**Notes (all figures and Table 1).**")[1].split("**Provenance.**")
+    assert "1 joint guideline(s) counted once" in notes and "10.1/b" not in notes and "Snapshot 7" not in notes
+    assert "10.1/b (SCCM with ESICM)" in provenance and "Snapshot 7, extractor version" in provenance
 
 
-def test_dashboard_banner_and_no_ungraded_share(tmp_path):
+def test_dashboard_validation_at_bottom_and_no_ungraded_share(tmp_path):
     render(_bundle(), str(tmp_path))
     html = _read(tmp_path / "dashboard" / "index.html")
-    assert '<div class="banner">SCCM: extraction accuracy unvalidated (no labelled SCCM guideline).</div>' in html
+    assert "banner" not in html
+    assert "SCCM: extraction accuracy unvalidated (no labelled SCCM guideline)." in html
+    assert html.index("<h2>Recommendations</h2>") < html.index("<h2>Validation and provenance</h2>")
+    assert "Development, 12 labelled guidelines (in-sample)" in html
+    assert "gate pass" not in html
     assert "Ungraded %" not in html and "ungraded_share, " not in html  # v2 ungraded share is incomplete
     assert "ungraded_share" in _read(tmp_path / "tables" / "headline.csv")  # exports keep the column

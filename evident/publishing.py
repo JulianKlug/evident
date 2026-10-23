@@ -74,14 +74,23 @@ _OPTIONAL_NESTED = {(BiasRow, "correct"): Proportion}  # Optional dataclass fiel
 _DEVELOPMENT_NOTE = ("the labelled guidelines also informed extractor development and tuning: "
                      "in-sample performance, not an external test")
 
-# One colour per society everywhere (figures and dashboard); ALL in neutral grey
-_SOCIETY_COLOURS = {"ACP": "#1f77b4", "ESICM": "#d62728", "SCCM": "#2ca02c", _ALL: "#555555"}
+# One colour per society everywhere (figures and dashboard), colour-blind safe (Okabe-Ito); ALL in neutral grey
+_SOCIETY_COLOURS = {"ACP": "#0072B2", "ESICM": "#E69F00", "SCCM": "#009E73", _ALL: "#555555"}
 _FALLBACK_COLOUR = "#9467bd"
 _CERTAINTY_COLOURS = {Certainty.HIGH: "#08519c", Certainty.MODERATE: "#4292c6",
                       Certainty.LOW: "#9ecae1", Certainty.VERY_LOW: "#deebf7"}
 _CERTAINTY_LABELS = {Certainty.HIGH: "High", Certainty.MODERATE: "Moderate",
                      Certainty.LOW: "Low", Certainty.VERY_LOW: "Very low"}
 _STRENGTH_LABELS = {Strength.STRONG: "Strong", Strength.WEAK: "Weak / conditional"}
+_ALL_GAP = 0.5              # extra axis units before ALL (figures 1–2)
+_SPACER_RATIO = 0.15        # empty grid column before the ALL panel (figure 3)
+_COLOURBAR_RATIO = 0.08
+_WHITE_TEXT_SHARE = 50      # % of panel above which cell text turns white
+_LABEL_HEADROOM = 15        # y units above the highest bar or whisker for its two-line label
+_MARKER_AREA_PER_REC = 0.5  # pt² per graded recommendation (figure 4)
+_SIZE_LEGEND = (10, 50, 250)
+_SOCIETY_ALPHA = 0.6
+_WIDE_FIGURES = ("fig3_strength_by_certainty", "fig4_trends")  # multi-panel: full dashboard row
 
 
 @dataclass(frozen=True)
@@ -195,19 +204,21 @@ def _rec_dict(r: HarmonizedRow) -> dict:
 # ── captions ────────────────────────────────────────────────────
 
 def _figures(bundle: PublishBundle) -> list[_Figure]:
-    """Short, distinct captions; the common corpus/provenance note is stated once, beside them."""
+    """Short, distinct captions; the common corpus note and the provenance are stated once, beside them."""
     c = bundle.captions
     trend_note = (f"All editions: {c.n_recs_all_editions} recommendations, including "
                   f"{c.n_superseded_guidelines} superseded edition(s). Few guidelines per society and year; "
-                  "n graded is shown per point; the last year is incomplete.")
+                  "marker area is proportional to n graded; the last year is incomplete.")
+    whiskers = " Whiskers: 95% guideline-cluster bootstrap interval." if _strong_cis(bundle) else ""
     return [
         _Figure("fig1_certainty_by_society", "Certainty of evidence by society",
                 "Share of current graded recommendations at each certainty level; n = certainty mapped."),
         _Figure("fig2_strong_by_society", "Strong recommendations by society",
                 "Share of current graded recommendations that are strong (for or against); "
-                "n = strength mapped."),
+                f"n = strength mapped.{whiskers}"),
         _Figure("fig3_strength_by_certainty", "Strength by certainty",
-                "Counts of current graded recommendations by strength and certainty (both mapped)."),
+                "Counts of current graded recommendations by strength and certainty (both mapped); "
+                "shading = % of the panel."),
         _Figure("fig4_trends", "Trends by publication year",
                 f"Share of strong and of high/moderate-certainty recommendations per first-online year. "
                 f"{trend_note}"),
@@ -215,7 +226,7 @@ def _figures(bundle: PublishBundle) -> list[_Figure]:
 
 
 def _common_caption(bundle: PublishBundle) -> str:
-    """Corpus, denominator, exclusions, joint guidelines, validation flags and provenance."""
+    """What a reader needs to read every figure: corpus, denominators, exclusions, joint count, caveats."""
     c = bundle.captions
     years = f"{c.year_min}–{c.year_max}" if c.year_min is not None else "no years"
     parts = [
@@ -227,25 +238,38 @@ def _common_caption(bundle: PublishBundle) -> str:
         _excluded_sentence(c),
     ]
     if c.joint:
-        joint = "; ".join(f"{doi} ({society} with {_join(others)})" for doi, society, others in c.joint)
-        parts.append(f"Joint guidelines are counted once, under the society listed: {joint}.")
-    parts += _validation_notes(bundle)
-    parts.append(_provenance(bundle))
+        parts.append(f"{len(c.joint)} joint guideline(s) counted once, under one society (see provenance).")
+    parts += _unvalidated_notes(bundle)
     return " ".join(parts)
 
 
-def _validation_notes(bundle: PublishBundle) -> list[str]:
-    """Per society without development labels: unvalidated, or evaluated on the held-out set (package only)."""
+def _provenance_note(bundle: PublishBundle) -> str:
+    """Joint guidelines, held-out evaluation, snapshot, versions and validation: stated once, apart from the notes."""
+    parts = [_joint_note(bundle.captions)] + _heldout_notes(bundle) + [_provenance(bundle)]
+    return " ".join(p for p in parts if p)
+
+
+def _joint_note(c: CaptionFacts) -> str:
+    if not c.joint:
+        return ""
+    joint = "; ".join(f"{doi} ({society} with {_join(others)})" for doi, society, others in c.joint)
+    return f"Joint guidelines, counted under the society listed: {joint}."
+
+
+def _unvalidated_notes(bundle: PublishBundle) -> list[str]:
+    """Societies without development labels and not evaluated on the held-out set: a caveat for every figure."""
     heldout = bundle.paper.heldout_societies if bundle.paper else ()
-    notes = []
-    for s in bundle.captions.unvalidated_societies:
-        if s not in heldout:
-            notes.append(f"{s}: extraction accuracy unvalidated (no labelled {s} guideline).")
-            continue
-        n_dev = bundle.validation.n_guidelines if bundle.validation else 0
-        notes.append(f"{s}: evaluated separately on {bundle.paper.validation_heldout.n_guidelines} held-out "
-                     f"guidelines; not part of the {n_dev}-guideline development gate.")
-    return notes
+    return [f"{s}: extraction accuracy unvalidated (no labelled {s} guideline)."
+            for s in bundle.captions.unvalidated_societies if s not in heldout]
+
+
+def _heldout_notes(bundle: PublishBundle) -> list[str]:
+    """Societies without development labels evaluated on the held-out set instead (package only)."""
+    heldout = bundle.paper.heldout_societies if bundle.paper else ()
+    n_dev = bundle.validation.n_guidelines if bundle.validation else 0
+    return [f"{s}: evaluated separately on {bundle.paper.validation_heldout.n_guidelines} held-out "
+            f"guidelines; not part of the {n_dev}-guideline development gate."
+            for s in bundle.captions.unvalidated_societies if s in heldout]
 
 
 def _excluded_sentence(c: CaptionFacts) -> str:
@@ -270,7 +294,8 @@ def _write_captions(bundle: PublishBundle, figures: list[_Figure], path: str) ->
     for i, fig in enumerate(figures, start=1):
         lines += [f"**Figure {i}. {fig.title}.** {fig.caption}", ""]
     lines += ["**Table 1. Headline by society.** Current editions; one row per society and all.", "",
-              f"**Notes (all figures and Table 1).** {_common_caption(bundle)}", ""]
+              f"**Notes (all figures and Table 1).** {_common_caption(bundle)}", "",
+              f"**Provenance.** {_provenance_note(bundle)}", ""]
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
@@ -300,65 +325,107 @@ def _write_figures(bundle: PublishBundle, directory: str) -> list[_Figure]:
 def _paint_certainty(bundle: PublishBundle) -> Figure:
     """Horizontal stacked bars: one per society + ALL, segments = certainty levels (%)."""
     societies = _societies(bundle.certainty)
+    ys = _positions(societies)
     figure = Figure(figsize=(6.5, 0.6 * len(societies) + 1.2))
     ax = figure.add_subplot()
     for level in _CERTAINTY_COLOURS:
         lefts = [_left_of(bundle.certainty, s, level) for s in societies]
         widths = [_pct_or_zero(_find(bundle.certainty, s, level).pct) for s in societies]
-        ax.barh(societies, widths, left=lefts, color=_CERTAINTY_COLOURS[level], label=_CERTAINTY_LABELS[level],
+        ax.barh(ys, widths, left=lefts, color=_CERTAINTY_COLOURS[level], label=_CERTAINTY_LABELS[level],
                 edgecolor="white")
-    for i, s in enumerate(societies):
+
+    # n beside each bar, outside the 0–100 frame
+    for y, s in zip(ys, societies):
         n = sum(r.n for r in bundle.certainty if r.society == s)
-        ax.text(101, i, f"n={n}", va="center")
-    ax.set_xlim(0, 112)
+        ax.text(101, y, f"n={n}", va="center", clip_on=False)
+
+    ax.set_yticks(ys, societies)
+    ax.set_xlim(0, 100)
     ax.set_xlabel("% of graded recommendations")
     ax.invert_yaxis()
-    ax.legend(ncol=4, loc="upper center", bbox_to_anchor=(0.45, -0.25), frameon=False)
+    ax.legend(ncol=4, loc="lower center", bbox_to_anchor=(0.5, 1.0), frameon=False)
+    _drop_top_right(ax)
     figure.tight_layout()
     return figure
 
 
 def _paint_strong(bundle: PublishBundle) -> Figure:
+    """Bars of % strong per society + ALL; guideline-cluster CI whiskers when the package supplies them."""
     rows = bundle.headline
+    names = [r.society for r in rows]
+    xs = _positions(names)
+    values = [_pct_or_zero(r.pct_strong) for r in rows]
+    cis = _strong_cis(bundle)
     figure = Figure(figsize=(5, 3.2))
     ax = figure.add_subplot()
-    names = [r.society for r in rows]
-    values = [_pct_or_zero(r.pct_strong) for r in rows]
-    ax.bar(names, values, color=[_colour(n) for n in names])
-    for i, r in enumerate(rows):
+    ax.bar(xs, values, color=[_colour(n) for n in names])
+
+    tops = []
+    for x, r, value in zip(xs, rows, values):
+        ci = cis.get(r.society)
+        if ci:
+            # A percentile interval need not contain the rounded estimate: clip, never a negative arm
+            arms = [[max(0.0, value - ci[0])], [max(0.0, ci[1] - value)]]
+            ax.errorbar(x, value, yerr=arms, color="black", capsize=3, linewidth=1)
+        top = ci[1] if ci else value
+        tops.append(top)
         label = "n/a" if r.pct_strong is None else f"{r.pct_strong:.1f}%"
-        ax.text(i, values[i] + 1.5, f"{label}\nn={r.n_graded - r.n_strength_unmapped}", ha="center", va="bottom")
-    ax.set_ylim(0, 115)
+        ax.text(x, top + 1.5, f"{label}\nn={r.n_graded - r.n_strength_unmapped}", ha="center", va="bottom")
+
+    ax.set_xticks(xs, names)
+    ax.set_ylim(0, max(tops, default=0) + _LABEL_HEADROOM)
     ax.set_ylabel("% strong")
-    for side in ("top", "right"):
-        ax.spines[side].set_visible(False)
+    _drop_top_right(ax)
     figure.tight_layout()
     return figure
 
 
 def _paint_crosstab(bundle: PublishBundle) -> Figure:
-    """One heatmap panel per society + ALL: rows = strength, columns = certainty, cells = counts."""
+    """One heatmap panel per society + ALL: rows = strength, columns = certainty.
+
+    Cell text = count; shading = % of the panel's recommendations on one 0–100 scale, comparable across panels.
+    """
     societies = _societies(bundle.crosstab)
     levels = list(_CERTAINTY_COLOURS)
     strengths = list(_STRENGTH_LABELS)
-    figure = Figure(figsize=(2.3 * len(societies) + 0.8, 2.4))
-    axes = figure.subplots(1, len(societies), squeeze=False)[0]
-    for ax, society in zip(axes, societies):
+
+    # Grid columns: panels, a narrow spacer before ALL, then the colourbar
+    columns = []
+    for i, s in enumerate(societies):
+        if s == _ALL and i > 0:
+            columns.append(_SPACER_RATIO)
+        columns.append(1)
+    columns.append(_COLOURBAR_RATIO)
+    figure = Figure(figsize=(2.3 * len(societies) + 1.2, 2.4))
+    grid = figure.add_gridspec(1, len(columns), width_ratios=columns)
+    panel_columns = [i for i, w in enumerate(columns[:-1]) if w == 1]
+
+    image = None
+    for k, (column, society) in enumerate(zip(panel_columns, societies)):
+        ax = figure.add_subplot(grid[0, column])
         counts = [[_find_cross(bundle.crosstab, society, st, lv).n for lv in levels] for st in strengths]
-        peak = max(max(row) for row in counts) or 1
-        ax.imshow(counts, cmap="Blues", vmin=0, vmax=peak, aspect="auto")
+        total = sum(sum(row) for row in counts) or 1
+        shares = [[100 * n / total for n in row] for row in counts]
+        image = ax.imshow(shares, cmap="Blues", vmin=0, vmax=100, aspect="auto")
         for i, row in enumerate(counts):
             for j, n in enumerate(row):
-                ax.text(j, i, str(n), ha="center", va="center", color="white" if n > peak / 2 else "black")
+                ax.text(j, i, str(n), ha="center", va="center",
+                        color="white" if shares[i][j] > _WHITE_TEXT_SHARE else "black")
         ax.set_title(society)
         ax.set_xticks(range(len(levels)), [_CERTAINTY_LABELS[lv] for lv in levels], rotation=45, ha="right")
-        ax.set_yticks(range(len(strengths)), [_STRENGTH_LABELS[st] if ax is axes[0] else "" for st in strengths])
+        ax.set_yticks(range(len(strengths)), [_STRENGTH_LABELS[st] if k == 0 else "" for st in strengths])
+
+    if image is not None:
+        figure.colorbar(image, cax=figure.add_subplot(grid[0, -1]), label="% of panel")
     figure.tight_layout()
     return figure
 
 
 def _paint_trends(bundle: PublishBundle) -> Figure:
-    """Two panels (% strong, % high/moderate) by year; one line per society, ALL dashed; n graded per point."""
+    """Two panels (% strong, % high/moderate) by year; one line per society, ALL dashed and emphasised.
+
+    Marker area is proportional to n graded, so sparse years (n of 2–4) draw the eye less than full ones.
+    """
     figure = Figure(figsize=(7.5, 3.2))
     left, right = figure.subplots(1, 2, sharex=True)
     for ax, attr, title in ((left, "pct_strong", "% strong"), (right, "pct_high_moderate", "% high/moderate")):
@@ -366,23 +433,46 @@ def _paint_trends(bundle: PublishBundle) -> Figure:
             rows = [r for r in bundle.trends if r.society == society]
             years = [r.year for r in rows]
             values = [math.nan if getattr(r, attr) is None else getattr(r, attr) for r in rows]
-            ax.plot(years, values, marker="o", label=society, color=_colour(society),
-                    linestyle="--" if society == _ALL else "-")
-            if society == _ALL:
-                continue
-            for r, y in zip(rows, values):
-                if not math.isnan(y):
-                    ax.annotate(str(r.n_graded), (r.year, y), textcoords="offset points", xytext=(0, 4),
-                                ha="center", fontsize=6, color=_colour(society))
+            is_all = society == _ALL
+            alpha = 1.0 if is_all else _SOCIETY_ALPHA
+            ax.plot(years, values, label=society, color=_colour(society), linestyle="--" if is_all else "-",
+                    linewidth=2 if is_all else 1, alpha=alpha, zorder=3 if is_all else 2)
+            ax.scatter(years, values, s=[_marker_area(r.n_graded) for r in rows], color=_colour(society),
+                       alpha=alpha, zorder=3 if is_all else 2, linewidths=0)
         ax.set_title(title)
         ax.set_ylim(0, 105)
         ax.xaxis.get_major_locator().set_params(integer=True)
-        for side in ("top", "right"):
-            ax.spines[side].set_visible(False)
+        _drop_top_right(ax)
+
     if bundle.trends:
         left.legend(frameon=False, fontsize=7)
+        sizes = [right.scatter([], [], s=_marker_area(n), color="grey", linewidths=0) for n in _SIZE_LEGEND]
+        right.legend(sizes, [str(n) for n in _SIZE_LEGEND], title="n graded", frameon=False, fontsize=7,
+                     title_fontsize=7, labelspacing=1.2)
     figure.tight_layout()
     return figure
+
+
+def _positions(societies: list[str]) -> list[float]:
+    """Axis positions with a gap before ALL, so the pooled row does not read as a fourth society."""
+    return [i + (_ALL_GAP if s == _ALL else 0) for i, s in enumerate(societies)]
+
+
+def _strong_cis(bundle: PublishBundle) -> dict[str, tuple[float, float]]:
+    """% strong guideline-cluster CI per society, from Table 1; empty without the paper package."""
+    if bundle.paper is None:
+        return {}
+    return {r.society: (r.strong.ci_low, r.strong.ci_high) for r in bundle.paper.table1
+            if r.strong.ci_low is not None and r.strong.ci_high is not None}
+
+
+def _marker_area(n_graded: int) -> float:
+    return _MARKER_AREA_PER_REC * n_graded
+
+
+def _drop_top_right(ax) -> None:
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
 
 
 def _societies(rows) -> list[str]:
@@ -430,12 +520,15 @@ def _write_dashboard(bundle: PublishBundle, figures: list[_Figure], figure_dir: 
         model=bundle.model,
         code_sha=(bundle.code_sha or "unknown")[:_SHA_PREFIX],
         validation=_validation_view(bundle.validation),
-        validation_notes=_validation_notes(bundle),
+        heldout=_heldout_view(bundle),
         facts=c,
         headline=[{k: _cell(v) for k, v in asdict(r).items()} for r in bundle.headline],
-        figures=[{"title": f.title, "caption": f.caption, "src": _svg_data_uri(os.path.join(figure_dir, f.id + ".svg"))}
+        figures=[{"title": f.title, "caption": f.caption, "wide": f.id in _WIDE_FIGURES,
+                  "src": _svg_data_uri(os.path.join(figure_dir, f.id + ".svg"))}
                  for f in figures],
         common_caption=_common_caption(bundle),
+        joint_note=_joint_note(c),  # the rest of the provenance is in the validation table and line beside it
+        all_label=_ALL,
         society_colours=_SOCIETY_COLOURS,
         data_json=_embedded_json({
             "guidelines": [{k: _cell(v) for k, v in asdict(r).items()} for r in bundle.guidelines],
@@ -452,6 +545,17 @@ def _validation_view(v: Optional[ValidationSummary]) -> Optional[dict]:
     return {"gate": v.gate.value, "n": v.n_guidelines, "f1": _num(v.f1), "f1_ci": _ci(v.f1_ci),
             "precision": _num(v.precision), "recall": _num(v.recall),
             "combined": _num(v.combined_accuracy), "combined_ci": _ci(v.combined_ci)}
+
+
+def _heldout_view(bundle: PublishBundle) -> Optional[dict]:
+    """Held-out validation row (package only): micro P/R/F1 and grade accuracy, Wilson intervals."""
+    if bundle.paper is None:
+        return None
+    h = bundle.paper.validation_heldout
+    return {"n": h.n_guidelines, "societies": _join(bundle.paper.heldout_societies),
+            "precision": _num(h.precision), "precision_ci": _ci(h.precision_ci),
+            "recall": _num(h.recall), "recall_ci": _ci(h.recall_ci), "f1": _num(h.f1),
+            "combined": _num(h.combined_accuracy), "combined_ci": _ci(h.combined_ci), "note": h.interval_note}
 
 
 def _svg_data_uri(path: str) -> str:
@@ -614,7 +718,7 @@ def _draft_context(bundle: PublishBundle, exports: dict[str, dict]) -> dict:
         "raw_harmonized_mapping": [_flat(r) for r in p.raw_mapping],
         "spotcheck_bias": {r.metric.value: _flat(r) for r in p.spotcheck_bias},
         "captions": {f.id: f.caption for f in _figures(bundle)},
-        "notes": {"common": _common_caption(bundle)},
+        "notes": {"common": _common_caption(bundle), "provenance": _provenance_note(bundle)},
         "analysis": p.provenance,
         **exports,
     }
@@ -636,6 +740,7 @@ def _write_package_captions(bundle: PublishBundle, path: str) -> None:
         "**Table S1. Guideline-weighted sensitivity.** Unweighted mean of each guideline's percentage, "
         "against the pooled estimate; guidelines with an empty denominator are left out and counted.", "",
         f"**Notes.** {_common_caption(bundle)}", "",
+        f"**Provenance.** {_provenance_note(bundle)}", "",
     ]
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))

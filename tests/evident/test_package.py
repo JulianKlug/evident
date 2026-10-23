@@ -234,11 +234,20 @@ def test_sccm_caption_changes_only_with_heldout_results(frozen):
 
     frozen.run()
     for path in (os.path.join(frozen.world.publish_dir, "figures", "captions.md"),
-                 os.path.join(frozen.package, "captions.md"),
-                 os.path.join(frozen.world.publish_dir, "dashboard", "index.html")):
+                 os.path.join(frozen.package, "captions.md")):
         text = _read(path)
         assert "SCCM: evaluated separately on 1 held-out guidelines; not part of the 2-guideline development gate." in text
         assert "SCCM: extraction accuracy unvalidated" not in text
+    assert "SCCM: extraction accuracy unvalidated" not in _read(
+        os.path.join(frozen.world.publish_dir, "dashboard", "index.html"))  # held-out row instead
+
+
+def test_package_figures_carry_cis_and_heldout_row(frozen):
+    frozen.run()
+    captions = _read(os.path.join(frozen.world.publish_dir, "figures", "captions.md"))
+    assert "Whiskers: 95% guideline-cluster bootstrap interval." in captions
+    html = _read(os.path.join(frozen.world.publish_dir, "dashboard", "index.html"))
+    assert "Held-out SCCM, 1 guidelines" in html
 
 
 def test_corpus_flow_and_spotcheck(frozen):
