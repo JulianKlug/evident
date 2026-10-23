@@ -1,6 +1,6 @@
 """Render one published snapshot: CSV tables, figures, captions and a static dashboard.
 
-    PublishBundle (aggregates from analytics, built by the pipeline)
+    PublishBundle (aggregates from analytics and themes, built by the pipeline)
         │ render(bundle, out_dir)
         ▼
     <out_dir>/.publish-XXXX/ ── tables/*.csv, figures/*.svg|png + captions.md, dashboard/index.html
@@ -26,7 +26,7 @@ import math
 import os
 import shutil
 import tempfile
-from dataclasses import asdict, dataclass, fields, is_dataclass
+from dataclasses import asdict, dataclass, field, fields, is_dataclass
 from enum import Enum
 from typing import Optional
 
@@ -47,6 +47,7 @@ from evident.analytics import (
 from evident.corpus import file_sha256
 from evident.domain import Certainty, GateResult, Strength
 from evident.paper import BiasRow, PaperPackage, Proportion
+from evident.themes import ThemeRow
 
 _TABLES = "tables"
 _FIGURES = "figures"
@@ -90,7 +91,10 @@ _LABEL_HEADROOM = 15        # y units above the highest bar or whisker for its t
 _MARKER_AREA_PER_REC = 0.5  # pt² per graded recommendation (figure 4)
 _SIZE_LEGEND = (10, 50, 250)
 _SOCIETY_ALPHA = 0.6
-_WIDE_FIGURES = ("fig3_strength_by_certainty", "fig4_trends")  # multi-panel: full dashboard row
+_THEME_FIGURE = "fig5_themes"
+_WIDE_FIGURES = ("fig3_strength_by_certainty", "fig4_trends", _THEME_FIGURE)  # multi-panel: full dashboard row
+_THEME_ROW_INCHES = 0.3     # per theme row (figure 5)
+_THEME_PANEL_INCHES = 0.9   # per specialty panel: title and certainty labels
 
 
 @dataclass(frozen=True)
@@ -123,6 +127,7 @@ class PublishBundle:
     captions: CaptionFacts
     recs: list[HarmonizedRow]  # current and superseded editions, for the browser
     paper: Optional[PaperPackage] = None  # only with publish --package
+    themes: list[ThemeRow] = field(default_factory=list)  # exploratory; empty → no theme figure or table
 
 
 class DraftFieldError(ValueError):
@@ -164,6 +169,8 @@ def _write_tables(bundle: PublishBundle, directory: str) -> None:
     _write_csv(bundle.trends, os.path.join(directory, "trends.csv"))
     _write_csv(bundle.guidelines, os.path.join(directory, "guidelines.csv"))
     _write_dicts([_rec_dict(r) for r in bundle.recs], os.path.join(directory, "recommendations.csv"))
+    if bundle.themes:
+        _write_csv(bundle.themes, os.path.join(directory, "themes.csv"))
 
 
 def _write_csv(rows: list, path: str) -> None:
@@ -223,6 +230,18 @@ def _figures(bundle: PublishBundle) -> list[_Figure]:
                 f"Share of strong and of high/moderate-certainty recommendations per first-online year. "
                 f"{trend_note}"),
     ]
+
+
+def _theme_figures(bundle: PublishBundle) -> list[_Figure]:
+    """Exploratory theme figure, dashboard and figures/ only: not prespecified, so not in the paper package."""
+    if not bundle.themes:
+        return []
+    return [_Figure(_THEME_FIGURE, "Certainty of evidence by theme (exploratory)",
+                    "Themes from a reviewed taxonomy: drafted by an LLM from the recommendations' topics, edited "
+                    "by a clinician. An LLM assigns each critical care recommendation from its text; an ACP "
+                    "guideline covers one condition, its recommendations take that theme. Shading and text = % "
+                    "of the theme's graded recommendations at each certainty level; n = certainty mapped. "
+                    "Ordered by mean certainty, highest first; Other last.")]
 
 
 def _common_caption(bundle: PublishBundle) -> str:
@@ -304,12 +323,13 @@ def _write_captions(bundle: PublishBundle, figures: list[_Figure], path: str) ->
 
 def _write_figures(bundle: PublishBundle, directory: str) -> list[_Figure]:
     os.makedirs(directory)
-    figures = _figures(bundle)
+    figures = _figures(bundle) + _theme_figures(bundle)
     painters = {
         "fig1_certainty_by_society": _paint_certainty,
         "fig2_strong_by_society": _paint_strong,
         "fig3_strength_by_certainty": _paint_crosstab,
         "fig4_trends": _paint_trends,
+        _THEME_FIGURE: _paint_themes,
     }
     with matplotlib.rc_context({"svg.hashsalt": _SVG_HASH_SALT, "svg.fonttype": "path", "font.size": 9}):
         for fig in figures:
@@ -453,6 +473,46 @@ def _paint_trends(bundle: PublishBundle) -> Figure:
     return figure
 
 
+def _paint_themes(bundle: PublishBundle) -> Figure:
+    """One heatmap per specialty, stacked: rows = themes, columns = certainty; shading and text = row %."""
+    specialties = []
+    for r in bundle.themes:
+        if r.specialty not in specialties:
+            specialties.append(r.specialty)
+    levels = list(_CERTAINTY_COLOURS)
+    n_themes = [len({r.theme for r in bundle.themes if r.specialty == s}) for s in specialties]
+
+    figure = Figure(figsize=(7.5, _THEME_ROW_INCHES * sum(n_themes) + _THEME_PANEL_INCHES * len(specialties)))
+    grid = figure.add_gridspec(len(specialties), 2, height_ratios=n_themes, width_ratios=[1, _COLOURBAR_RATIO])
+    image = None
+    for i, s in enumerate(specialties):
+        rows = [r for r in bundle.themes if r.specialty == s]
+        themes = sorted({r.theme for r in rows})
+        pcts = [[_find_theme(rows, t, lv).pct for lv in levels] for t in themes]
+        shares = [[_pct_or_zero(p) for p in row] for row in pcts]
+
+        ax = figure.add_subplot(grid[i, 0])
+        image = ax.imshow(shares, cmap="Blues", vmin=0, vmax=100, aspect="auto")
+        for y, row in enumerate(pcts):
+            for x, pct in enumerate(row):
+                ax.text(x, y, "–" if pct is None else f"{pct:.0f}", ha="center", va="center",
+                        color="white" if _pct_or_zero(pct) > _WHITE_TEXT_SHARE else "black")
+
+        # Row label: theme terms and the certainty-mapped denominator, e.g. "sepsis · cultures (n=84)"
+        first = [_find_theme(rows, t, levels[0]) for t in themes]
+        mapped = [sum(r.n for r in rows if r.theme == t) for t in themes]
+        ax.set_yticks(range(len(themes)), [f"{f.label} (n={n})" for f, n in zip(first, mapped)])
+        ax.set_xticks(range(len(levels)), [_CERTAINTY_LABELS[lv] for lv in levels])
+        ax.xaxis.tick_top()
+        ax.tick_params(length=0)
+        ax.set_title(f"{s} ({_join(rows[0].societies)})", loc="left", pad=18)
+
+    if image is not None:
+        figure.colorbar(image, cax=figure.add_subplot(grid[:, 1]), label="% of theme")
+    figure.tight_layout()
+    return figure
+
+
 def _positions(societies: list[str]) -> list[float]:
     """Axis positions with a gap before ALL, so the pooled row does not read as a fourth society."""
     return [i + (_ALL_GAP if s == _ALL else 0) for i, s in enumerate(societies)]
@@ -490,6 +550,10 @@ def _find(rows: list[CertaintyRow], society: str, level: Certainty) -> Certainty
 
 def _find_cross(rows: list[CrosstabRow], society: str, strength: Strength, level: Certainty) -> CrosstabRow:
     return next(r for r in rows if r.society == society and r.strength == strength and r.certainty == level)
+
+
+def _find_theme(rows: list[ThemeRow], theme: int, level: Certainty) -> ThemeRow:
+    return next(r for r in rows if r.theme == theme and r.certainty == level)
 
 
 def _left_of(rows: list[CertaintyRow], society: str, level: Certainty) -> float:

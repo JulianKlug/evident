@@ -44,6 +44,7 @@ from evident.corpus import (
     file_sha256,
     load_candidates,
     load_manifest,
+    load_theme_assignments,
     sync_to_store,
 )
 from evident.domain import (
@@ -84,6 +85,7 @@ from evident.paper import (
 )
 from evident.publishing import PublishBundle, ValidationSummary, package_target_problem, render, render_package
 from evident.store import Store
+from evident.themes import theme_certainty
 from evident.validation import (
     GateReport,
     HeldoutReport,
@@ -141,6 +143,7 @@ class PipelineDeps:
     similarity_model: object
     code_sha: Callable[[], Optional[str]]
     publish_dir: str  # tables/, figures/, dashboard/ are (re)written here
+    themes_path: Optional[str] = None  # frozen theme assignments; None → no theme figure
 
 
 @dataclass(frozen=True)
@@ -847,6 +850,7 @@ def _bundle(deps: PipelineDeps, snap: Snapshot, rows: list[HarmonizedRow], facts
         captions=caption_facts(rows, facts, labelled_dois),
         recs=rows,
         paper=paper,
+        themes=theme_certainty(rows, load_theme_assignments(deps.themes_path)) if deps.themes_path else [],
     )
 
 

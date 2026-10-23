@@ -37,6 +37,7 @@ from extraction.llm_client import ModelNotFoundError
 
 _DEFAULT_DB = "out/evident.sqlite"
 _DEFAULT_MANIFEST = "corpus/manifest.csv"
+_DEFAULT_THEMES = "corpus/themes/assignments.csv"  # frozen; scripts/assign_themes.py writes it
 _DEFAULT_PDF_DIR = "/mnt/data1/klug/datasets/evidence_extraction/pdfs"
 _PUBLISH_DIR = "out"  # tables/, figures/, dashboard/
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -200,6 +201,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--db", default=_DEFAULT_DB)
     parser.add_argument("--manifest", default=_DEFAULT_MANIFEST)
     parser.add_argument("--pdf-dir", default=_DEFAULT_PDF_DIR)
+    parser.add_argument("--themes", default=_DEFAULT_THEMES, help="theme assignments for the theme figure")
     commands = parser.add_subparsers(dest="command", required=True)
 
     snap = commands.add_parser("snapshot", help="extract every manifest guideline with one version")
@@ -244,6 +246,7 @@ def _deps(args, store: Store) -> pipeline.PipelineDeps:
         similarity_model=similarity,
         code_sha=_git_head,
         publish_dir=_PUBLISH_DIR,
+        themes_path=args.themes,
     )
 
 

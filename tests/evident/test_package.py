@@ -473,3 +473,16 @@ def test_published_state_unchanged(frozen):
     frozen.run()
     assert frozen.store.get_snapshot(1).state == SnapshotState.PUBLISHED
     assert [v.id for v in [frozen.store.latest_validation(1)]] == [1]
+
+
+def test_exploratory_themes_stay_out_of_the_package(frozen, tmp_path, monkeypatch):
+    themes = tmp_path / "assignments.csv"
+    themes.write_text("key,doi,society,method,phrase,theme\n")  # no rows: every rec unassigned, figure still drawn
+    deps = frozen.deps
+    monkeypatch.setattr(frozen, "deps", lambda: dataclasses.replace(deps(), themes_path=str(themes)))
+
+    frozen.run()
+
+    assert "Figure 5" in _read(os.path.join(frozen.world.publish_dir, "figures", "captions.md"))
+    assert "Figure 5" not in _read(os.path.join(frozen.package, "captions.md"))
+    assert "theme" not in _read(os.path.join(frozen.package, "draft.md")).lower()

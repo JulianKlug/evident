@@ -1,6 +1,7 @@
 """Tests for evident.publishing: files written, determinism, captions, self-contained HTML, safe swap."""
 
 import csv
+import dataclasses
 import json
 import os
 import re
@@ -21,6 +22,7 @@ from evident.analytics import (
 )
 from evident.domain import AxisStatus, Category, Certainty, Direction, GateResult, HarmonizedGrade, Strength
 from evident.publishing import PublishBundle, ValidationSummary, render
+from evident.themes import rec_key, theme_certainty
 
 _M, _UG = AxisStatus.MAPPED, AxisStatus.UNGRADED
 
@@ -67,6 +69,11 @@ def _bundle(labelled=frozenset({"10.1/a"}), validation=_VALIDATION, rows=None):
         guidelines=guideline_summary(rows, _FACTS), captions=caption_facts(rows, _FACTS, set(labelled)),
         recs=rows,
     )
+
+
+def _theme_bundle():
+    assignments = {rec_key(r.doi, r.text): "Fluids" if r.society == "SCCM" else "Gout" for r in _ROWS}
+    return dataclasses.replace(_bundle(), themes=theme_certainty(_ROWS, assignments))
 
 
 def _files(out_dir):
@@ -197,3 +204,23 @@ def test_dashboard_validation_at_bottom_and_no_ungraded_share(tmp_path):
     assert "gate pass" not in html
     assert "Ungraded %" not in html and "ungraded_share, " not in html  # v2 ungraded share is incomplete
     assert "ungraded_share" in _read(tmp_path / "tables" / "headline.csv")  # exports keep the column
+
+
+def test_theme_figure_and_table_when_themes(tmp_path):
+    render(_theme_bundle(), str(tmp_path))
+
+    assert set(_files(tmp_path)) - set(_EXPECTED) == {"figures/fig5_themes.png", "figures/fig5_themes.svg",
+                                                      "tables/themes.csv"}
+    themes = list(csv.DictReader(open(tmp_path / "tables" / "themes.csv")))
+    assert {(r["specialty"], r["societies"]) for r in themes} == {("Internal medicine", "ACP"),
+                                                                   ("Critical care", "SCCM")}
+    assert "**Figure 5. Certainty of evidence by theme (exploratory).**" in _read(tmp_path / "figures" / "captions.md")
+    assert "Figure 5. Certainty of evidence by theme (exploratory)" in _read(tmp_path / "dashboard" / "index.html")
+
+
+def test_theme_figure_byte_identical(tmp_path):
+    first, second = tmp_path / "1", tmp_path / "2"
+    render(_theme_bundle(), str(first))
+    render(_theme_bundle(), str(second))
+    rel = os.path.join("figures", "fig5_themes.svg")
+    assert _read(first / rel, "rb") == _read(second / rel, "rb")

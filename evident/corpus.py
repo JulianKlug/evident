@@ -6,6 +6,8 @@
 
     corpus/candidates.csv ──load_candidates──▶ [Candidate] ──check_candidates(manifest)
     (every search hit, with an include/exclude decision; curation record for the supplement)
+
+    corpus/themes/assignments.csv ──load_theme_assignments──▶ {rec key: theme} (frozen, for the theme figure)
 """
 
 from __future__ import annotations
@@ -35,6 +37,7 @@ _OPTIONAL_COLUMNS = ("supersedes_doi", "pdf_filename")
 _JOINT_COLUMN = "joint_with"  # may be absent from the header
 _JOINT_SEPARATOR = ";"
 
+_THEME_COLUMNS = ("key", "doi", "society", "method", "phrase", "theme")
 _CANDIDATE_COLUMNS = ("doi", "society", "year", "title", "journal", "pmid", "source", "decision", "reason",
                       "duplicate_of")
 
@@ -143,6 +146,32 @@ def load_candidates(path: str) -> list[Candidate]:
     if problems:
         raise ManifestError(problems)
     return candidates
+
+
+def load_theme_assignments(path: str) -> dict[str, str]:
+    """rec key → theme, from the frozen file scripts/assign_themes.py writes; a key twice is an error."""
+    with open(path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        missing = [c for c in _THEME_COLUMNS if c not in (reader.fieldnames or [])]
+        if missing:
+            raise ManifestError([f"{path} line 1: missing column(s) {', '.join(missing)}"])
+        rows = list(reader)
+
+    problems: list[str] = []
+    out: dict[str, str] = {}
+    for line, row in enumerate(rows, start=_FIRST_DATA_LINE):
+        key, theme = row["key"].strip(), row["theme"].strip()
+        if not key or not theme:
+            problems.append(f"{path} line {line}: empty key or theme")
+            continue
+        if key in out:
+            problems.append(f"{path} line {line}: duplicate key {key}")
+            continue
+        out[key] = theme
+
+    if problems:
+        raise ManifestError(problems)
+    return out
 
 
 def check_candidates(candidates: list[Candidate], entries: list[ManifestEntry]) -> None:

@@ -242,6 +242,23 @@ class TestPublish:
         assert "unvalidated" not in captions  # both societies have a labelled guideline in the fakes
 
 
+    def test_publish_with_theme_assignments_draws_the_theme_figure(self, world, tmp_path):
+        themes = tmp_path / "assignments.csv"
+        themes.write_text("key,doi,society,method,phrase,theme\n")
+        snapshot(world.deps(), _NEW, CONFIG)
+        validate(world.deps())
+
+        publish(dataclasses.replace(world.deps(), themes_path=str(themes)))
+
+        assert os.path.isfile(os.path.join(world.publish_dir, "figures", "fig5_themes.svg"))
+        assert os.path.isfile(os.path.join(world.publish_dir, "tables", "themes.csv"))
+
+    def test_publish_without_theme_assignments_has_no_theme_figure(self, world):
+        _published(world)
+
+        assert not os.path.exists(os.path.join(world.publish_dir, "figures", "fig5_themes.svg"))
+
+
 class TestAdd:
     def test_needs_published_snapshot(self, world):
         with pytest.raises(NoPublishedSnapshotError):
