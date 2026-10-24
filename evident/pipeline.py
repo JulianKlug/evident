@@ -49,7 +49,8 @@ from evident.corpus import (
     sync_to_store,
 )
 from evident.dedup import (
-    SCREEN_THRESHOLD,
+    SCREEN_BIOLORD,
+    SCREEN_LEXICAL,
     CandidatePair,
     DedupResult,
     Verdict,
@@ -895,7 +896,8 @@ def _deduplicate(rows: list[HarmonizedRow], similarity,
     by_key = {(r.doi, r.ordinal): r for r in rows}
     removed = [by_key[key] for key in result.removed]
     facts = {
-        "screen_threshold": SCREEN_THRESHOLD,
+        "screen_biolord": SCREEN_BIOLORD,
+        "screen_lexical": SCREEN_LEXICAL,
         "n_screened_pairs": len(pairs),
         "n_duplicate_pairs": sum(a.verdict == Verdict.DUPLICATE for a in adjudications),
         "n_removed": len(removed),

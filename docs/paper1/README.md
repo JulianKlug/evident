@@ -21,6 +21,7 @@ python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
   - `--package DIR` exists and is neither empty nor a previous package (the swap deletes it).
 - Also rewrites `out/tables`, `out/figures` and `out/dashboard` from the frozen source.
 - Held-out scoring loads BioLORD on CPU at the runs' embedding revision (same similarities on any machine).
+- Duplicate removal recomputes the screen with that BioLORD and applies the frozen verdicts (`corpus/dedup/paper1_verdicts.csv`, from `scripts/paper1_dedup_adjudicate.py`); a screened pair without a verdict fails the run.
 - A rerun gives byte-identical files; compare against `analysis_manifest.json` → `outputs`.
 
 ## Files (`out/paper1/`)
@@ -33,9 +34,10 @@ python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
 | `figure_data.csv` | Every plotted point of fig1–fig4 |
 | `corpus_flow.csv`, `excluded_guidelines.csv` | Search and selection |
 | `raw_harmonized_mapping.csv` | Observed raw grades → harmonized, with counts |
-| `validation_development.json` | Stored 12-guideline gate report (in-sample) |
+| `validation_development.json` | 12-guideline report (in-sample), rescored after duplicate removal |
 | `validation_sccm_heldout.json` | 3 held-out SCCM guidelines, not gated |
 | `spotcheck_bias.csv` | M3 spot check, exploratory |
+| `duplicates.csv` | Within-guideline copies removed, beside the copy kept (spec §5) |
 | `methods_facts.json` | Counts and provenance for Methods |
 | `captions.md`, `draft.md` | Captions; manuscript rendered from `docs/paper1/draft.md.j2` |
 | `analysis_manifest.json` | Inputs, versions, checksums; hash of every other file |

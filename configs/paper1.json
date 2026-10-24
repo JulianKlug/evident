@@ -23,5 +23,7 @@
     "10.1097_ccm.0000000000002533.xlsx": "113466fb6392049784829b81cd2f26a4136f00fe8f6a5b998bc9ae8011d0dc7f",
     "10.1097_ccm.0000000000006551.xlsx": "7fee54aa6c5fa5382779eceef928335fe4b10803c667c594fc70fdbba2fdd58f",
     "10.1097_pcc.0000000000003914.xlsx": "fdb835f7ca6ebaeb4711ab45171aaea7e6c2511639f3bfcb98082c5cdc2051eb"
-  }
+  },
+  "dedup_verdicts_path": "corpus/dedup/paper1_verdicts.csv",
+  "dedup_verdicts_sha256": "533bff8adc25859accd4b27ff806af17426322d7c7d4c00108db55fe6650466b"
 }

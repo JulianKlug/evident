@@ -66,8 +66,8 @@ class TestScreen:
         assert [(p.ordinal_a, p.ordinal_b) for p in pairs] == [(3, 7)]
 
     def test_below_both_is_not_flagged(self):
-        sim = np.full((3, 3), 0.5)
-        assert screen("d", [0, 1, 2], self._TEXTS, sim) == []
+        texts = ["We recommend early enteral nutrition", "We suggest against routine stress ulcer prophylaxis"]
+        assert screen("d", [0, 1], texts, np.full((2, 2), 0.5)) == []
 
 
 class TestAdjudicationFile:

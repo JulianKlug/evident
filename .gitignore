@@ -11,3 +11,4 @@ unsloth_compiled_cache/
 !corpus/manifest.csv
 !corpus/candidates.csv
 .venv/
+!corpus/dedup/**/*.csv

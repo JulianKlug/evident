@@ -1,0 +1,151 @@
+id,label,note
+0,distinct,ARDS vs severe ARDS
+1,distinct,different intervention or population
+2,distinct,different intervention or population
+3,distinct,TOF alone vs TOF within broader assessment
+4,distinct,different intervention or population
+5,distinct,different intervention or population
+6,distinct,different intervention or population
+7,distinct,different intervention or population
+8,distinct,different intervention or population
+9,distinct,different intervention or population
+10,distinct,different intervention or population
+11,distinct,different intervention or population
+12,distinct,different intervention or population
+13,distinct,different intervention or population
+14,duplicate,heading form of same PEEP rec
+15,distinct,different intervention or population
+16,distinct,different intervention or population
+17,duplicate,abbreviation spelled out
+18,distinct,different intervention or population
+19,duplicate,appended rationale
+20,distinct,different intervention or population
+21,distinct,different population and scope
+22,distinct,different intervention or population
+23,distinct,different intervention or population
+24,distinct,one factor vs several factors
+25,duplicate,same rec; IPH vs ICH wording
+26,distinct,different intervention or population
+27,distinct,different intervention or population
+28,distinct,different intervention or population
+29,distinct,different intervention or population
+30,distinct,different intervention or population
+31,distinct,different intervention or population
+32,duplicate,abbreviations spelled out
+33,duplicate,summary paraphrase of vitamin C rec
+34,distinct,different intervention or population
+35,distinct,delirium vs subsyndromal; extra drug
+36,duplicate,truncated; prophylactic qualifier dropped
+37,distinct,different intervention or population
+38,distinct,different intervention or population
+39,distinct,different intervention or population
+40,distinct,different intervention or population
+41,distinct,different intervention or population
+42,distinct,different intervention or population
+43,distinct,cardiogenic shock vs volume management
+44,distinct,different intervention or population
+45,distinct,different intervention or population
+46,distinct,different intervention or population
+47,duplicate,B truncates exception clause
+48,distinct,discontinue vs reverse
+49,distinct,different intervention or population
+50,distinct,different intervention or population
+51,distinct,A adds fluid challenge recommendation
+52,duplicate,A truncated before drug list
+53,distinct,different intervention or population
+54,duplicate,"remark text vs rec, same content"
+55,distinct,different intervention or population
+56,distinct,different intervention or population
+57,duplicate,generic vs dosed protamine wording
+58,distinct,different intervention or population
+59,duplicate,COVID ARDS scope dropped
+60,distinct,different intervention or population
+61,duplicate,abbreviations
+62,distinct,different intervention or population
+63,distinct,different intervention or population
+64,distinct,different intervention or population
+65,distinct,different intervention or population
+66,distinct,different intervention or population
+67,distinct,different intervention or population
+68,distinct,different intervention or population
+69,distinct,different intervention or population
+70,distinct,different intervention or population
+71,distinct,different intervention or population
+72,distinct,different intervention or population
+73,duplicate,"abbreviation, missing lead-in"
+74,distinct,different intervention or population
+75,distinct,different intervention or population
+76,distinct,different intervention or population
+77,distinct,different intervention or population
+78,distinct,different intervention or population
+79,distinct,different intervention or population
+80,duplicate,COVID scope dropped
+81,distinct,different intervention or population
+82,distinct,benzodiazepines vs overall sedation
+83,duplicate,appended grades
+84,distinct,different intervention or population
+85,distinct,different intervention or population
+86,distinct,different intervention or population
+87,duplicate,missing lead-in
+88,distinct,different intervention or population
+89,distinct,different intervention or population
+90,distinct,different intervention or population
+91,distinct,different intervention or population
+92,distinct,different intervention or population
+93,distinct,different intervention or population
+94,distinct,different intervention or population
+95,duplicate,numbering/scope header dropped
+96,distinct,different intervention or population
+97,duplicate,"abbreviations, wording"
+98,distinct,guiding endpoint vs safety endpoint
+99,distinct,different intervention or population
+100,distinct,different intervention or population
+101,distinct,different intervention or population
+102,distinct,different intervention or population
+103,distinct,different intervention or population
+104,distinct,different intervention or population
+105,distinct,different intervention or population
+106,duplicate,abbreviations
+107,distinct,different intervention or population
+108,distinct,different intervention or population
+109,distinct,AHRF vs ARDS
+110,duplicate,appended qualifier
+111,distinct,ARDS required vs not
+112,duplicate,ICH scope restates population
+113,distinct,different surgery/timing/outcome
+114,distinct,different intervention or population
+115,distinct,different intervention or population
+116,distinct,different intervention or population
+117,distinct,different intervention or population
+118,distinct,different intervention or population
+119,distinct,different intervention or population
+120,duplicate,truncation
+121,distinct,different intervention or population
+122,duplicate,generic vs dosed protamine wording
+123,duplicate,grade phrasing vs rec
+124,distinct,different intervention or population
+125,duplicate,truncated fragment
+126,distinct,insufficiency absent vs deficiency repletion
+127,distinct,different intervention or population
+128,distinct,different intervention or population
+129,distinct,different intervention or population
+130,duplicate,abbreviations spelled out
+131,distinct,different intervention or population
+132,duplicate,abbreviation
+133,distinct,different intervention or population
+134,distinct,different intervention or population
+135,distinct,different intervention or population
+136,distinct,with vs without ARDS
+137,distinct,extubation vs weaning
+138,distinct,different intervention or population
+139,distinct,different intervention or population
+140,distinct,different intervention or population
+141,distinct,different intervention or population
+142,distinct,different intervention or population
+143,distinct,different intervention or population
+144,distinct,different intervention or population
+145,duplicate,abbreviation
+146,duplicate,"abbreviation, missing lead-in"
+147,distinct,different intervention or population
+148,duplicate,missing lead-in and grade
+149,duplicate,truncated fragments

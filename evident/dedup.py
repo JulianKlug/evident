@@ -1,7 +1,7 @@
 """Within-guideline duplicate recommendations: screen, frozen LLM verdicts, clusters (spec §5 amendment).
 
-    rows of one guideline ─┬─ BioLORD cosine ≥ 0.85 ─┐
-                           └─ lexical ratio ≥ 0.85 ──┴─▶ screen ─▶ [CandidatePair]
+    rows of one guideline ─┬─ BioLORD cosine ≥ 0.75 ─┐
+                           └─ lexical ratio ≥ 0.70 ──┴─▶ screen ─▶ [CandidatePair]
                                                                      │ scripts/paper1_dedup_adjudicate.py (LLM, offline)
                                                                      ▼
     corpus/dedup/paper1_verdicts.csv ─▶ load_adjudications ─▶ check_complete (every screened pair, nothing else)
@@ -27,7 +27,8 @@ import numpy as np
 from evident.analytics import HarmonizedRow
 from evident.domain import AxisStatus, Category
 
-SCREEN_THRESHOLD = 0.85  # BioLORD cosine or lexical ratio; fixed before adjudication
+SCREEN_BIOLORD = 0.75  # cosine; abbreviation copies ("NMBA" vs "neuromuscular-blocking agent") score 0.6–0.8
+SCREEN_LEXICAL = 0.70  # character ratio of the normalized texts
 
 # "(strong recommendation; high-certainty evidence)." at the end of a recommendation
 _GRADE_TAIL = re.compile(r"\((?:[^()]*?\b(?:recommendation|evidence)\b[^()]*)\)\s*\.?\s*$", re.IGNORECASE)
@@ -100,13 +101,13 @@ def lexical_ratio(a: str, b: str) -> float:
 
 
 def screen(doi: str, ordinals: Sequence[int], texts: Sequence[str], sim: np.ndarray) -> list[CandidatePair]:
-    """Pairs of one guideline's rows above SCREEN_THRESHOLD on either measure; sim is the BioLORD cosine matrix."""
+    """Pairs of one guideline's rows at or above either screen threshold; sim is the BioLORD cosine matrix."""
     pairs = []
     for i in range(len(texts)):
         for j in range(i + 1, len(texts)):
             biolord = float(sim[i, j])
             lexical = lexical_ratio(texts[i], texts[j])
-            if biolord < SCREEN_THRESHOLD and lexical < SCREEN_THRESHOLD:
+            if biolord < SCREEN_BIOLORD and lexical < SCREEN_LEXICAL:
                 continue
 
             (oa, ta), (ob, tb) = sorted([(ordinals[i], texts[i]), (ordinals[j], texts[j])])
