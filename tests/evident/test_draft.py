@@ -1,7 +1,7 @@
 """The Paper 1 draft template types no number by hand (spec §7, §9 criterion 8).
 
 Every number in the manuscript is a {{ field }} of the package exports; literal text may only hold
-labels (Table 1, Figure 4), citation years, "95%" and "SHA-256".
+labels (Table 1, Figure 4, eTable 2), "JAMA 2019", "95%" and "SHA-256".
 """
 
 import os
@@ -9,7 +9,8 @@ import re
 
 _TEMPLATE = os.path.join(os.path.dirname(__file__), "..", "..", "docs", "paper1", "draft.md.j2")
 _JINJA = re.compile(r"\{\{.*?\}\}|\{%.*?%\}|\{#.*?#\}", re.S)
-_ALLOWED = (r"Table [12]\b", r"Table S1\b", r"Figure 4\b", r"JAMA 2019", r"95%", r"SHA-256")
+_ALLOWED = (r"Table [12]\b", r"Table S1\b", r"Figure [1-4]\b", r"e(?:Table|Figure|Appendix) \d\b", r"JAMA 2019",
+            r"95%", r"SHA-256")
 _NUMBER = re.compile(r"(?<![\w.])\d+(?:\.\d+)?")
 
 
