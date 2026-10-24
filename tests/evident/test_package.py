@@ -36,7 +36,7 @@ from tests.evident.pipeline_fakes import CONFIG, GUIDELINES, World, write_heldou
 from tests.legacy_golden import FakeEncoder
 
 _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-_TEMPLATE = os.path.join(_REPO, "docs", "paper1", "draft.md.j2")
+_TEMPLATE = os.path.join(_REPO, "tests", "fixtures", "paper", "draft.md.j2")  # the real draft is not tracked
 _DOIS = ("10.1000/a", "10.1000/b", "10.1000/c", "10.1000/e")
 _HELDOUT = "10.1000/e"
 _SPOT = "10.1000/b"

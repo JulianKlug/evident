@@ -12,3 +12,8 @@ unsloth_compiled_cache/
 !corpus/candidates.csv
 .venv/
 !corpus/dedup/**/*.csv
+
+# Paper drafts are private
+docs/paper1/draft.md.j2
+docs/paper1/references.md
+*.docx

@@ -44,4 +44,4 @@ python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
 
 ## Editing the draft
 
-Edit `docs/paper1/draft.md.j2`, never `draft.md`. Numbers are template fields named after the export file and column, e.g. `{{ table1_society.ACP.strong_pct | pct }}`. An unknown field fails the render; `tests/evident/test_draft.py` rejects numbers typed by hand.
+Edit `docs/paper1/draft.md.j2` (private: git-ignored, with `references.md`; its hash is in `analysis_manifest.json`), never `draft.md`. Numbers are template fields named after the export file and column, e.g. `{{ table1_society.ACP.strong_pct | pct }}`. An unknown field fails the render; `tests/evident/test_draft.py` rejects numbers typed by hand.
