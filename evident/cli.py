@@ -27,6 +27,7 @@ from typing import Optional
 import scripts.search_guidelines as search
 from evident import pipeline
 from evident.corpus import ManifestError
+from evident.dedup import DedupVerdictError
 from evident.extraction import ExtractionError, ExtractorConfig, Models, load_similarity_model, probe_artifacts, run
 from evident.harmonization import UnsupportedGradingFamilyError
 from evident.paper import AnalysisConfig
@@ -48,7 +49,8 @@ _EXIT_OK = 0
 _EXIT_ERROR = 1
 
 _KNOWN_ERRORS = (pipeline.PipelineError, StoreError, ManifestError, ExtractionError, ValidationJoinError,
-                 ModelNotFoundError, UnsupportedGradingFamilyError, HeldoutLabelError, DraftFieldError)
+                 ModelNotFoundError, UnsupportedGradingFamilyError, HeldoutLabelError, DraftFieldError,
+                 DedupVerdictError)
 
 
 class _LazySimilarity:

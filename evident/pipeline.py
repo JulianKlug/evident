@@ -20,10 +20,11 @@ import logging
 import os
 import shutil
 import statistics
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from enum import Enum
 from typing import Callable, Optional, Sequence
 
+from evaluation.matching import build_similarity_matrix
 from evident.analytics import (
     Edition,
     GuidelineFacts,
@@ -46,6 +47,18 @@ from evident.corpus import (
     load_manifest,
     load_theme_assignments,
     sync_to_store,
+)
+from evident.dedup import (
+    SCREEN_THRESHOLD,
+    CandidatePair,
+    DedupResult,
+    Verdict,
+    check_complete,
+    deduplicate,
+    load_adjudications,
+    remap_ordinals,
+    removed_rows,
+    screen,
 )
 from evident.domain import (
     Category,
@@ -470,11 +483,22 @@ def publish_package(deps: PipelineDeps, snapshot_id: int, inputs: PackageInputs)
     development_dois = {lg.doi for lg in deps.labelled()}
     heldout = load_heldout(inputs.heldout_dir, cfg.heldout_dois, development_dois)
 
-    rows, facts = _harmonized_rows(deps.store, snap, entries)
-    recs_by_doi = {g.doi: recs for g, recs in _active_recs_by_guideline(deps.store, snap.id)}
+    all_rows, facts = _harmonized_rows(deps.store, snap, entries)
     version = deps.store.get_extractor_version(snap.extractor_version_id)
     similarity = inputs.load_similarity(version.embedding_revision)  # same embeddings as the runs
+
+    # Within-guideline copies leave every table and both validation scores (spec §5)
+    dedup, dedup_facts = _deduplicate(all_rows, similarity, cfg)
+    rows = dedup.kept
+    recs_by_doi = {g.doi: [r for r in recs if (g.doi, r.ordinal) not in dedup.removed]
+                   for g, recs in _active_recs_by_guideline(deps.store, snap.id)}
     heldout_scores = heldout_report(score({lg.doi: recs_by_doi[lg.doi] for lg in heldout}, heldout, similarity))
+    development_report = json.loads(development.report_json)
+    if dedup_facts is not None:
+        labelled = deps.labelled()
+        development_report = json.loads(gate(score(recs_by_doi, labelled, similarity), None).to_json())
+    spot = [replace(g, matched_ordinals=remap_ordinals(g.doi, g.matched_ordinals, dedup.removed))
+            for g in load_spotcheck(cfg.spotcheck_dir)]
 
     current = current_editions(entries)
     t1, t2 = table1(rows, cfg.bootstrap_n, cfg.bootstrap_seed), table2(rows)
@@ -488,14 +512,14 @@ def publish_package(deps: PipelineDeps, snapshot_id: int, inputs: PackageInputs)
         corpus_flow=corpus_flow(candidates, entries, current),
         excluded=excluded_guidelines(candidates),
         raw_mapping=raw_mapping(rows),
-        spotcheck_bias=spotcheck_bias(rows, load_spotcheck(cfg.spotcheck_dir), cfg.bootstrap_n,
-                                      cfg.bootstrap_seed),
-        validation_development=json.loads(development.report_json),
+        spotcheck_bias=spotcheck_bias(rows, spot, cfg.bootstrap_n, cfg.bootstrap_seed),
+        validation_development=development_report,
         validation_heldout=heldout_scores,
         heldout_societies=tuple(sorted({society_of[d] for d in (lg.doi for lg in heldout)})),
         methods_facts=methods_facts(cfg, entries, current, candidates, rows, inputs.search_queries, version,
-                                    len(development_dois)),
+                                    len(development_dois), dedup_facts),
         provenance=_provenance(deps, snap, version, inputs),
+        duplicates=removed_rows(all_rows, dedup),
     )
 
     bundle = _bundle(deps, snap, rows, facts, paper)
@@ -503,6 +527,13 @@ def publish_package(deps: PipelineDeps, snapshot_id: int, inputs: PackageInputs)
     paths = render(bundle, deps.publish_dir)
     return PackageReport(snap.id, bundle.model, inputs.package_dir, package_paths, deps.publish_dir, paths,
                          heldout_scores)
+
+
+def duplicate_candidates(store: Store, snapshot_id: int, manifest_path: str, similarity) -> list[CandidatePair]:
+    """Screened within-guideline pairs of a snapshot (all editions), for offline adjudication; read-only."""
+    snap = store.get_snapshot(snapshot_id)
+    rows, _ = _harmonized_rows(store, snap, load_manifest(manifest_path))
+    return _screen_rows(rows, similarity)
 
 
 def add(deps: PipelineDeps, pdf_path: str, mode: IngestMode = IngestMode.NORMAL) -> AddReport:
@@ -832,6 +863,51 @@ def _harmonized_rows(store: Store, snap: Snapshot,
     return rows, facts
 
 
+def _screen_rows(rows: list[HarmonizedRow], similarity) -> list[CandidatePair]:
+    """Duplicate screen per guideline: BioLORD cosine matrix of its rows, then evident.dedup.screen."""
+    by_doi: dict[str, list[HarmonizedRow]] = {}
+    for r in rows:
+        by_doi.setdefault(r.doi, []).append(r)
+
+    pairs = []
+    for doi, group in sorted(by_doi.items()):
+        if len(group) < 2:
+            continue
+        texts = [r.text for r in group]
+        pairs.extend(screen(doi, [r.ordinal for r in group], texts, build_similarity_matrix(texts, texts, similarity)))
+    return pairs
+
+
+def _deduplicate(rows: list[HarmonizedRow], similarity,
+                 cfg: AnalysisConfig) -> tuple[DedupResult, Optional[dict]]:
+    """Frozen verdicts applied to the rows, with the Methods counts; no verdicts configured → rows unchanged.
+
+    Raises DedupVerdictError unless the verdicts cover exactly the pairs the screen finds now.
+    """
+    if cfg.dedup_verdicts_path is None:
+        return DedupResult(list(rows), {}, 0, {}), None
+
+    pairs = _screen_rows(rows, similarity)
+    adjudications = load_adjudications(cfg.dedup_verdicts_path)
+    check_complete(pairs, adjudications)
+    result = deduplicate(rows, adjudications)
+
+    by_key = {(r.doi, r.ordinal): r for r in rows}
+    removed = [by_key[key] for key in result.removed]
+    facts = {
+        "screen_threshold": SCREEN_THRESHOLD,
+        "n_screened_pairs": len(pairs),
+        "n_duplicate_pairs": sum(a.verdict == Verdict.DUPLICATE for a in adjudications),
+        "n_removed": len(removed),
+        "n_removed_current_graded": sum(r.edition == Edition.CURRENT and r.grade.category == Category.GRADED
+                                        for r in removed),
+        "removed_by_society": result.removed_by_society,
+        "n_grade_conflicts": result.n_grade_conflicts,
+        "adjudication_models": sorted({a.model for a in adjudications}),
+    }
+    return result, facts
+
+
 def _bundle(deps: PipelineDeps, snap: Snapshot, rows: list[HarmonizedRow], facts: list[GuidelineFacts],
             paper: Optional[PaperPackage] = None) -> PublishBundle:
     model = _model_label(deps.store, snap)
@@ -881,6 +957,12 @@ def _audit_package(store: Store, snapshot_id: int, manifest_path: str, entries: 
         actual = _sha_or_none(path)
         if actual != expected:
             problems.append(f"{label} {path} SHA-256 {actual} differs from {expected}")
+
+    if cfg.dedup_verdicts_path is not None:
+        actual = _sha_or_none(cfg.dedup_verdicts_path)
+        if actual != cfg.dedup_verdicts_sha256:
+            problems.append(f"dedup verdicts {cfg.dedup_verdicts_path} SHA-256 {actual} differs from "
+                            f"{cfg.dedup_verdicts_sha256}")
 
     if not os.path.isfile(cfg.template_path):
         problems.append(f"draft template {cfg.template_path} missing")
@@ -963,6 +1045,8 @@ def _provenance(deps: PipelineDeps, snap: Snapshot, version: ExtractorVersion, i
             "template": {"path": cfg.template_path, "sha256": file_sha256(cfg.template_path)},
             "heldout_labels": _dir_hashes(inputs.heldout_dir),
             "spotcheck": _dir_hashes(cfg.spotcheck_dir),
+            "dedup_verdicts": ({"path": cfg.dedup_verdicts_path, "sha256": file_sha256(cfg.dedup_verdicts_path)}
+                               if cfg.dedup_verdicts_path else None),
             "pdfs": {g.doi: run.pdf_sha256 for g, run in _active_runs_by_guideline(deps.store, snap.id)},
         },
     }

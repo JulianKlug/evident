@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Sequence
 
@@ -22,6 +22,7 @@ import numpy as np
 
 from evident.analytics import Edition, HarmonizedRow
 from evident.corpus import Candidate, CandidateDecision, ExclusionReason, ManifestEntry
+from evident.dedup import RemovedRow
 from evident.domain import AxisStatus, Category, Certainty, Direction, ExtractorVersion, HarmonizedGrade, Strength
 from evident.validation import HeldoutReport, SpotcheckGuideline
 
@@ -69,6 +70,8 @@ class AnalysisConfig:
     template_path: str
     focused_update_overlap_max: int  # estimated graded recs counted twice by focused updates
     heldout_labels_sha256: dict[str, str]  # {label file: SHA-256}, frozen with the labels
+    dedup_verdicts_path: Optional[str] = None    # frozen duplicate verdicts (spec §5); None → no dedup
+    dedup_verdicts_sha256: Optional[str] = None
 
     @classmethod
     def from_json(cls, text: str) -> "AnalysisConfig":
@@ -211,11 +214,12 @@ class PaperPackage:
     excluded: list[ExcludedRow]
     raw_mapping: list[MappingRow]
     spotcheck_bias: list[BiasRow]
-    validation_development: dict  # stored gate report of the 12 labelled guidelines (in-sample)
+    validation_development: dict  # gate report of the 12 labelled guidelines (in-sample)
     validation_heldout: HeldoutReport
     heldout_societies: tuple[str, ...]
     methods_facts: dict
     provenance: dict              # sources, versions and checksums for analysis_manifest.json
+    duplicates: list[RemovedRow] = field(default_factory=list)  # within-guideline copies removed
 
 
 # ── primary tables ──────────────────────────────────────────────
@@ -424,8 +428,11 @@ def _by_society_counts(stage: str, entries: Sequence[ManifestEntry]) -> list[Flo
 def methods_facts(config: AnalysisConfig, entries: Sequence[ManifestEntry], current_dois: set[str],
                   candidates: Sequence[Candidate], rows: Sequence[HarmonizedRow],
                   queries: Sequence[tuple[str, str, str]], version: ExtractorVersion,
-                  n_development: int) -> dict:
-    """Counts and provenance the Methods section states; queries are (society, source, term)."""
+                  n_development: int, dedup: Optional[dict] = None) -> dict:
+    """Counts and provenance the Methods section states; queries are (society, source, term).
+
+    dedup: the duplicate step's counts (pipeline), or None when the config names no verdicts.
+    """
     current = [e for e in entries if e.doi in current_dois]
     current_by_topic = {e.topic_id: e.doi for e in current}
     current_rows = _current(rows)
@@ -475,6 +482,7 @@ def methods_facts(config: AnalysisConfig, entries: Sequence[ManifestEntry], curr
         },
         "bootstrap": {"n": config.bootstrap_n, "seed": config.bootstrap_seed,
                       "percentiles": list(_CI_PERCENTILES)},
+        "dedup": {"applied": False} if dedup is None else {"applied": True, **dedup},
     }
 
 

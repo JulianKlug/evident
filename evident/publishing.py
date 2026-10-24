@@ -683,6 +683,7 @@ def _write_package(bundle: PublishBundle, directory: str) -> None:
     _write_package_csv(p.excluded, os.path.join(directory, "excluded_guidelines.csv"))
     _write_package_csv(p.raw_mapping, os.path.join(directory, "raw_harmonized_mapping.csv"))
     _write_package_csv(p.spotcheck_bias, os.path.join(directory, "spotcheck_bias.csv"))
+    _write_package_csv(p.duplicates, os.path.join(directory, "duplicates.csv"))
 
     exports = _package_json(bundle)
     for name, data in exports.items():

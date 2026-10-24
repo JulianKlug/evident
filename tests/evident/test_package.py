@@ -14,6 +14,7 @@ import pytest
 
 from evident import publishing
 from evident.corpus import file_sha256
+from evident.dedup import DedupVerdictError, Verdict, write_adjudications
 from evident.domain import SnapshotState
 from evident.paper import AnalysisConfig
 from evident.pipeline import (
@@ -22,6 +23,7 @@ from evident.pipeline import (
     SnapshotStart,
     TreeState,
     ValidationMissingError,
+    duplicate_candidates,
     publish,
     publish_package,
     snapshot,
@@ -41,7 +43,7 @@ _SPOT = "10.1000/b"
 _QUERIES = (("ACP", "pubmed", "q1"), ("ESICM", "pubmed", "q2"), ("SCCM", "pubmed", "q3"))
 
 _EXPECTED = [
-    "analysis_manifest.json", "captions.md", "corpus_flow.csv", "draft.md", "excluded_guidelines.csv",
+    "analysis_manifest.json", "captions.md", "corpus_flow.csv", "draft.md", "duplicates.csv", "excluded_guidelines.csv",
     "figure_data.csv", "methods_facts.json", "raw_harmonized_mapping.csv", "spotcheck_bias.csv",
     "table1_society.csv", "table2_certainty_strength.csv", "table_s1_guideline_mean.csv",
     "validation_development.json", "validation_sccm_heldout.json",
@@ -486,3 +488,79 @@ def test_exploratory_themes_stay_out_of_the_package(frozen, tmp_path, monkeypatc
     assert "Figure 5" in _read(os.path.join(frozen.world.publish_dir, "figures", "captions.md"))
     assert "Figure 5" not in _read(os.path.join(frozen.package, "captions.md"))
     assert "theme" not in _read(os.path.join(frozen.package, "draft.md")).lower()
+
+
+# ── within-guideline duplicates ─────────────────────────────────
+
+_SPOT_FIRST = GUIDELINES[_SPOT][3][0]  # (text, strength, certainty) of 10.1000/b row 0
+_NOISY_COPY = "We suggest balanced crystal- loids rather than saline for resuscitation"
+_PLANTED = (_SPOT, 0, 3)
+
+
+def _plant_duplicate(frozen):
+    """A hyphenation-noise copy of 10.1000/b row 0, as row 3 (rows 0–2 exist)."""
+    conn = frozen.reopen_writable()
+    (run_id,) = conn.execute("SELECT run_id FROM recommendation WHERE text = ?", (_SPOT_FIRST[0],)).fetchone()
+    conn.execute("INSERT INTO recommendation (run_id, ordinal, text, raw_strength, raw_certainty, raw_category, "
+                 "page, chunk_id) VALUES (?, 3, ?, ?, ?, 'graded', 2, 0)",
+                 (run_id, _NOISY_COPY, _SPOT_FIRST[1], _SPOT_FIRST[2]))
+    frozen.refreeze(conn)
+
+
+def _write_verdicts(frozen, skip_planted=False):
+    """A verdict per screened pair: the planted copy duplicate, every other pair distinct."""
+    pairs = duplicate_candidates(frozen.store, 1, frozen.world.manifest, FakeEncoder())
+    rows = [(p, Verdict.DUPLICATE if (p.doi, p.ordinal_a, p.ordinal_b) == _PLANTED else Verdict.DISTINCT,
+             "reason", "model", "digest")
+            for p in pairs if not (skip_planted and (p.doi, p.ordinal_a, p.ordinal_b) == _PLANTED)]
+    path = os.path.join(frozen.root, "verdicts.csv")
+    write_adjudications(path, rows)
+    frozen.write_config(dedup_verdicts_path=path, dedup_verdicts_sha256=file_sha256(path))
+
+
+def _esicm_graded(frozen):
+    t1 = {r["society"]: r for r in _csv(os.path.join(frozen.package, "table1_society.csv"))}
+    return t1["ESICM"]["n_graded"]
+
+
+def test_planted_duplicate_counts_without_verdicts(frozen):
+    _plant_duplicate(frozen)
+    frozen.run()
+    assert _esicm_graded(frozen) == "5"
+    assert _csv(os.path.join(frozen.package, "duplicates.csv")) == []
+
+
+def test_duplicate_removed_from_tables(frozen):
+    _plant_duplicate(frozen)
+    _write_verdicts(frozen)
+    frozen.run()
+
+    assert _esicm_graded(frozen) == "4"
+    (removed,) = _csv(os.path.join(frozen.package, "duplicates.csv"))
+    assert (removed["doi"], removed["kept_ordinal"], removed["removed_ordinal"]) == ("10.1000/b", "0", "3")
+    facts = json.loads(_read(os.path.join(frozen.package, "methods_facts.json")))
+    assert facts["dedup"]["n_removed"] == 1
+    assert facts["dedup"]["removed_by_society"] == {"ESICM": 1}
+
+
+def test_spotcheck_row_removed_as_duplicate_maps_to_kept_copy(frozen):
+    _plant_duplicate(frozen)
+    _write_verdicts(frozen)
+    frozen._write_spotcheck(matched=(3, 1))
+    frozen.run()  # would raise "Spot-check rows missing" without the remap
+
+
+def test_screened_pair_without_verdict_fails_closed(frozen):
+    _plant_duplicate(frozen)
+    _write_verdicts(frozen, skip_planted=True)
+    with pytest.raises(DedupVerdictError, match="10.1000/b rows 0, 3: no verdict"):
+        frozen.run()
+
+
+def test_audit_refuses_changed_verdicts(frozen):
+    _plant_duplicate(frozen)
+    _write_verdicts(frozen)
+    with open(os.path.join(frozen.root, "verdicts.csv"), "a") as f:
+        f.write("\n")
+    with pytest.raises(PackageAuditError, match="dedup verdicts"):
+        frozen.run()

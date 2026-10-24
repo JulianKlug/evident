@@ -4,7 +4,7 @@
 - **What:** find and remove recommendations extracted twice from one guideline (summary page and body, or a table repeating the text), then recompute Paper 1.
 - **Why:** a quick text-similarity pass on snapshot 8 (2026-10-22; difflib ratio ≥ 0.85 or token Jaccard ≥ 0.7) flagged 38 of 75 guidelines and 173 extra copies (ACP 7, ESICM 66, SCCM 100). They inflate Table 1 counts and shift % strong and % high/moderate by ~0.5–2.6 pp per society. Example: `10.1097/ccm.0000000000002027`, 10 recs on page 2 repeated in the body ("NMBA" vs "neuromuscular-blocking agent").
 - **Caveats:** rough estimate. Its baseline % differ from Table 1 (SCCM strong 21.9 vs 21.1), and some flagged pairs may be distinct recs with similar wording (other population).
-- **Open:** match on meaning (BioLORD; the extractor's 0.97 dedup misses abbreviation variants) plus a manual check of borderline pairs; dedup as a prespecified analysis step on the frozen snapshot vs re-extraction; which copy to keep (grades can differ); state the rule in Methods.
+- **Decided (2026-10-24):** screen + LLM adjudication, frozen verdicts; rule in spec §5. BioLORD threshold alone rejected (dev pair F1 ≤ 0.25).
 - **Depends on:** nothing; blocks the Paper 1 prose draft.
 
 ## Discordance analytics
