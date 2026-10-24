@@ -44,3 +44,19 @@ Made with `sqlite3 out/evident.sqlite ".backup …"` from the live DB, then `PRA
 | pdf_unavailable | 0 |
 
 Guidelines found after the freeze (e.g. ACP menopause, 2026-10-06) belong to a later living-map update, not Paper 1.
+
+## Deduplicated package (2026-10-24)
+
+`out/paper1_v2`, code `5a197c2`, `analysis_manifest.json` SHA-256 `49592db1726c4a1af574739a4f3d85414337223ee1a2e2863edeed5723aa79ba`. Same frozen DB; adds within-guideline duplicate removal (spec §5) with verdicts `corpus/dedup/paper1_verdicts.csv` (SHA-256 `533bff8a…`). `out/paper1` (2026-10-20) is kept for comparison.
+
+| Current editions | Before | After |
+|---|---|---|
+| Graded, ALL | 1294 | 1164 |
+| Strong, ALL | 26.1% | 26.4% |
+| Against, ALL | 17.7% | 18.1% |
+| High/moderate, ALL | 27.5% | 27.5% |
+| High/moderate, ACP | 46.9% | 43.3% |
+| Held-out F1 | 0.951 | 0.967 |
+| Development F1 | 0.939 | 0.958 |
+
+Removed 177 statements (ACP 4, ESICM 52, SCCM 121; 130 graded in current editions) from 178 duplicate verdicts of 1256 screened pairs; 43 groups carried different grades.
