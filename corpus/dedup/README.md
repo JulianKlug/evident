@@ -1,4 +1,4 @@
-# Within-guideline duplicate verdicts (Paper 1, spec §5)
+# Within-guideline duplicate verdicts (M4 draft, spec §5)
 
 - `paper1_verdicts.csv`: frozen verdict for every screened pair of snapshot 8: duplicate only when both judges agree (`scripts/paper1_dedup_consensus.py`, spec §5 item 6). Hashed in `configs/paper1.json`; `publish --package` reads it.
 - `judges/`: each judge's verdicts (`scripts/paper1_dedup_adjudicate.py`): qwen38-64k and gemma3-27b on all 1256 pairs; they split on 116 (`disagreements.csv`: 115 gemma-only duplicates, 1 qwen-only), which stay distinct: 177 duplicate pairs. mistral-small3.2-24b judged the 116 under the superseded majority rule (item 5) and is kept for audit only.

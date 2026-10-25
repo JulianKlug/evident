@@ -1,4 +1,4 @@
-# Paper 1 analysis package
+# M4 proof-of-principle analysis package
 
 Spec: `docs/specs/m4-paper1.md`. Source: `docs/paper1/freeze.md`. Every number in the draft comes from this package.
 

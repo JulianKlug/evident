@@ -35,14 +35,14 @@ from full guideline PDFs with a local LLM (single RTX 3090). Produce:
 | # | Decision | Why |
 |---|----------|-----|
 | 1 | MVP corpus: ESICM + SCCM + ACP, 2016–2026 | All GRADE-like, so harmonization is easy. ACP adds 9 labelled guidelines. |
-| 2 | Later: all non-surgical specialties (internal medicine, pneumology, cardiology, anesthesia, hematology…) | Paper 2+ scope |
+| 2 | Later: all non-surgical specialties (internal medicine, pneumology, cardiology, anesthesia, hematology…) | Scope of the paper to publish |
 | 3 | MVP validation: existing labels only (3 ESICM, 9 ACP). No new annotation | Speed. Ceiling: ICU accuracy rests on 17 in-sample recs. Upgrade trigger: specialty expansion or before submission |
 | 4 | Output: SQLite DB → paper figures/tables + static dashboard, same code path | Single source of truth; figures and dashboard never disagree |
 | 5 | Extractor frozen per published snapshot; snapshot = full re-extraction | Avoid trends confounded by extractor version |
 | 6 | Approach B: layered package | Maintainability across specialties; honours the layer rule |
 | 7 | ExtractorVersion v1 = snapshot 5 (2026-10-04): single pass, `qwen38-64k:latest` (qwen3.8 27B, digest `12af24e3ee72`), thinking off, prompt v0, 3 seeded few-shot, BioLORD dedup 0.97, no ML filter (`configs/v0_qwen38-64k_dedup097.json`, version `113889035d33`) | Best of 6 snapshots on the 12 labelled guidelines (48 GT rows): graded F1 0.929 [0.867, 0.978], P 0.868, R 1.000, combined grade accuracy 0.935; v0 legacy 0.520. 33 s/guideline (~1 h per 100). Chosen on the same 12 guidelines it is scored on. Evidence: `docs/progress.md` |
 | 8 | ExtractorVersion v2 = snapshot 8 (2026-10-06): v1 + alphanumeric exact-dedup key (trailing grade stripped), `configs/v2_qwen38-64k_alnum.json`, version `39ac17093b65` | Re-downloaded publisher PDFs left abstract/body duplicates that dedup 0.97 kept (broken letter spacing, ligatures, trailing grade). Same LLM outputs as v1; F1 0.902 → 0.939 on the corpus snapshot (+0.037 [0.000, 0.083]), grade accuracy unchanged. Evidence: `docs/progress.md` (M3) |
-| 9 | Paper 1 is graded-only: the ungraded share is not reported. Ungraded statements move to v3 (separate pass), built in parallel (2026-10-13) | Spot check: graded headline within 1 point of truth (% strong +0.8, % against −0.6, % high/moderate −0.1; CIs include 0); ungraded share 5.7% vs 42.4% true (16 of 160 extracted). Fanaroff counted graded recs only. Evidence: `docs/progress.md` (headline bias) |
+| 9 | The M4 proof-of-principle draft is graded-only: the ungraded share is not reported. Ungraded statements move to v3 (separate pass), built in parallel (2026-10-13) | Spot check: graded headline within 1 point of truth (% strong +0.8, % against −0.6, % high/moderate −0.1; CIs include 0); ungraded share 5.7% vs 42.4% true (16 of 160 extracted). Fanaroff counted graded recs only. Evidence: `docs/progress.md` (headline bias) |
 | 10 | Denominator: every graded recommendation counts once (pooled per recommendation); per-guideline mean as a supplement sensitivity table; headline always shown by society (2026-10-13) | Fanaroff's rule and the validation unit. Pooled ALL is 73% SCCM (772 of 1057), so ALL differs between rules (high/moderate 24.5 vs 30.5); within a society they agree within ~5 points |
 
 ## Premises (agreed)

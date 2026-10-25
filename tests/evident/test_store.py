@@ -138,7 +138,7 @@ class TestMigrations:
 
 class TestReadOnly:
     def _frozen(self, tmp_path):
-        """A DELETE-journal file, as the frozen Paper 1 copy is made."""
+        """A DELETE-journal file, as the frozen M4 copy is made."""
         path = str(tmp_path / "frozen.sqlite")
         with Store.open(path) as s:
             s.upsert_guideline(_guideline())

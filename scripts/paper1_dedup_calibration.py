@@ -1,4 +1,4 @@
-"""Fix the Paper 1 duplicate threshold τ on the 12 development guidelines only (spec §5).
+"""Fix the M4 duplicate threshold τ on the 12 development guidelines only (spec §5).
 
     frozen snapshot recs (dev DOIs) ─▶ BioLORD within-guideline cosine, every pair i < j
     dev labels ─────────────────────▶ each extracted row → its most similar label row (≥ match threshold)

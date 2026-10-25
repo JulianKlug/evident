@@ -1,13 +1,13 @@
-# Spec: M4 — Paper Draft 1 (ICU + ACP)
+# Spec: M4 — Proof-of-principle draft (ICU + ACP)
 
 **Status:** Proposed, 2026-10-13  
 **Sources of truth:** `docs/roadmap.md` (M4), `docs/designs/living-evidence-map.md` (Decisions 1, 3–5, 8–10), `docs/specs/m3-mvp-snapshot.md`, `docs/progress.md` (M3 through 2026-10-13).
 
 ## 1. Goal
 
-Produce a defensible, reproducible first-paper draft describing the strength, direction and certainty of **graded** recommendations in ESICM, SCCM and ACP clinical practice guidelines published from 2016 through the October 2026 corpus search. Every manuscript count, percentage, interval, table and figure must be derived from a **single frozen copy of the published M3 snapshot**, through `evident publish`. Do not manually transcribe numerical results into the manuscript.
+Produce a defensible, reproducible proof-of-principle draft describing the strength, direction and certainty of **graded** recommendations in ESICM, SCCM and ACP clinical practice guidelines published from 2016 through the October 2026 corpus search. Every manuscript count, percentage, interval, table and figure must be derived from a **single frozen copy of the published M3 snapshot**, through `evident publish`. Do not manually transcribe numerical results into the manuscript.
 
-M4 is a publication and validation milestone, **not another extractor-selection milestone**.
+M4 is a proof-of-principle and validation milestone, **not another extractor-selection milestone**. The draft is not for publication; the paper to publish (M7) covers all specialties.
 
 ### Done at M3; reuse rather than rebuild
 
@@ -23,7 +23,7 @@ M4 is a publication and validation milestone, **not another extractor-selection 
 
 **Out of scope:** extractor v3 or an ungraded-share result; cross-specialty expansion (M6); routine new-guideline ingestion (M5); recommendation-level supersession (M5); new predictive claims, significance tests or cross-society causal interpretations; and cross-society semantic-conflict matching. Discordance analytics from `TODOS.md` remain optional after the primary package is complete.
 
-No retraining, new extraction or threshold tuning is allowed in the primary Paper 1 analysis. A genuine data/grade-mapping error must have a regression test, a documented correction and a regenerated, newly hashed analysis package. Preserve the original outputs for comparison.
+No retraining, new extraction or threshold tuning is allowed in the primary M4 analysis. A genuine data/grade-mapping error must have a regression test, a documented correction and a regenerated, newly hashed analysis package. Preserve the original outputs for comparison.
 
 ## 3. Freeze the analysis source before drafting
 
@@ -31,7 +31,7 @@ No retraining, new extraction or threshold tuning is allowed in the primary Pape
 2. Confirm the frozen source has one active successful v2 run for every included guideline (85/85), no unexplained exclusions, no PDF/hash drift, and that the edition resolver marks 75 current guidelines. Fail closed on a coverage mismatch, ambiguous edition link, mixed extractor version, or unresolved provenance.
 3. Record the extractor version ID, full config JSON and prompt/example/model/embedding provenance already held by the version/run records; separate the **extraction code SHA** from the **analysis/publishing code SHA** (they need not be the same).
 4. Keep the analysis as of the **2026-10-04 PubMed search**. Any guidelines added after the freeze belong to a later living-map update, not silently to this paper.
-5. Make `publish` optionally write an analysis package that consumes the frozen DB and external held-out labels read-only; standard `publish` and the living dashboard continue to work without them. The option is generic (Paper 2 reuses it), not named after one paper.
+5. Make `publish` optionally write an analysis package that consumes the frozen DB and external held-out labels read-only; standard `publish` and the living dashboard continue to work without them. The option is generic (the M7 paper reuses it), not named after one paper.
 
 Proposed CLI extension (illustrative interface):
 
@@ -41,7 +41,7 @@ python -m evident --db <frozen-db> \
   publish --snapshot 8 --package out/paper1 --heldout-labels <heldout-dir>
 ```
 
-`--package` requires an explicit published snapshot ID. A missing, incomplete or mismatched held-out label set is an error, not a silent omission. No snapshot state, run, baseline gate or stored recommendation may be changed by the Paper 1 rendering path.
+`--package` requires an explicit published snapshot ID. A missing, incomplete or mismatched held-out label set is an error, not a silent omission. No snapshot state, run, baseline gate or stored recommendation may be changed by the M4 rendering path.
 
 ## 4. Corpus methods and flow
 
@@ -56,7 +56,7 @@ Inclusion rule (M3, clarified 2026-10-13): an ESICM-, SCCM- or ACP-led/co-led cl
 
 The unit of analysis is **one extracted, deduplicated recommendation**, not one guideline. Use the existing `HarmonizedRow` and `HarmonizedGrade`; never infer a missing grade. Primary tables include only `category == graded`.
 
-**Within-guideline duplicates** (amendment 2026-10-24, fixed before any Paper 1 table was recomputed; `evident/dedup.py`). The extractor's own pass (alphanumeric key, BioLORD ≥ 0.97) leaves copies of one recommendation, e.g. a summary list repeated in the body or an abbreviation spelled out. A similarity threshold alone cannot separate them from sibling recommendations: on the 12 development guidelines the best BioLORD threshold reached pair F1 0.25, because "… in adults" vs "… in adults with kidney injury" scores higher than a hyphenation-noise copy (`scripts/paper1_dedup_calibration.py`). Rule:
+**Within-guideline duplicates** (amendment 2026-10-24, fixed before any M4 table was recomputed; `evident/dedup.py`). The extractor's own pass (alphanumeric key, BioLORD ≥ 0.97) leaves copies of one recommendation, e.g. a summary list repeated in the body or an abbreviation spelled out. A similarity threshold alone cannot separate them from sibling recommendations: on the 12 development guidelines the best BioLORD threshold reached pair F1 0.25, because "… in adults" vs "… in adults with kidney injury" scores higher than a hyphenation-noise copy (`scripts/paper1_dedup_calibration.py`). Rule:
 1. Screen: every pair of rows of one guideline (all editions, graded or not) with BioLORD cosine ≥ 0.75 (CPU, the runs' embedding revision) **or** character ratio ≥ 0.70 on the normalized text (NFKC, lower case, trailing grade parenthesis removed, letters and digits only). A first screen at 0.85/0.85 (338 pairs) missed abbreviation copies ("NMBA" vs "neuromuscular-blocking agent": BioLORD 0.61–0.74).
 2. Adjudicate: a local LLM labels each screened pair duplicate (same population, intervention, comparator and direction, restated) or distinct (`scripts/paper1_dedup_adjudicate.py`, temperature 0, fixed seed, guideline title as context). Verdicts are frozen in `corpus/dedup/paper1_verdicts.csv`, hashed in `configs/paper1.json`; `publish` performs no LLM inference and fails closed when a screened pair has no verdict.
    - Prompt development: the first prompt agreed with an independent reviewer on 313/338 first-screen pairs (3 false merges, 22 missed duplicates: dropped scope words, appended remarks, truncation); the revised prompt names those cases. Its agreement is reported on a random sample of pairs outside the first screen, labelled blind to the LLM verdict.
@@ -80,7 +80,7 @@ The unit of analysis is **one extracted, deduplicated recommendation**, not one 
 
 Show numerator **and** denominator beside every percentage, and separate excluded/unmapped/unknown counts. An empty denominator renders as `NA`, never as zero. Calculations use unrounded values; CSVs/figures display one decimal place. 'Strong' includes strong against recommendations; a statement offering **no direction** is `no_recommendation`, not a graded against recommendation, irrespective of the model's guessed label.
 
-**Do not report the v2 ungraded share as a Paper 1 finding.** The existing dashboard's ungraded fields must be hidden from the publication view or explicitly flagged as incomplete; unchanged exploratory exports may retain the columns for compatibility.
+**Do not report the v2 ungraded share as an M4 finding.** The existing dashboard's ungraded fields must be hidden from the publication view or explicitly flagged as incomplete; unchanged exploratory exports may retain the columns for compatibility.
 
 ### Primary results
 
@@ -92,7 +92,7 @@ Show numerator **and** denominator beside every percentage, and separate exclude
 
 ### Uncertainty
 
-Extend the existing guideline-cluster bootstrap approach to Paper 1 headline proportions, rather than treating recommendations as independent observations. Default: **2,000 resamples, fixed RNG seed 0, 2.5th/97.5th percentiles**, operating on per-guideline numerator/denominator pairs. Resample guidelines **within society** for society CIs; for ALL, stratify draws by society and recompute the pooled per-recommendation ratio. Preserve the same estimator/denominator in every draw; drop undefined draws and disclose if any exist. Report that these intervals describe between-guideline variability in this curated corpus and **do not correct extraction bias or establish population representativeness**.
+Extend the existing guideline-cluster bootstrap approach to the M4 headline proportions, rather than treating recommendations as independent observations. Default: **2,000 resamples, fixed RNG seed 0, 2.5th/97.5th percentiles**, operating on per-guideline numerator/denominator pairs. Resample guidelines **within society** for society CIs; for ALL, stratify draws by society and recompute the pooled per-recommendation ratio. Preserve the same estimator/denominator in every draw; drop undefined draws and disclose if any exist. Report that these intervals describe between-guideline variability in this curated corpus and **do not correct extraction bias or establish population representativeness**.
 
 ## 6. Held-out SCCM validation (separate from the gate)
 
@@ -111,12 +111,12 @@ They were drawn with seed 1 from the 27 current SCCM guidelines not used in the 
 - Optional: a second annotator labels one of the three guidelines; report agreement.
 - Publish the ungraded diagnostics separately in a supplement, clearly marked exploratory; do not add an ungraded-share estimate to the paper.
 - **Do not feed these labels into** `validation.load_labelled()`, few-shot selection, extractor tuning, the existing 12-guideline gate, or any model revision. Do not present the M3 spot-check scores as independent held-out validation.
-- Keep the existing `evident validate` gate, including its original 12 labels and baseline comparison, unchanged. The new SCCM test is a **read-only Paper 1 report**, not a new publication gate.
+- Keep the existing `evident validate` gate, including its original 12 labels and baseline comparison, unchanged. The new SCCM test is a **read-only M4 report**, not a new publication gate.
 - Change the dashboard/caption language from an unqualified 'SCCM accuracy unvalidated' to 'SCCM evaluated separately on 3 held-out guidelines; not part of the 12-guideline development gate', **only after** those results exist. Keep the cohort-size limitation prominent.
 
 ## 7. `publish` outputs and implementation boundaries
 
-Extend `PublishBundle` with a typed optional Paper 1 payload, populated in the **pipeline read path** from the frozen store, manifest, candidates and SCCM reference labels. Put transformations and bootstrap calculations in pure functions in `evident/analytics.py` or a small `evident/paper1.py`; leave `evident/publishing.py` responsible only for deterministic rendering. The external labels loader must be explicit and validated. No direct SQL in new scripts, and no model inference in `publish`.
+Extend `PublishBundle` with a typed optional M4 payload, populated in the **pipeline read path** from the frozen store, manifest, candidates and SCCM reference labels. Put transformations and bootstrap calculations in pure functions in `evident/analytics.py` or a small `evident/paper1.py`; leave `evident/publishing.py` responsible only for deterministic rendering. The external labels loader must be explicit and validated. No direct SQL in new scripts, and no model inference in `publish`.
 
 Retain current `out/tables/`, `out/figures/` and `out/dashboard/` outputs. With `--package` it stages and atomically swaps an additional subtree:
 
@@ -138,7 +138,7 @@ out/paper1/
   analysis_manifest.json        # source hashes, parameters, output hashes
 ```
 
-The published SVG/PNG figures may stay in `out/figures/`; `out/paper1/figure_data.csv` must suffice to reconstruct every plotted point. `analysis_manifest.json` must include snapshot ID and state, full extractor ID/model digest, extraction and analysis Git SHAs, corpus/search cutoff, manifest/candidates/DB checksums, held-out label checksums, edition rule, publication bootstrap seed/count, analysis config and hashes of all emitted Paper 1 files. Avoid a manifest hashing itself: exclude `analysis_manifest.json` from its own output hash inventory.
+The published SVG/PNG figures may stay in `out/figures/`; `out/paper1/figure_data.csv` must suffice to reconstruct every plotted point. `analysis_manifest.json` must include snapshot ID and state, full extractor ID/model digest, extraction and analysis Git SHAs, corpus/search cutoff, manifest/candidates/DB checksums, held-out label checksums, edition rule, publication bootstrap seed/count, analysis config and hashes of all emitted M4 files. Avoid a manifest hashing itself: exclude `analysis_manifest.json` from its own output hash inventory.
 
 All manuscript numbers, including corpus flow and both validation summaries, come **only** from these exports. The draft is a template (`docs/paper1/draft.md.j2`) referencing exported fields, e.g. `{{ table1_society.ACP.pct_strong }}`; `publish --package` renders it to `out/paper1/draft.md`. An unknown field fails the render (fail closed); no number is typed by hand. The two sets of validation results must never be silently merged.
 
@@ -162,7 +162,7 @@ The supplement contains the complete DOI manifest, exclusion list with one reaso
 | # | Criterion | Verification |
 |---|---|---|
 | 1 | Frozen source is coherent; 85 active v2 runs, 75 current editions, no hidden exclusions or altered PDFs | Frozen-DB audit; repository manifest/candidate checks; `status` and source-hash inventory |
-| 2 | Paper 1 uses graded rows only with correct axis-specific denominators | Unit fixtures: unmapped, ungraded, no-direction, strong-against, empty group |
+| 2 | The M4 draft uses graded rows only with correct axis-specific denominators | Unit fixtures: unmapped, ungraded, no-direction, strong-against, empty group |
 | 3 | Superseded editions are absent from cross-sectional tables but included in trends; joint copies count once | Deterministic fixture with an old/current topic and a co-publication |
 | 4 | Pooled vs guideline-mean sensitivity differs where guideline sizes differ; zero denominators handled | Two unequal-size guideline fixture with known hand-calculated results |
 | 5 | Cluster CIs are deterministic, computed at guideline rather than recommendation level, and society-stratified for ALL | Fixed-seed fixtures, tiny clusters, undefined denominator tests |
@@ -170,9 +170,9 @@ The supplement contains the complete DOI manifest, exclusion list with one reaso
 | 7 | Paper exports, captions and dashboard are generated by the same `publish` path and remain intact if rendering fails | `test_publishing.py` / `test_e2e.py`; failure-injection and byte-for-byte rerender test |
 | 8 | Every primary and supplementary numerical manuscript claim traces to a frozen exported field and validation sample is clearly identified | Audit draft against `out/paper1/` with no unexplained literals |
 | 9 | All existing tests, legacy golden replay and new tests pass | `python -m pytest tests -m "not slow"` plus relevant integration tests |
-| 10 | A complete first-paper draft and supplement exist; one command reproduces all tables and figures from stored runs without an LLM/GPU | Reproduce on the frozen inputs, compare output hashes, archive log and manifest |
+| 10 | A complete proof-of-principle draft and supplement exist; one command reproduces all tables and figures from stored runs without an LLM/GPU | Reproduce on the frozen inputs, compare output hashes, archive log and manifest |
 
-**M4 exit:** a complete reviewable draft, generated Paper 1 tables/figures/supplement and a reproducibility record, all tied to one immutable snapshot 8 source; the development and held-out validation results are unambiguously separated. This is **not** an assertion of journal submission readiness or external generalisability.
+**M4 exit:** a complete reviewable draft, generated M4 tables/figures/supplement and a reproducibility record, all tied to one immutable snapshot 8 source; the development and held-out validation results are unambiguously separated. This is **not** an assertion of journal submission readiness or external generalisability.
 
 ## 10. Implementation order and open decisions
 
@@ -186,5 +186,5 @@ The supplement contains the complete DOI manifest, exclusion list with one reaso
 
 **Decide before implementation:** journal/target reporting format and whether to display descriptive bootstrap CIs in Table 1 or only the supplement. Defaults: journal-neutral Markdown draft; include the CIs in Table 1, qualified as within-corpus guideline variability. Keep dashboard access local-only unless separately approved.
 
-**Optional only after exit:** discordance audit (strong recommendations with low/very-low certainty; no cross-society matching without a separately validated threshold). It must not change the primary results or delay the paper.
+**Optional only after exit:** discordance audit (strong recommendations with low/very-low certainty; no cross-society matching without a separately validated threshold). It must not change the primary results or delay the draft.
 

@@ -1,4 +1,4 @@
-"""The Paper 1 draft template types no number by hand (spec §7, §9 criterion 8).
+"""The M4 draft template types no number by hand (spec §7, §9 criterion 8).
 
 The draft is private (not tracked); the audit runs where it exists and on the test stand-in.
 

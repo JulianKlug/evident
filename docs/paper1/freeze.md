@@ -1,4 +1,4 @@
-# Paper 1 freeze (2026-10-13)
+# M4 draft freeze (2026-10-13)
 
 Spec: `docs/specs/m4-paper1.md` §3. Git tag `paper1-freeze` marks the commit holding this file, the manifest and the candidates.
 
@@ -43,7 +43,7 @@ Made with `sqlite3 out/evident.sqlite ".backup …"` from the live DB, then `PRA
 | out_of_range | 3 |
 | pdf_unavailable | 0 |
 
-Guidelines found after the freeze (e.g. ACP menopause, 2026-10-06) belong to a later living-map update, not Paper 1.
+Guidelines found after the freeze (e.g. ACP menopause, 2026-10-06) belong to a later living-map update, not the M4 draft.
 
 ## Deduplicated package (2026-10-24)
 
