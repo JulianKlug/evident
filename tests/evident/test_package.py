@@ -534,11 +534,11 @@ def _plant_duplicate(frozen):
     frozen.refreeze(conn)
 
 
-def _write_verdicts(frozen, skip_planted=False):
+def _write_verdicts(frozen, skip_planted=False, model="model", planted_model="model"):
     """A verdict per screened pair: the planted copy duplicate, every other pair distinct."""
     pairs = duplicate_candidates(frozen.store, 1, frozen.world.manifest, FakeEncoder())
-    rows = [(p, Verdict.DUPLICATE if (p.doi, p.ordinal_a, p.ordinal_b) == _PLANTED else Verdict.DISTINCT,
-             "reason", "model", "digest")
+    rows = [(p, Verdict.DUPLICATE, "reason", planted_model, "digest") if (p.doi, p.ordinal_a, p.ordinal_b) == _PLANTED
+            else (p, Verdict.DISTINCT, "reason", model, "digest")
             for p in pairs if not (skip_planted and (p.doi, p.ordinal_a, p.ordinal_b) == _PLANTED)]
     path = os.path.join(frozen.root, "verdicts.csv")
     write_adjudications(path, rows)
@@ -584,6 +584,16 @@ def test_sensitivity_table_equals_table1_without_verdicts(frozen):
     frozen.run()
     assert (_read(os.path.join(frozen.package, "table_s2_without_dedup.csv"))
             == _read(os.path.join(frozen.package, "table1_society.csv")))
+
+
+def test_methods_name_each_judge_and_count_third_verdicts(frozen):
+    _plant_duplicate(frozen)
+    _write_verdicts(frozen, model="qwen+gemma", planted_model="qwen+gemma+mistral")
+    frozen.run()
+
+    facts = json.loads(_read(os.path.join(frozen.package, "methods_facts.json")))
+    assert facts["dedup"]["adjudication_models"] == ["gemma", "mistral", "qwen"]
+    assert facts["dedup"]["n_third_judge"] == 1
 
 
 def test_spotcheck_row_removed_as_duplicate_maps_to_kept_copy(frozen):

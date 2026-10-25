@@ -10,7 +10,9 @@ from evident.dedup import (
     DedupVerdictError,
     Verdict,
     check_complete,
+    consensus,
     deduplicate,
+    disagreements,
     lexical_ratio,
     load_adjudications,
     remap_ordinals,
@@ -141,3 +143,35 @@ class TestExports:
 
     def test_remap_points_removed_ordinals_to_kept(self):
         assert remap_ordinals("d", (3, 1), {("d", 3): 0, ("e", 1): 0}) == (0, 1)
+
+
+class TestConsensus:
+    def _judge(self, model, *verdicts):
+        return [Adjudication("d", i, i + 1, v, f"{model} reason", model) for i, v in enumerate(verdicts)]
+
+    def test_agreement_needs_no_tiebreak(self):
+        a = self._judge("qwen", Verdict.DUPLICATE, Verdict.DISTINCT)
+        b = self._judge("gemma", Verdict.DUPLICATE, Verdict.DISTINCT)
+        assert disagreements(a, b) == []
+        assert consensus(a, b, []) == [Adjudication("d", 0, 1, Verdict.DUPLICATE, "qwen reason", "qwen+gemma"),
+                                       Adjudication("d", 1, 2, Verdict.DISTINCT, "qwen reason", "qwen+gemma")]
+
+    def test_third_judge_breaks_a_tie(self):
+        a = self._judge("qwen", Verdict.DUPLICATE, Verdict.DUPLICATE)
+        b = self._judge("gemma", Verdict.DISTINCT, Verdict.DUPLICATE)
+        assert disagreements(a, b) == [("d", 0, 1)]
+        tiebreak = [Adjudication("d", 0, 1, Verdict.DISTINCT, "mistral reason", "mistral")]
+        assert consensus(a, b, tiebreak)[0] == Adjudication("d", 0, 1, Verdict.DISTINCT, "mistral reason",
+                                                           "qwen+gemma+mistral")
+
+    def test_tie_without_third_verdict_fails_closed(self):
+        a = self._judge("qwen", Verdict.DUPLICATE)
+        b = self._judge("gemma", Verdict.DISTINCT)
+        with pytest.raises(DedupVerdictError, match="d rows 0, 1: judges disagree, no third verdict"):
+            consensus(a, b, [])
+
+    def test_judges_must_cover_the_same_pairs(self):
+        a = self._judge("qwen", Verdict.DUPLICATE, Verdict.DISTINCT)
+        b = self._judge("gemma", Verdict.DUPLICATE)
+        with pytest.raises(DedupVerdictError, match="d rows 1, 2: judged by one model only"):
+            consensus(a, b, [])

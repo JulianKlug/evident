@@ -3,6 +3,8 @@
     rows of one guideline ─┬─ BioLORD cosine ≥ 0.75 ─┐
                            └─ lexical ratio ≥ 0.70 ──┴─▶ screen ─▶ [CandidatePair]
                                                                      │ scripts/paper1_dedup_adjudicate.py (LLM, offline)
+                                                                     ▼  two judges per pair, a third where they disagree
+                                                                     │ scripts/paper1_dedup_consensus.py (majority)
                                                                      ▼
     corpus/dedup/paper1_verdicts.csv ─▶ load_adjudications ─▶ check_complete (every screened pair, nothing else)
                                                           └─▶ deduplicate ─▶ kept rows (one per cluster)
@@ -18,7 +20,7 @@ import difflib
 import re
 import unicodedata
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Sequence
 
@@ -37,6 +39,8 @@ _NON_ALPHANUMERIC = re.compile(r"[^0-9a-z]")
 _COLUMNS = ("doi", "ordinal_a", "ordinal_b", "biolord", "lexical", "verdict", "reason", "model", "model_digest",
             "text_a", "text_b")
 _FLOAT_DIGITS = 4
+MODEL_SEPARATOR = "+"  # consensus verdicts name every judge consulted
+JUDGES_PER_PAIR = 2    # a third judge only where these two disagree
 
 
 class Verdict(str, Enum):
@@ -150,6 +154,49 @@ def check_complete(pairs: Sequence[CandidatePair], adjudications: Sequence[Adjud
     problems += [f"{d} rows {a}, {b}: {n} verdicts" for (d, a, b), n in sorted(judged.items()) if n > 1]
     if problems:
         raise DedupVerdictError(problems)
+
+
+# ── judges ──────────────────────────────────────────────────────
+
+def disagreements(a: Sequence[Adjudication], b: Sequence[Adjudication]) -> list[tuple[str, int, int]]:
+    """Pairs two judges decided differently, e.g. for a third judge; sorted (doi, ordinal_a, ordinal_b)."""
+    verdicts_b = {_key(x): x.verdict for x in b}
+    return sorted(_key(x) for x in a if _key(x) in verdicts_b and verdicts_b[_key(x)] != x.verdict)
+
+
+def consensus(a: Sequence[Adjudication], b: Sequence[Adjudication],
+              tiebreak: Sequence[Adjudication]) -> list[Adjudication]:
+    """Majority of three: two judges on every pair, a third only where they disagree.
+
+    The model field names every judge consulted, e.g. "qwen+gemma" or "qwen+gemma+mistral".
+    """
+    by_b = {_key(x): x for x in b}
+    by_tiebreak = {_key(x): x for x in tiebreak}
+    one_judge = sorted({_key(x) for x in a} ^ set(by_b))
+    problems = [f"{d} rows {oa}, {ob}: judged by one model only" for d, oa, ob in one_judge]
+
+    out = []
+    for first in a:
+        second = by_b.get(_key(first))
+        if second is None:
+            continue
+        if first.verdict == second.verdict:
+            out.append(replace(first, model=MODEL_SEPARATOR.join((first.model, second.model))))
+            continue
+
+        third = by_tiebreak.get(_key(first))
+        if third is None:
+            problems.append(f"{first.doi} rows {first.ordinal_a}, {first.ordinal_b}: judges disagree, no third verdict")
+            continue
+        out.append(replace(third, model=MODEL_SEPARATOR.join((first.model, second.model, third.model))))
+
+    if problems:
+        raise DedupVerdictError(problems)
+    return sorted(out, key=_key)
+
+
+def _key(a: Adjudication) -> tuple[str, int, int]:
+    return a.doi, a.ordinal_a, a.ordinal_b
 
 
 # ── clusters ────────────────────────────────────────────────────
