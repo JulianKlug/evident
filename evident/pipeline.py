@@ -59,8 +59,10 @@ from evident.dedup import (
     check_complete,
     deduplicate,
     load_adjudications,
+    load_human_check,
     remap_ordinals,
     removed_rows,
+    score_human_check,
     screen,
 )
 from evident.domain import (
@@ -912,10 +914,19 @@ def _deduplicate(rows: list[HarmonizedRow], similarity,
         "removed_by_society": result.removed_by_society,
         "n_grade_conflicts": result.n_grade_conflicts,
         "adjudication_models": sorted({m for a in adjudications for m in a.model.split(MODEL_SEPARATOR)}),
+        "human_check": _human_check(rows, result, cfg),
         "n_judges_split": sum(a.reason == SPLIT_REASON for a in adjudications),
         "n_blocked_by_grade": result.n_blocked_by_grade,
     }
     return result, facts
+
+
+def _human_check(rows: list[HarmonizedRow], result: DedupResult, cfg: AnalysisConfig) -> Optional[dict]:
+    """The reviewer's labelled pairs scored against the final clusters; None when no check is configured."""
+    if cfg.dedup_human_sample_path is None:
+        return None
+    labels = load_human_check(cfg.dedup_human_sample_path, cfg.dedup_human_key_path)
+    return asdict(score_human_check(labels, rows, result.removed))
 
 
 def _bundle(deps: PipelineDeps, snap: Snapshot, rows: list[HarmonizedRow], facts: list[GuidelineFacts],
@@ -973,6 +984,11 @@ def _audit_package(store: Store, snapshot_id: int, manifest_path: str, entries: 
         if actual != cfg.dedup_verdicts_sha256:
             problems.append(f"dedup verdicts {cfg.dedup_verdicts_path} SHA-256 {actual} differs from "
                             f"{cfg.dedup_verdicts_sha256}")
+
+    for label, path, expected in (("human check sample", cfg.dedup_human_sample_path, cfg.dedup_human_sample_sha256),
+                                  ("human check key", cfg.dedup_human_key_path, cfg.dedup_human_key_sha256)):
+        if path is not None and _sha_or_none(path) != expected:
+            problems.append(f"{label} {path} SHA-256 {_sha_or_none(path)} differs from {expected}")
 
     if inputs.draft_template is not None and not os.path.isfile(inputs.draft_template):
         problems.append(f"draft template {inputs.draft_template} missing")
@@ -1058,6 +1074,11 @@ def _provenance(deps: PipelineDeps, snap: Snapshot, version: ExtractorVersion, i
             "spotcheck": _dir_hashes(cfg.spotcheck_dir),
             "dedup_verdicts": ({"path": cfg.dedup_verdicts_path, "sha256": file_sha256(cfg.dedup_verdicts_path)}
                                if cfg.dedup_verdicts_path else None),
+            "dedup_human_check": ({"sample": {"path": cfg.dedup_human_sample_path,
+                                              "sha256": file_sha256(cfg.dedup_human_sample_path)},
+                                   "key": {"path": cfg.dedup_human_key_path,
+                                           "sha256": file_sha256(cfg.dedup_human_key_path)}}
+                                  if cfg.dedup_human_sample_path else None),
             "pdfs": {g.doi: run.pdf_sha256 for g, run in _active_runs_by_guideline(deps.store, snap.id)},
         },
     }

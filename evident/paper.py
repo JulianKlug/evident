@@ -71,6 +71,10 @@ class AnalysisConfig:
     heldout_labels_sha256: dict[str, str]  # {label file: SHA-256}, frozen with the labels
     dedup_verdicts_path: Optional[str] = None    # frozen duplicate verdicts (spec §5); None → no dedup
     dedup_verdicts_sha256: Optional[str] = None
+    dedup_human_sample_path: Optional[str] = None  # labelled human check of the verdicts; None → not reported
+    dedup_human_sample_sha256: Optional[str] = None
+    dedup_human_key_path: Optional[str] = None     # pair and stratum of each labelled id
+    dedup_human_key_sha256: Optional[str] = None
 
     @classmethod
     def from_json(cls, text: str) -> "AnalysisConfig":

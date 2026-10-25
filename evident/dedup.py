@@ -26,6 +26,7 @@ from enum import Enum
 from typing import Sequence
 
 import numpy as np
+from scipy.stats import beta
 
 from evident.analytics import HarmonizedRow
 from evident.domain import AxisStatus, Category
@@ -42,6 +43,8 @@ _COLUMNS = ("doi", "ordinal_a", "ordinal_b", "biolord", "lexical", "verdict", "r
 _FLOAT_DIGITS = 4
 MODEL_SEPARATOR = "+"  # consensus verdicts name both judges
 SPLIT_REASON = "judges disagree; both copies kept"  # in doubt, nothing is removed
+_HUMAN_SAME, _HUMAN_DIFFERENT = "same", "different"  # labels in the human check sample
+_CI_LEVEL = 0.95
 
 
 class Verdict(str, Enum):
@@ -193,6 +196,73 @@ def consensus(a: Sequence[Adjudication], b: Sequence[Adjudication]) -> list[Adju
 
 def _key(a: Adjudication) -> tuple[str, int, int]:
     return a.doi, a.ordinal_a, a.ordinal_b
+
+
+# ── human check ─────────────────────────────────────────────────
+
+@dataclass(frozen=True)
+class HumanLabel:
+    doi: str
+    ordinal_a: int
+    ordinal_b: int
+    stratum: str   # how the pair was drawn, e.g. "judges split"
+    same: bool     # the reviewer read the two texts as one recommendation
+
+
+@dataclass(frozen=True)
+class HumanCheck:
+    """The reviewer's labels against the final clusters; exact (Clopper–Pearson) interval on agreement."""
+    n: int
+    n_agree: int
+    n_false_merge: int  # merged, reviewer: different
+    n_missed: int       # kept apart, reviewer: same
+    agree_ci_low: float
+    agree_ci_high: float
+    by_stratum: dict[str, dict[str, int]]
+
+
+def load_human_check(sample_path: str, key_path: str) -> list[HumanLabel]:
+    """Join the labelled sample (texts, label) with its key (pair, stratum) by id; every pair must be labelled."""
+    with open(sample_path, newline="", encoding="utf-8") as f:
+        labels = {r["id"]: r["label"].strip().lower() for r in csv.DictReader(f)}
+    with open(key_path, newline="", encoding="utf-8") as f:
+        key = list(csv.DictReader(f))
+
+    problems = [f"human check id {r['id']}: label {labels.get(r['id'])!r}, expected {_HUMAN_SAME!r} or "
+                f"{_HUMAN_DIFFERENT!r}" for r in key if labels.get(r["id"]) not in (_HUMAN_SAME, _HUMAN_DIFFERENT)]
+    if problems:
+        raise DedupVerdictError(problems)
+    return [HumanLabel(r["doi"], int(r["ordinal_a"]), int(r["ordinal_b"]), r["stratum"], labels[r["id"]] == _HUMAN_SAME)
+            for r in key]
+
+
+def score_human_check(labels: Sequence[HumanLabel], rows: Sequence[HarmonizedRow],
+                      removed: dict[tuple[str, int], int]) -> HumanCheck:
+    """Was each pair merged? Reference: the reviewer's "same" and equal grades (a missing axis does not count)."""
+    by_key = {(r.doi, r.ordinal): r for r in rows}
+    agree, false_merge, missed = [], 0, 0
+    by_stratum: dict[str, dict[str, int]] = {}
+    for h in labels:
+        merged = removed.get((h.doi, h.ordinal_a), h.ordinal_a) == removed.get((h.doi, h.ordinal_b), h.ordinal_b)
+        compatible = _merge_axes(_axes(by_key[(h.doi, h.ordinal_a)]), _axes(by_key[(h.doi, h.ordinal_b)])) is not None
+        duplicate = h.same and compatible
+        false_merge += merged and not duplicate
+        missed += duplicate and not merged
+        agree.append(merged == duplicate)
+
+        counts = by_stratum.setdefault(h.stratum, {"n": 0, "n_agree": 0})
+        counts["n"] += 1
+        counts["n_agree"] += merged == duplicate
+
+    low, high = _clopper_pearson(sum(agree), len(agree))
+    return HumanCheck(len(agree), sum(agree), false_merge, missed, low, high, dict(sorted(by_stratum.items())))
+
+
+def _clopper_pearson(k: int, n: int) -> tuple[float, float]:
+    alpha = 1 - _CI_LEVEL
+    low = 0.0 if k == 0 else float(beta.ppf(alpha / 2, k, n - k + 1))
+    high = 1.0 if k == n else float(beta.ppf(1 - alpha / 2, k + 1, n - k))
+    return low, high
 
 
 # ── clusters ────────────────────────────────────────────────────

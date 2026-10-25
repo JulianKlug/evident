@@ -5,6 +5,7 @@ import pytest
 
 from evident.analytics import HarmonizedRow
 from evident.dedup import (
+    HumanLabel,
     SPLIT_REASON,
     Adjudication,
     CandidatePair,
@@ -14,6 +15,8 @@ from evident.dedup import (
     consensus,
     deduplicate,
     disagreements,
+    load_human_check,
+    score_human_check,
     lexical_ratio,
     load_adjudications,
     remap_ordinals,
@@ -182,3 +185,36 @@ class TestConsensus:
         b = self._judge("gemma", Verdict.DUPLICATE)
         with pytest.raises(DedupVerdictError, match="d rows 1, 2: judged by one model only"):
             consensus(a, b)
+
+
+class TestHumanCheck:
+    def test_load_joins_labels_and_key(self, tmp_path):
+        sample, key = tmp_path / "sample.csv", tmp_path / "key.csv"
+        sample.write_text("id,doi,text_a,text_b,label,note\n1,d,a,b,Same ,\n2,d,a,c,different,\n")
+        key.write_text("id,stratum,doi,ordinal_a,ordinal_b,verdict\n1,s1,d,0,1,duplicate\n2,s2,d,0,2,distinct\n")
+        assert load_human_check(str(sample), str(key)) == [HumanLabel("d", 0, 1, "s1", True),
+                                                           HumanLabel("d", 0, 2, "s2", False)]
+
+    def test_unlabelled_pair_fails_closed(self, tmp_path):
+        sample, key = tmp_path / "sample.csv", tmp_path / "key.csv"
+        sample.write_text("id,doi,text_a,text_b,label,note\n1,d,a,b,,\n")
+        key.write_text("id,stratum,doi,ordinal_a,ordinal_b,verdict\n1,s1,d,0,1,duplicate\n")
+        with pytest.raises(DedupVerdictError, match="human check id 1: label"):
+            load_human_check(str(sample), str(key))
+
+    def test_scored_against_the_final_clusters(self):
+        rows = [_row("d", 0), _row("d", 1), _row("d", 2), _row("d", 3), _row("d", 4, _WEAK_LOW)]
+        removed = {("d", 1): 0}  # 0–1 merged
+        labels = [HumanLabel("d", 0, 1, "merged", True),     # agree
+                  HumanLabel("d", 2, 3, "split", True),      # missed duplicate
+                  HumanLabel("d", 0, 2, "split", False),     # agree
+                  HumanLabel("d", 3, 4, "merged", True)]     # same text, other grade → different: agree
+        check = score_human_check(labels, rows, removed)
+        assert (check.n, check.n_agree, check.n_false_merge, check.n_missed) == (4, 3, 0, 1)
+        assert check.by_stratum == {"merged": {"n": 2, "n_agree": 2}, "split": {"n": 2, "n_agree": 1}}
+        assert 0 < check.agree_ci_low < 0.75 < check.agree_ci_high < 1
+
+    def test_false_merge_counted(self):
+        rows = [_row("d", 0), _row("d", 1)]
+        check = score_human_check([HumanLabel("d", 0, 1, "merged", False)], rows, {("d", 1): 0})
+        assert (check.n_agree, check.n_false_merge, check.agree_ci_low) == (0, 1, 0.0)

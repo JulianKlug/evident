@@ -596,6 +596,35 @@ def test_methods_name_each_judge_and_count_split_pairs(frozen):
     assert (facts["dedup"]["n_judges_split"], facts["dedup"]["n_blocked_by_grade"]) == (0, 0)
 
 
+def _write_human_check(frozen, label="same"):
+    sample, key = os.path.join(frozen.root, "human_sample.csv"), os.path.join(frozen.root, "human_key.csv")
+    with open(sample, "w") as f:
+        f.write(f"id,doi,text_a,text_b,label,note\n1,{_SPOT},a,b,{label},\n")
+    with open(key, "w") as f:
+        f.write(f"id,stratum,doi,ordinal_a,ordinal_b,verdict\n1,merged,{_SPOT},0,3,duplicate\n")
+    return sample, key
+
+
+def test_human_check_scored_in_methods_facts(frozen):
+    _plant_duplicate(frozen)
+    _write_verdicts(frozen)
+    sample, key = _write_human_check(frozen)
+    with open(frozen.config_path) as f:
+        config = json.load(f)
+    frozen.write_config(**{k: v for k, v in config.items() if k.startswith("dedup_")},
+                        dedup_human_sample_path=sample, dedup_human_sample_sha256=file_sha256(sample),
+                        dedup_human_key_path=key, dedup_human_key_sha256=file_sha256(key))
+    frozen.run()
+
+    check = json.loads(_read(os.path.join(frozen.package, "methods_facts.json")))["dedup"]["human_check"]
+    assert (check["n"], check["n_agree"], check["n_false_merge"], check["n_missed"]) == (1, 1, 0, 0)
+
+    with open(sample, "a") as f:
+        f.write("\n")
+    with pytest.raises(PackageAuditError, match="human check"):
+        frozen.run()
+
+
 def test_spotcheck_row_removed_as_duplicate_maps_to_kept_copy(frozen):
     _plant_duplicate(frozen)
     _write_verdicts(frozen)
