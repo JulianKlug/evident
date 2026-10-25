@@ -3,11 +3,12 @@
     rows of one guideline ─┬─ BioLORD cosine ≥ 0.75 ─┐
                            └─ lexical ratio ≥ 0.70 ──┴─▶ screen ─▶ [CandidatePair]
                                                                      │ scripts/paper1_dedup_adjudicate.py (LLM, offline)
-                                                                     ▼  two judges per pair, a third where they disagree
-                                                                     │ scripts/paper1_dedup_consensus.py (majority)
+                                                                     ▼  two judges per pair
+                                                                     │ scripts/paper1_dedup_consensus.py (both must say duplicate)
                                                                      ▼
     corpus/dedup/paper1_verdicts.csv ─▶ load_adjudications ─▶ check_complete (every screened pair, nothing else)
-                                                          └─▶ deduplicate ─▶ kept rows (one per cluster)
+                                                          └─▶ deduplicate ─▶ kept rows (one per cluster;
+                                                                 copies with different mapped grades never merge)
 
 Pure apart from the CSV read/write. publish never calls an LLM: it recomputes the screen and
 fails closed when a screened pair lacks a verdict (DedupVerdictError).
@@ -39,8 +40,8 @@ _NON_ALPHANUMERIC = re.compile(r"[^0-9a-z]")
 _COLUMNS = ("doi", "ordinal_a", "ordinal_b", "biolord", "lexical", "verdict", "reason", "model", "model_digest",
             "text_a", "text_b")
 _FLOAT_DIGITS = 4
-MODEL_SEPARATOR = "+"  # consensus verdicts name every judge consulted
-JUDGES_PER_PAIR = 2    # a third judge only where these two disagree
+MODEL_SEPARATOR = "+"  # consensus verdicts name both judges
+SPLIT_REASON = "judges disagree; both copies kept"  # in doubt, nothing is removed
 
 
 class Verdict(str, Enum):
@@ -93,8 +94,9 @@ class RemovedRow:
 class DedupResult:
     kept: list[HarmonizedRow]               # input order, one row per duplicate cluster
     removed: dict[tuple[str, int], int]     # (doi, removed ordinal) → kept ordinal
-    n_grade_conflicts: int                  # clusters whose copies differ in harmonized grade
+    n_grade_conflicts: int                  # clusters whose copies differ in harmonized grade (a missing axis)
     removed_by_society: dict[str, int]
+    n_blocked_by_grade: int = 0             # duplicate verdicts not merged: mapped grades differ
 
 
 # ── screen ──────────────────────────────────────────────────────
@@ -164,14 +166,12 @@ def disagreements(a: Sequence[Adjudication], b: Sequence[Adjudication]) -> list[
     return sorted(_key(x) for x in a if _key(x) in verdicts_b and verdicts_b[_key(x)] != x.verdict)
 
 
-def consensus(a: Sequence[Adjudication], b: Sequence[Adjudication],
-              tiebreak: Sequence[Adjudication]) -> list[Adjudication]:
-    """Majority of three: two judges on every pair, a third only where they disagree.
+def consensus(a: Sequence[Adjudication], b: Sequence[Adjudication]) -> list[Adjudication]:
+    """Duplicate only when both judges say so; a split pair is distinct (in doubt, keep both copies).
 
-    The model field names every judge consulted, e.g. "qwen+gemma" or "qwen+gemma+mistral".
+    The model field names both judges, e.g. "qwen+gemma".
     """
     by_b = {_key(x): x for x in b}
-    by_tiebreak = {_key(x): x for x in tiebreak}
     one_judge = sorted({_key(x) for x in a} ^ set(by_b))
     problems = [f"{d} rows {oa}, {ob}: judged by one model only" for d, oa, ob in one_judge]
 
@@ -180,15 +180,11 @@ def consensus(a: Sequence[Adjudication], b: Sequence[Adjudication],
         second = by_b.get(_key(first))
         if second is None:
             continue
+        models = MODEL_SEPARATOR.join((first.model, second.model))
         if first.verdict == second.verdict:
-            out.append(replace(first, model=MODEL_SEPARATOR.join((first.model, second.model))))
+            out.append(replace(first, model=models))
             continue
-
-        third = by_tiebreak.get(_key(first))
-        if third is None:
-            problems.append(f"{first.doi} rows {first.ordinal_a}, {first.ordinal_b}: judges disagree, no third verdict")
-            continue
-        out.append(replace(third, model=MODEL_SEPARATOR.join((first.model, second.model, third.model))))
+        out.append(replace(first, verdict=Verdict.DISTINCT, reason=SPLIT_REASON, model=models))
 
     if problems:
         raise DedupVerdictError(problems)
@@ -204,10 +200,14 @@ def _key(a: Adjudication) -> tuple[str, int, int]:
 def deduplicate(rows: Sequence[HarmonizedRow], adjudications: Sequence[Adjudication]) -> DedupResult:
     """Duplicate verdicts → clusters (connected components) per guideline; one kept row each.
 
+    Copies are equivalent only with the same strength, direction and certainty; an axis missing in one
+    copy does not block (an extraction gap, not another grade). A merge that would put two different
+    mapped grades in one cluster is skipped, e.g. low ~ (no certainty) ~ high keeps low and high apart.
     Kept: both strength and certainty mapped first, then the lowest ordinal (e.g. the summary list).
     """
     by_key = {(r.doi, r.ordinal): r for r in rows}
     parent = {key: key for key in by_key}
+    profile = {key: _axes(r) for key, r in by_key.items()}  # per cluster root: the mapped axes so far
 
     # Union-find over duplicate pairs, e.g. 0–1 and 1–2 → one cluster {0, 1, 2}
     def find(key):
@@ -216,10 +216,19 @@ def deduplicate(rows: Sequence[HarmonizedRow], adjudications: Sequence[Adjudicat
             key = parent[key]
         return key
 
+    n_blocked = 0
     for a in adjudications:
         if a.verdict != Verdict.DUPLICATE:
             continue
-        parent[find((a.doi, a.ordinal_b))] = find((a.doi, a.ordinal_a))
+        root_a, root_b = find((a.doi, a.ordinal_a)), find((a.doi, a.ordinal_b))
+        if root_a == root_b:
+            continue
+        merged = _merge_axes(profile[root_a], profile[root_b])
+        if merged is None:
+            n_blocked += 1
+            continue
+        parent[root_b] = root_a
+        profile[root_a] = merged
 
     clusters: dict[tuple, list[HarmonizedRow]] = {}
     for key, row in by_key.items():
@@ -241,7 +250,20 @@ def deduplicate(rows: Sequence[HarmonizedRow], adjudications: Sequence[Adjudicat
             removed_by_society[r.society] += 1
 
     kept = [r for r in rows if (r.doi, r.ordinal) not in removed]
-    return DedupResult(kept, dict(sorted(removed.items())), n_conflicts, dict(sorted(removed_by_society.items())))
+    return DedupResult(kept, dict(sorted(removed.items())), n_conflicts, dict(sorted(removed_by_society.items())),
+                       n_blocked)
+
+
+def _axes(row: HarmonizedRow) -> tuple:
+    """(strength, direction, certainty); None where the axis is not mapped."""
+    return row.grade.strength, row.grade.direction, row.grade.certainty
+
+
+def _merge_axes(x: tuple, y: tuple):
+    """Combined axes of two clusters, or None when a mapped axis differs."""
+    if any(a is not None and b is not None and a != b for a, b in zip(x, y)):
+        return None
+    return tuple(a if a is not None else b for a, b in zip(x, y))
 
 
 def removed_rows(rows: Sequence[HarmonizedRow], result: DedupResult) -> list[RemovedRow]:

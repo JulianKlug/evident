@@ -49,9 +49,9 @@ from evident.corpus import (
     sync_to_store,
 )
 from evident.dedup import (
-    JUDGES_PER_PAIR,
     MODEL_SEPARATOR,
     SCREEN_BIOLORD,
+    SPLIT_REASON,
     SCREEN_LEXICAL,
     CandidatePair,
     DedupResult,
@@ -912,7 +912,8 @@ def _deduplicate(rows: list[HarmonizedRow], similarity,
         "removed_by_society": result.removed_by_society,
         "n_grade_conflicts": result.n_grade_conflicts,
         "adjudication_models": sorted({m for a in adjudications for m in a.model.split(MODEL_SEPARATOR)}),
-        "n_third_judge": sum(len(a.model.split(MODEL_SEPARATOR)) > JUDGES_PER_PAIR for a in adjudications),
+        "n_judges_split": sum(a.reason == SPLIT_REASON for a in adjudications),
+        "n_blocked_by_grade": result.n_blocked_by_grade,
     }
     return result, facts
 

@@ -5,6 +5,7 @@ import pytest
 
 from evident.analytics import HarmonizedRow
 from evident.dedup import (
+    SPLIT_REASON,
     Adjudication,
     CandidatePair,
     DedupVerdictError,
@@ -26,6 +27,7 @@ _M, _UM = AxisStatus.MAPPED, AxisStatus.UNMAPPED
 _STRONG_LOW = HarmonizedGrade(Category.GRADED, Strength.STRONG, Direction.FOR, Certainty.LOW, _M, _M)
 _WEAK_LOW = HarmonizedGrade(Category.GRADED, Strength.WEAK, Direction.FOR, Certainty.LOW, _M, _M)
 _NO_CERTAINTY = HarmonizedGrade(Category.GRADED, Strength.STRONG, Direction.FOR, None, _M, _UM)
+_STRONG_HIGH = HarmonizedGrade(Category.GRADED, Strength.STRONG, Direction.FOR, Certainty.HIGH, _M, _M)
 
 
 def _row(doi, ordinal, grade=_STRONG_LOW, society="SCCM", text="text"):
@@ -124,9 +126,22 @@ class TestDeduplicate:
         assert [(r.doi, r.ordinal) for r in result.kept] == [("d", 0), ("e", 0), ("e", 1)]
 
     def test_grade_conflict_counted_once_per_cluster(self):
-        rows = [_row("d", 0, _STRONG_LOW), _row("d", 1, _WEAK_LOW), _row("d", 2, _WEAK_LOW)]
+        rows = [_row("d", 0, _NO_CERTAINTY), _row("d", 1, _STRONG_LOW), _row("d", 2, _STRONG_LOW)]
         result = deduplicate(rows, [_dup("d", 0, 1), _dup("d", 0, 2)])
         assert result.n_grade_conflicts == 1
+
+    def test_different_mapped_grade_keeps_both(self):
+        rows = [_row("d", 0, _STRONG_LOW), _row("d", 1, _WEAK_LOW)]
+        result = deduplicate(rows, [_dup("d", 0, 1)])
+        assert result.kept == rows
+        assert result.n_blocked_by_grade == 1
+
+    def test_missing_axis_does_not_join_conflicting_grades(self):
+        # 0 low and 2 high both match 1 (no certainty): only the first merge stands
+        rows = [_row("d", 0, _STRONG_LOW), _row("d", 1, _NO_CERTAINTY), _row("d", 2, _STRONG_HIGH)]
+        result = deduplicate(rows, [_dup("d", 0, 1), _dup("d", 1, 2)])
+        assert [r.ordinal for r in result.kept] == [0, 2]
+        assert result.n_blocked_by_grade == 1
 
     def test_removed_by_society(self):
         rows = [_row("d", 0), _row("d", 1), _row("e", 0, society="ACP"), _row("e", 1, society="ACP")]
@@ -136,7 +151,7 @@ class TestDeduplicate:
 
 class TestExports:
     def test_removed_rows_name_the_kept_copy(self):
-        rows = [_row("d", 0, _STRONG_LOW, text="kept"), _row("d", 1, _WEAK_LOW, text="copy")]
+        rows = [_row("d", 0, _STRONG_LOW, text="kept"), _row("d", 1, _NO_CERTAINTY, text="copy")]
         (r,) = removed_rows(rows, deduplicate(rows, [_dup("d", 0, 1)]))
         assert (r.kept_ordinal, r.removed_ordinal, r.same_grade, r.kept_text, r.removed_text) == (0, 1, False, "kept",
                                                                                                     "copy")
@@ -149,29 +164,21 @@ class TestConsensus:
     def _judge(self, model, *verdicts):
         return [Adjudication("d", i, i + 1, v, f"{model} reason", model) for i, v in enumerate(verdicts)]
 
-    def test_agreement_needs_no_tiebreak(self):
+    def test_agreement_is_the_verdict(self):
         a = self._judge("qwen", Verdict.DUPLICATE, Verdict.DISTINCT)
         b = self._judge("gemma", Verdict.DUPLICATE, Verdict.DISTINCT)
         assert disagreements(a, b) == []
-        assert consensus(a, b, []) == [Adjudication("d", 0, 1, Verdict.DUPLICATE, "qwen reason", "qwen+gemma"),
+        assert consensus(a, b) == [Adjudication("d", 0, 1, Verdict.DUPLICATE, "qwen reason", "qwen+gemma"),
                                        Adjudication("d", 1, 2, Verdict.DISTINCT, "qwen reason", "qwen+gemma")]
 
-    def test_third_judge_breaks_a_tie(self):
+    def test_disagreement_keeps_both(self):
         a = self._judge("qwen", Verdict.DUPLICATE, Verdict.DUPLICATE)
         b = self._judge("gemma", Verdict.DISTINCT, Verdict.DUPLICATE)
         assert disagreements(a, b) == [("d", 0, 1)]
-        tiebreak = [Adjudication("d", 0, 1, Verdict.DISTINCT, "mistral reason", "mistral")]
-        assert consensus(a, b, tiebreak)[0] == Adjudication("d", 0, 1, Verdict.DISTINCT, "mistral reason",
-                                                           "qwen+gemma+mistral")
-
-    def test_tie_without_third_verdict_fails_closed(self):
-        a = self._judge("qwen", Verdict.DUPLICATE)
-        b = self._judge("gemma", Verdict.DISTINCT)
-        with pytest.raises(DedupVerdictError, match="d rows 0, 1: judges disagree, no third verdict"):
-            consensus(a, b, [])
+        assert consensus(a, b)[0] == Adjudication("d", 0, 1, Verdict.DISTINCT, SPLIT_REASON, "qwen+gemma")
 
     def test_judges_must_cover_the_same_pairs(self):
         a = self._judge("qwen", Verdict.DUPLICATE, Verdict.DISTINCT)
         b = self._judge("gemma", Verdict.DUPLICATE)
         with pytest.raises(DedupVerdictError, match="d rows 1, 2: judged by one model only"):
-            consensus(a, b, [])
+            consensus(a, b)

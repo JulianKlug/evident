@@ -586,14 +586,14 @@ def test_sensitivity_table_equals_table1_without_verdicts(frozen):
             == _read(os.path.join(frozen.package, "table1_society.csv")))
 
 
-def test_methods_name_each_judge_and_count_third_verdicts(frozen):
+def test_methods_name_each_judge_and_count_split_pairs(frozen):
     _plant_duplicate(frozen)
-    _write_verdicts(frozen, model="qwen+gemma", planted_model="qwen+gemma+mistral")
+    _write_verdicts(frozen, model="qwen+gemma", planted_model="qwen+gemma")
     frozen.run()
 
     facts = json.loads(_read(os.path.join(frozen.package, "methods_facts.json")))
-    assert facts["dedup"]["adjudication_models"] == ["gemma", "mistral", "qwen"]
-    assert facts["dedup"]["n_third_judge"] == 1
+    assert facts["dedup"]["adjudication_models"] == ["gemma", "qwen"]
+    assert (facts["dedup"]["n_judges_split"], facts["dedup"]["n_blocked_by_grade"]) == (0, 0)
 
 
 def test_spotcheck_row_removed_as_duplicate_maps_to_kept_copy(frozen):
