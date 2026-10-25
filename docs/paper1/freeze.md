@@ -47,7 +47,7 @@ Guidelines found after the freeze (e.g. ACP menopause, 2026-10-06) belong to a l
 
 ## Deduplicated package (2026-10-24)
 
-`out/paper1_v2`, code `62bc0aa`, `analysis_manifest.json` SHA-256 `54e9919fbf8ae54ac85c5cb29e859a882d833c8a78eada45d77bc93ec45dd721`. Same frozen DB; adds within-guideline duplicate removal (spec §5) with verdicts `corpus/dedup/paper1_verdicts.csv` (SHA-256 `533bff8a…`). `out/paper1` (2026-10-20) is kept for comparison.
+`out/paper1_v2`, code `62bc0aa`, `analysis_manifest.json` SHA-256 `54e9919fbf8ae54ac85c5cb29e859a882d833c8a78eada45d77bc93ec45dd721`. Same frozen DB; adds within-guideline duplicate removal (spec §5) with verdicts `corpus/dedup/paper1_verdicts.csv` (SHA-256 `533bff8a…`). `out/paper1` (2026-10-20) is kept for comparison. Rebuilt with code `86b665e` (`--draft-template docs/paper1/draft.md.j2`): manifest SHA-256 `ba1a99061dc8777900bec6a58b148f7714a281e848bc85fe57610a0e9adc40b3`, two runs byte-identical; tables unchanged, captions and dashboard now show development F1 0.958 (after duplicate removal) instead of the stored 0.939.
 
 | Current editions | Before | After |
 |---|---|---|
