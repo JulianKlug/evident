@@ -28,5 +28,16 @@
   "dedup_human_sample_path": "corpus/dedup/audit/human_sample.csv",
   "dedup_human_sample_sha256": "7c9e82867b8052209574e40eb7c7ddadfaad3772e12278ec1c12ecbf63e96295",
   "dedup_human_key_path": "corpus/dedup/audit/human_key.csv",
-  "dedup_human_key_sha256": "293388b6fc9c49b91d38790e48eceb8e933c4d8b22ec640e19630d1d5d80a7e5"
+  "dedup_human_key_sha256": "293388b6fc9c49b91d38790e48eceb8e933c4d8b22ec640e19630d1d5d80a7e5",
+  "model_card": {
+    "base_model": "qwen3.8:27b",
+    "architecture": "qwen35",
+    "parameters": "27.3B",
+    "quantization": "Q4_K_M",
+    "context_length": 65536,
+    "license": "Apache-2.0",
+    "runtime": "Ollama",
+    "model_digest": "12af24e3ee72bf54bca064a972bf767938a96149d671eaa64c9506c7ea54c08c",
+    "temperature": 0
+  }
 }
