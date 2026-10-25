@@ -832,7 +832,7 @@ def _write_package_captions(bundle: PublishBundle, path: str) -> None:
         "**Table S1. Guideline-weighted sensitivity.** Unweighted mean of each guideline's percentage, "
         "against the pooled estimate; guidelines with an empty denominator are left out and counted.", "",
         "**Table S2. Without duplicate removal.** Table 1 recomputed with every within-guideline copy kept; "
-        "every wrongly merged pair moves Table 1 toward this table.", "",
+        "if every merge were wrong, Table 1 would equal this table.", "",
         f"**Notes.** {_common_caption(bundle)}", "",
         f"**Provenance.** {_provenance_note(bundle)}", "",
     ]
