@@ -1,17 +1,14 @@
-"""Combine the duplicate judges into the frozen verdicts publish reads: majority of three.
+"""Combine the duplicate judges into the frozen verdicts publish reads: duplicate only when both agree.
 
     judges/qwen38-64k.csv ─┐
-    judges/gemma3-27b.csv ─┴─▶ disagreements ─▶ judges/disagreements.csv ─▶ third judge (adjudicate --only-pairs)
-                                    │                                                │
-                                    └──────── consensus (agree, or third decides) ◀──┘
-                                                   ▼
-                                    corpus/dedup/paper1_verdicts.csv  (then its SHA-256 into configs/paper1.json)
+    judges/gemma3-27b.csv ─┴─▶ consensus (split pair → distinct: in doubt, keep both copies)
+                                  ├─▶ judges/disagreements.csv   (the split pairs, for audit)
+                                  ▼
+                       corpus/dedup/paper1_verdicts.csv  (then its SHA-256 into configs/paper1.json)
 
 Usage:
     python scripts/paper1_dedup_consensus.py --first corpus/dedup/judges/qwen38-64k.csv \
-        --second corpus/dedup/judges/gemma3-27b.csv [--third corpus/dedup/judges/mistral-small3.2-24b.csv]
-
-Without --third (or with one missing a disagreement) it writes the disagreements and stops.
+        --second corpus/dedup/judges/gemma3-27b.csv
 """
 
 from __future__ import annotations
@@ -36,14 +33,13 @@ from evident.dedup import (  # noqa: E402
 
 _OUT = "corpus/dedup/paper1_verdicts.csv"
 _DISAGREEMENTS = "corpus/dedup/judges/disagreements.csv"
-_EXIT_NEEDS_THIRD = 1
+_EXIT_MISMATCH = 1
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--first", required=True)
     parser.add_argument("--second", required=True)
-    parser.add_argument("--third", help="verdicts on the disagreements only")
     parser.add_argument("--out", default=_OUT)
     parser.add_argument("--disagreements", default=_DISAGREEMENTS)
     args = parser.parse_args()
@@ -54,15 +50,14 @@ def main() -> int:
     _write_disagreements(args.disagreements, split, first, second, pairs)
     print(f"{len(first)} pairs; judges disagree on {len(split)} → {args.disagreements}")
 
-    third = load_adjudications(args.third) if args.third else []
     try:
-        verdicts = consensus(first, second, third)
+        verdicts = consensus(first, second)
     except DedupVerdictError as e:
         print(e, file=sys.stderr)
-        return _EXIT_NEEDS_THIRD
+        return _EXIT_MISMATCH
 
     # Digest column: each judge's digest, in the order of the model field
-    digests = {**_digests(args.first), **_digests(args.second), **(_digests(args.third) if args.third else {})}
+    digests = {**_digests(args.first), **_digests(args.second)}
     rows = [(pairs[(v.doi, v.ordinal_a, v.ordinal_b)], v.verdict, v.reason, v.model,
              MODEL_SEPARATOR.join(digests[m] for m in v.model.split(MODEL_SEPARATOR)))
             for v in verdicts]
@@ -87,7 +82,7 @@ def _digests(path: str) -> dict[str, str]:
 
 
 def _write_disagreements(path, keys, first, second, pairs) -> None:
-    """The split pairs with both verdicts: input to the third judge (--only-pairs) and to the human check."""
+    """The split pairs with both verdicts, for audit and the human check."""
     by_first = {(a.doi, a.ordinal_a, a.ordinal_b): a for a in first}
     by_second = {(a.doi, a.ordinal_a, a.ordinal_b): a for a in second}
     with open(path, "w", newline="", encoding="utf-8") as f:

@@ -66,6 +66,9 @@ The unit of analysis is **one extracted, deduplicated recommendation**, not one 
    - **Judges:** two local models from different families judge every screened pair with the step 2 prompt (`qwen38-64k`, `gemma3:27b`); where they disagree, a third (`mistral-small3.2:24b`) decides. Per-judge files in `corpus/dedup/judges/`; `scripts/paper1_dedup_consensus.py` writes the frozen verdicts.
    - **Bound:** Table S2 recomputes Table 1 with every copy kept; any wrong merge moves Table 1 toward it.
    - **Human check:** 15 pairs, fixed seed (`scripts/paper1_dedup_human_sample.py`): 5 merges whose copies differ in grade, 5 merges with the same grade, 5 pairs the first two judges split. Reported as errors per stratum with an exact CI, as a check, not a corpus error rate.
+6. Amendment 2026-10-25, after the human check (4/15 disagreements; 3 of 5 merges whose copies differed in grade were judged different recommendations; many pairs hard to call even for a human):
+   - **Grades:** two copies are the same recommendation only with the same strength, direction and certainty. An axis missing in one copy does not block a merge (an extraction gap, not another grade); a merge that would join two different mapped grades into one cluster is skipped and counted.
+   - **In doubt, keep both:** a pair is a duplicate only when both judges say so; split pairs stay distinct. The third judge (mistral-small3.2-24b, `judges/`) is no longer used. Wrong merges are bounded by Table S2; missed duplicates, which this rule makes more likely, inflate denominators slightly.
 
 | Outcome | Numerator | Denominator |
 |---|---|---|
