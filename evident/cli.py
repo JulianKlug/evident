@@ -139,7 +139,8 @@ def _publish_package(args, deps) -> int:
     queries = tuple((q.society, q.source.value, search.query_for(q, cutoff)) for q in search.QUERIES)
     inputs = pipeline.PackageInputs(args.db, args.package, config, args.analysis_config, args.heldout_labels,
                                     queries, _tree_state(),
-                                    lambda revision: load_similarity_model(_PACKAGE_DEVICE, revision))
+                                    lambda revision: load_similarity_model(_PACKAGE_DEVICE, revision),
+                                    args.draft_template)
     report = pipeline.publish_package(deps, args.snapshot, inputs)
 
     h = report.heldout
@@ -223,6 +224,8 @@ def _parser() -> argparse.ArgumentParser:
     pub.add_argument("--analysis-config", metavar="FILE", help="package: what to compute and check, e.g. "
                                                               "configs/paper1.json")
     pub.add_argument("--heldout-labels", metavar="DIR", help="package: held-out label files, scored, never gated")
+    pub.add_argument("--draft-template", metavar="FILE", help="package: also render a manuscript draft, e.g. "
+                                                             "docs/paper1/draft.md.j2")
 
     rej = commands.add_parser("reject", help="retire a building or complete snapshot, with a reason")
     rej.add_argument("--snapshot", type=int, required=True)

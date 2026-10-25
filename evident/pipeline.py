@@ -171,6 +171,7 @@ class PackageInputs:
     search_queries: tuple[tuple[str, str, str], ...]  # (society, source, term with date window)
     tree_state: TreeState
     load_similarity: Callable[[str], object]  # embedding revision → BioLORD for held-out matching
+    draft_template: Optional[str] = None  # manuscript template; None → package without draft.md
 
 
 # ── errors ──────────────────────────────────────────────────────
@@ -467,8 +468,8 @@ def publish_package(deps: PipelineDeps, snapshot_id: int, inputs: PackageInputs)
     """Render a paper's analysis package from a frozen copy of a published snapshot.
 
     Never writes the store (no sync, no transition, no validation row): open it READ_ONLY.
-    Every check fails closed before anything is rendered; then the package dir and the standard
-    outputs are each swapped in atomically.
+    Every check fails closed before anything is rendered; the package dir and the standard outputs
+    are both staged before either is swapped in.
     """
     cfg = inputs.config
     entries = load_manifest(deps.manifest_path)
@@ -521,11 +522,13 @@ def publish_package(deps: PipelineDeps, snapshot_id: int, inputs: PackageInputs)
                                     len(development_dois), dedup_facts),
         provenance=_provenance(deps, snap, version, inputs),
         duplicates=removed_rows(all_rows, dedup),
+        draft_template=inputs.draft_template,
     )
 
-    bundle = _bundle(deps, snap, rows, facts, paper)
-    package_paths = render_package(bundle, inputs.package_dir)
-    paths = render(bundle, deps.publish_dir)
+    # Captions and dashboard show the development scores the package reports, after duplicate removal
+    validation = _summary_of(development_report, development.gate, development.baseline_snapshot_id)
+    bundle = replace(_bundle(deps, snap, rows, facts, paper), validation=validation)
+    package_paths, paths = render_package(bundle, inputs.package_dir, deps.publish_dir)
     return PackageReport(snap.id, bundle.model, inputs.package_dir, package_paths, deps.publish_dir, paths,
                          heldout_scores)
 
@@ -966,8 +969,8 @@ def _audit_package(store: Store, snapshot_id: int, manifest_path: str, entries: 
             problems.append(f"dedup verdicts {cfg.dedup_verdicts_path} SHA-256 {actual} differs from "
                             f"{cfg.dedup_verdicts_sha256}")
 
-    if not os.path.isfile(cfg.template_path):
-        problems.append(f"draft template {cfg.template_path} missing")
+    if inputs.draft_template is not None and not os.path.isfile(inputs.draft_template):
+        problems.append(f"draft template {inputs.draft_template} missing")
     if not os.path.isdir(cfg.spotcheck_dir):
         problems.append(f"spot-check dir {cfg.spotcheck_dir} missing")
     label_hashes = _dir_hashes(inputs.heldout_dir) if os.path.isdir(inputs.heldout_dir) else None
@@ -1044,7 +1047,8 @@ def _provenance(deps: PipelineDeps, snap: Snapshot, version: ExtractorVersion, i
             "manifest": {"path": deps.manifest_path, "sha256": file_sha256(deps.manifest_path)},
             "candidates": {"path": cfg.candidates_path, "sha256": file_sha256(cfg.candidates_path)},
             "analysis_config": {"path": inputs.config_path, "sha256": file_sha256(inputs.config_path)},
-            "template": {"path": cfg.template_path, "sha256": file_sha256(cfg.template_path)},
+            "template": ({"path": inputs.draft_template, "sha256": file_sha256(inputs.draft_template)}
+                         if inputs.draft_template else None),
             "heldout_labels": _dir_hashes(inputs.heldout_dir),
             "spotcheck": _dir_hashes(cfg.spotcheck_dir),
             "dedup_verdicts": ({"path": cfg.dedup_verdicts_path, "sha256": file_sha256(cfg.dedup_verdicts_path)}
@@ -1098,15 +1102,18 @@ def _validation_summary(store: Store, snapshot_id: int) -> Optional[ValidationSu
     validation = store.latest_validation(snapshot_id)
     if validation is None:
         return None
+    return _summary_of(json.loads(validation.report_json), validation.gate, validation.baseline_snapshot_id)
+
+
+def _summary_of(report: dict, gate: GateResult, baseline_snapshot_id: Optional[int]) -> Optional[ValidationSummary]:
     # A report without candidate metrics (hand-written in tests) shows as not validated
-    report = json.loads(validation.report_json)
     candidate = report.get("candidate")
     if candidate is None:
         return None
     return ValidationSummary(
-        gate=validation.gate,
+        gate=gate,
         n_guidelines=report["n_guidelines"],
-        baseline_snapshot_id=validation.baseline_snapshot_id,
+        baseline_snapshot_id=baseline_snapshot_id,
         f1=candidate["f1"],
         f1_ci=tuple(candidate["f1_ci"]),
         precision=candidate["precision"],

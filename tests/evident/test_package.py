@@ -89,7 +89,7 @@ class Frozen:
             db_sha256=file_sha256(self.db), manifest_sha256=file_sha256(self.world.manifest),
             candidates_sha256=file_sha256(self.candidates), candidates_path=self.candidates,
             n_guidelines=len(_DOIS), n_current=len(_DOIS), bootstrap_n=200, bootstrap_seed=0,
-            heldout_dois=[_HELDOUT], spotcheck_dir=self.spotcheck, template_path=_TEMPLATE,
+            heldout_dois=[_HELDOUT], spotcheck_dir=self.spotcheck,
             focused_update_overlap_max=0,
             heldout_labels_sha256={n: file_sha256(os.path.join(self.heldout, n)) for n in os.listdir(self.heldout)},
         )
@@ -101,7 +101,7 @@ class Frozen:
         with open(self.config_path) as f:
             config = AnalysisConfig.from_json(f.read())
         inputs = PackageInputs(self.db, self.package, config, self.config_path, self.heldout, _QUERIES,
-                               TreeState.CLEAN, self._load_similarity)
+                               TreeState.CLEAN, self._load_similarity, _TEMPLATE)
         return dataclasses.replace(inputs, **overrides)
 
     def reopen_writable(self):
@@ -266,6 +266,14 @@ def test_corpus_flow_and_spotcheck(frozen):
     assert bias["ungraded_share"]["correct_num"] == "NA"
 
 
+def test_package_without_draft_template(frozen):
+    frozen.run(draft_template=None)
+
+    assert _files(frozen.package) == [n for n in _EXPECTED if n != "draft.md"]
+    manifest = json.loads(_read(os.path.join(frozen.package, "analysis_manifest.json")))
+    assert manifest["inputs"]["template"] is None
+
+
 def test_draft_rendered_from_exports(frozen):
     frozen.run()
     draft = _read(os.path.join(frozen.package, "draft.md"))
@@ -283,7 +291,6 @@ def test_draft_rendered_from_exports(frozen):
     ({"n_current": 3}, "4 current editions, expected 3"),
     ({"n_guidelines": 5}, "4 manifest guidelines, expected 5"),
     ({"snapshot_id": 2}, "config paper_test names 2"),
-    ({"template_path": "/nope.j2"}, "draft template /nope.j2 missing"),
     ({"heldout_dois": ["10.1000/zz"]}, "held-out 10.1000/zz is not a manifest guideline"),
     ({"candidates_sha256": "0" * 64}, "candidates"),
     ({"spotcheck_dir": "/nope"}, "spot-check dir /nope missing"),
@@ -295,6 +302,12 @@ def test_audit_refuses_a_different_source(frozen, override, message):
     with pytest.raises(PackageAuditError) as e:
         frozen.run()
     assert any(message in p for p in e.value.problems), e.value.problems
+    assert not os.path.exists(frozen.package)
+
+
+def test_audit_refuses_a_missing_draft_template(frozen):
+    with pytest.raises(PackageAuditError, match="draft template /nope.j2 missing"):
+        frozen.run(draft_template="/nope.j2")
     assert not os.path.exists(frozen.package)
 
 
@@ -448,9 +461,8 @@ def test_unknown_draft_field_keeps_previous_package(frozen, tmp_path):
 
     bad = tmp_path / "bad.j2"
     bad.write_text("Strong: {{ table1_society.ALL.pct_strongest }}\n")
-    frozen.write_config(template_path=str(bad))
     with pytest.raises(DraftFieldError, match="pct_strongest"):
-        frozen.run()
+        frozen.run(draft_template=str(bad))
 
     assert _files(frozen.package) == _EXPECTED
     assert {n: _read(os.path.join(frozen.package, n), "rb") for n in _EXPECTED} == before
@@ -469,6 +481,21 @@ def test_render_failure_keeps_previous_outputs(frozen, monkeypatch):
         frozen.run()
     assert _read(os.path.join(frozen.package, "table1_society.csv")) == before
     assert _files(frozen.package) == _EXPECTED
+
+
+def test_dashboard_failure_keeps_previous_package(frozen, monkeypatch):
+    frozen.run()
+    before = {n: _read(os.path.join(frozen.package, n), "rb") for n in _EXPECTED}
+    _plant_duplicate(frozen)  # a changed source: a completed package would differ
+
+    def broken(*args, **kwargs):
+        raise RuntimeError("disk full")
+
+    monkeypatch.setattr(publishing, "_write_dashboard", broken)
+    with pytest.raises(RuntimeError):
+        frozen.run()
+    assert {n: _read(os.path.join(frozen.package, n), "rb") for n in _EXPECTED} == before
+    assert not [n for n in os.listdir(frozen.root) if n.startswith(".package-")]
 
 
 def test_published_state_unchanged(frozen):
@@ -564,3 +591,24 @@ def test_audit_refuses_changed_verdicts(frozen):
         f.write("\n")
     with pytest.raises(PackageAuditError, match="dedup verdicts"):
         frozen.run()
+
+
+def test_outputs_show_the_deduplicated_development_validation(frozen):
+    _plant_duplicate(frozen)
+    conn = frozen.reopen_writable()
+    (report_json,) = conn.execute("SELECT report_json FROM validation").fetchone()
+    stale = json.loads(report_json)
+    stale["candidate"]["f1"] = 0.123  # stored before duplicate removal
+    conn.execute("UPDATE validation SET report_json = ?", (json.dumps(stale),))
+    frozen.refreeze(conn)
+    _write_verdicts(frozen)
+    frozen.run()
+
+    dev = json.loads(_read(os.path.join(frozen.package, "validation_development.json")))
+    f1 = f"F1 {dev['report']['candidate']['f1']:.3f}"
+    for path in (os.path.join(frozen.package, "captions.md"),
+                 os.path.join(frozen.world.publish_dir, "figures", "captions.md"),
+                 os.path.join(frozen.world.publish_dir, "dashboard", "index.html")):
+        text = _read(path)
+        assert "0.123" not in text, path
+        assert f1 in text, path

@@ -17,7 +17,6 @@
     "10.1097/pcc.0000000000003914"
   ],
   "spotcheck_dir": "corpus/spotcheck_m3",
-  "template_path": "docs/paper1/draft.md.j2",
   "focused_update_overlap_max": 25,
   "heldout_labels_sha256": {
     "10.1097_ccm.0000000000002533.xlsx": "113466fb6392049784829b81cd2f26a4136f00fe8f6a5b998bc9ae8011d0dc7f",

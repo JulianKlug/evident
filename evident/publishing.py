@@ -8,9 +8,10 @@
         ▼
     <out_dir>/tables  <out_dir>/figures  <out_dir>/dashboard
 
-    bundle.paper (optional) ── render_package(bundle, package_dir) ──▶ <package_dir>/ swapped in whole:
-        CSVs (1 decimal, NA), JSON (unrounded), captions.md, draft.md (template, unknown field = error),
+    bundle.paper (optional) ── render_package(bundle, package_dir, out_dir) ──▶ <package_dir>/ swapped in whole:
+        CSVs (1 decimal, NA), JSON (unrounded), captions.md, draft.md (optional template, unknown field = error),
         analysis_manifest.json (inputs + hash of every other emitted file)
+        Package and standard outputs are both staged before either is swapped in.
 
 Paper figures and dashboard share the same files (design Decision 4). Output is
 deterministic: same bundle → byte-identical files (fixed SVG hash salt, no dates).
@@ -143,6 +144,13 @@ class _Figure:
 
 def render(bundle: PublishBundle, out_dir: str) -> list[str]:
     """Write every output; returns the final paths. A failure leaves the previous outputs intact."""
+    staging, written = _stage_outputs(bundle, out_dir)
+    _swap_in(staging, out_dir)
+    return written
+
+
+def _stage_outputs(bundle: PublishBundle, out_dir: str) -> tuple[str, list[str]]:
+    """Write every output to a staging dir in out_dir; returns it and the final paths. Nothing is swapped."""
     os.makedirs(out_dir, exist_ok=True)
     staging = tempfile.mkdtemp(prefix=_STAGING_PREFIX, dir=out_dir)
     try:
@@ -155,8 +163,7 @@ def render(bundle: PublishBundle, out_dir: str) -> list[str]:
 
     written = sorted(os.path.join(out_dir, os.path.relpath(os.path.join(root, f), staging))
                      for root, _, files in os.walk(staging) for f in files)
-    _swap_in(staging, out_dir)
-    return written
+    return staging, written
 
 
 # ── tables ──────────────────────────────────────────────────────
@@ -635,8 +642,11 @@ def _embedded_json(data: dict) -> str:
 
 # ── analysis package ────────────────────────────────────────────
 
-def render_package(bundle: PublishBundle, package_dir: str) -> list[str]:
-    """Write the paper package; returns the final paths. A failure leaves the previous package intact."""
+def render_package(bundle: PublishBundle, package_dir: str, out_dir: str) -> tuple[list[str], list[str]]:
+    """Write the paper package and the standard outputs; returns both final path lists.
+
+    Both are staged before either is swapped in, so a failure in either leaves both previous versions intact.
+    """
     if bundle.paper is None:
         raise ValueError("render_package needs a bundle with a paper payload")
     problem = package_target_problem(package_dir)
@@ -648,13 +658,15 @@ def render_package(bundle: PublishBundle, package_dir: str) -> list[str]:
     staging = tempfile.mkdtemp(prefix=_PACKAGE_STAGING_PREFIX, dir=parent)
     try:
         _write_package(bundle, staging)
+        outputs_staging, written = _stage_outputs(bundle, out_dir)
     except BaseException:
         shutil.rmtree(staging, ignore_errors=True)
         raise
 
     names = sorted(os.listdir(staging))
     _swap_dir(staging, os.path.abspath(package_dir))
-    return [os.path.join(package_dir, n) for n in names]
+    _swap_in(outputs_staging, out_dir)
+    return [os.path.join(package_dir, n) for n in names], written
 
 
 def package_target_problem(package_dir: str) -> Optional[str]:
@@ -690,8 +702,11 @@ def _write_package(bundle: PublishBundle, directory: str) -> None:
         _write_json(data, os.path.join(directory, name + ".json"))
 
     _write_package_captions(bundle, os.path.join(directory, "captions.md"))
-    with open(os.path.join(directory, _DRAFT_FILE), "w", encoding="utf-8") as f:
-        f.write(_render_draft(bundle, exports))
+
+    # The manuscript is optional: a clean checkout has no private template
+    if p.draft_template is not None:
+        with open(os.path.join(directory, _DRAFT_FILE), "w", encoding="utf-8") as f:
+            f.write(_render_draft(bundle, exports))
 
     # Last: hashes of every other file; the manifest never lists itself
     outputs = {name: file_sha256(os.path.join(directory, name)) for name in sorted(os.listdir(directory))}
@@ -752,14 +767,14 @@ def _package_cell(value):
 def _render_draft(bundle: PublishBundle, exports: dict[str, dict]) -> str:
     """Render the manuscript template; every number comes from a named export field."""
     p = bundle.paper
-    template_dir, name = os.path.split(os.path.abspath(p.config.template_path))
+    template_dir, name = os.path.split(os.path.abspath(p.draft_template))
     env = Environment(loader=FileSystemLoader(template_dir), undefined=StrictUndefined, keep_trailing_newline=True,
                       autoescape=False)
     env.filters.update(pct=_fmt_pct, ci=_fmt_ci_pct, p3=_fmt_p3, ci3=_fmt_ci3)
     try:
         return env.get_template(name).render(**_draft_context(bundle, exports))
     except UndefinedError as e:
-        raise DraftFieldError(f"{p.config.template_path}: {e}") from e
+        raise DraftFieldError(f"{p.draft_template}: {e}") from e
 
 
 def _draft_context(bundle: PublishBundle, exports: dict[str, dict]) -> dict:

@@ -9,8 +9,11 @@ From the repository root (relative paths in `configs/paper1.json`), no LLM or GP
 ```
 python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
   publish --snapshot 8 --package out/paper1 --analysis-config configs/paper1.json \
-  --heldout-labels <data root>/intensive_care_medicine_heldout
+  --heldout-labels <data root>/intensive_care_medicine_heldout \
+  [--draft-template docs/paper1/draft.md.j2]
 ```
+
+`--draft-template` is optional: without it (e.g. a clean checkout, where the template is absent) the package has no `draft.md`.
 
 - The DB opens read-only; nothing in it changes (its SHA-256 is checked before and recorded after).
 - Fails closed when:
@@ -19,7 +22,8 @@ python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
   - a guideline lacks an active run, its recommendations or its PDF hash, or the edition count differs;
   - the held-out labels are incomplete or include other DOIs;
   - `--package DIR` exists and is neither empty nor a previous package (the swap deletes it).
-- Also rewrites `out/tables`, `out/figures` and `out/dashboard` from the frozen source.
+- Also rewrites `out/tables`, `out/figures` and `out/dashboard` from the frozen source; package and outputs are both staged before either is replaced, so a failure leaves both previous versions.
+- Captions and dashboard there show the development validation rescored after duplicate removal, as in `validation_development.json`; a plain `publish` shows the stored score, without duplicate removal, matching its own tables.
 - Held-out scoring loads BioLORD on CPU at the runs' embedding revision (same similarities on any machine).
 - Duplicate removal recomputes the screen with that BioLORD and applies the frozen verdicts (`corpus/dedup/paper1_verdicts.csv`, from `scripts/paper1_dedup_adjudicate.py`); a screened pair without a verdict fails the run.
 - A rerun gives byte-identical files; compare against `analysis_manifest.json` → `outputs`.
@@ -39,7 +43,7 @@ python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
 | `spotcheck_bias.csv` | M3 spot check, exploratory |
 | `duplicates.csv` | Within-guideline copies removed, beside the copy kept (spec §5) |
 | `methods_facts.json` | Counts and provenance for Methods |
-| `captions.md`, `draft.md` | Captions; manuscript rendered from `docs/paper1/draft.md.j2` |
+| `captions.md`, `draft.md` | Captions; manuscript rendered from `--draft-template` (only when given) |
 | `analysis_manifest.json` | Inputs, versions, checksums; hash of every other file |
 
 ## Editing the draft

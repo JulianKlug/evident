@@ -67,7 +67,6 @@ class AnalysisConfig:
     bootstrap_seed: int
     heldout_dois: tuple[str, ...]
     spotcheck_dir: str
-    template_path: str
     focused_update_overlap_max: int  # estimated graded recs counted twice by focused updates
     heldout_labels_sha256: dict[str, str]  # {label file: SHA-256}, frozen with the labels
     dedup_verdicts_path: Optional[str] = None    # frozen duplicate verdicts (spec §5); None → no dedup
@@ -220,6 +219,7 @@ class PaperPackage:
     methods_facts: dict
     provenance: dict              # sources, versions and checksums for analysis_manifest.json
     duplicates: list[RemovedRow] = field(default_factory=list)  # within-guideline copies removed
+    draft_template: Optional[str] = None  # manuscript template (private); None → no draft.md
 
 
 # ── primary tables ──────────────────────────────────────────────
