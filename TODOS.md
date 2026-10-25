@@ -1,7 +1,10 @@
 # TODOS
 
+## Paper TODO (author input)
+- **Search and screening details (STROBE):** who screened, how many reviewers, independently or not; raw hits per query; how PDFs were obtained; who annotated the held-out guidelines.
+- **Article information:** authors, COI, funding.
+
 ## M4: finish Paper 1
-- **Article information:** authors, COI, funding (only the authors can fill these in).
 - **Dashboard URL:** the draft cites `[DASHBOARD URL]`; spec §10 keeps the dashboard local-only until hosting is approved (M5).
 
 ## After M4
