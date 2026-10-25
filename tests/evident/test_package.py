@@ -45,7 +45,7 @@ _QUERIES = (("ACP", "pubmed", "q1"), ("ESICM", "pubmed", "q2"), ("SCCM", "pubmed
 _EXPECTED = [
     "analysis_manifest.json", "captions.md", "corpus_flow.csv", "draft.md", "duplicates.csv", "excluded_guidelines.csv",
     "figure_data.csv", "methods_facts.json", "raw_harmonized_mapping.csv", "spotcheck_bias.csv",
-    "table1_society.csv", "table2_certainty_strength.csv", "table_s1_guideline_mean.csv",
+    "table1_society.csv", "table2_certainty_strength.csv", "table_s1_guideline_mean.csv", "table_s2_without_dedup.csv",
     "validation_development.json", "validation_sccm_heldout.json",
 ]
 
@@ -568,6 +568,22 @@ def test_duplicate_removed_from_tables(frozen):
     facts = json.loads(_read(os.path.join(frozen.package, "methods_facts.json")))
     assert facts["dedup"]["n_removed"] == 1
     assert facts["dedup"]["removed_by_society"] == {"ESICM": 1}
+
+
+def test_sensitivity_table_keeps_the_duplicates(frozen):
+    _plant_duplicate(frozen)
+    _write_verdicts(frozen)
+    frozen.run()
+
+    s2 = {r["society"]: r for r in _csv(os.path.join(frozen.package, "table_s2_without_dedup.csv"))}
+    assert s2["ESICM"]["n_graded"] == "5"  # the removed copy counts again
+    assert _esicm_graded(frozen) == "4"
+
+
+def test_sensitivity_table_equals_table1_without_verdicts(frozen):
+    frozen.run()
+    assert (_read(os.path.join(frozen.package, "table_s2_without_dedup.csv"))
+            == _read(os.path.join(frozen.package, "table1_society.csv")))
 
 
 def test_spotcheck_row_removed_as_duplicate_maps_to_kept_copy(frozen):

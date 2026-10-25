@@ -220,6 +220,7 @@ class PaperPackage:
     provenance: dict              # sources, versions and checksums for analysis_manifest.json
     duplicates: list[RemovedRow] = field(default_factory=list)  # within-guideline copies removed
     draft_template: Optional[str] = None  # manuscript template (private); None → no draft.md
+    table1_without_dedup: list[Table1Row] = field(default_factory=list)  # sensitivity: copies kept
 
 
 # ── primary tables ──────────────────────────────────────────────

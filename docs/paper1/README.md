@@ -35,6 +35,7 @@ python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
 | `table1_society.csv` | Per society and ALL: n/N, %, guideline-cluster 95% CI for strong, against, high/moderate |
 | `table2_certainty_strength.csv` | Certainty distribution; strength × certainty |
 | `table_s1_guideline_mean.csv` | Guideline-weighted mean vs pooled |
+| `table_s2_without_dedup.csv` | Table 1 with every within-guideline copy kept: bounds the effect of wrong merges |
 | `figure_data.csv` | Every plotted point of fig1–fig4 |
 | `corpus_flow.csv`, `excluded_guidelines.csv` | Search and selection |
 | `raw_harmonized_mapping.csv` | Observed raw grades → harmonized, with counts |

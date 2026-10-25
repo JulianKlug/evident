@@ -523,6 +523,7 @@ def publish_package(deps: PipelineDeps, snapshot_id: int, inputs: PackageInputs)
         provenance=_provenance(deps, snap, version, inputs),
         duplicates=removed_rows(all_rows, dedup),
         draft_template=inputs.draft_template,
+        table1_without_dedup=table1(all_rows, cfg.bootstrap_n, cfg.bootstrap_seed),  # bounds verdict errors
     )
 
     # Captions and dashboard show the development scores the package reports, after duplicate removal

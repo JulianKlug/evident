@@ -690,6 +690,7 @@ def _write_package(bundle: PublishBundle, directory: str) -> None:
     _write_package_csv(p.table1, os.path.join(directory, "table1_society.csv"))
     _write_package_csv(p.table2, os.path.join(directory, "table2_certainty_strength.csv"))
     _write_package_csv(p.guideline_mean, os.path.join(directory, "table_s1_guideline_mean.csv"))
+    _write_package_csv(p.table1_without_dedup, os.path.join(directory, "table_s2_without_dedup.csv"))
     _write_package_csv(p.figure_data, os.path.join(directory, "figure_data.csv"))
     _write_package_csv(p.corpus_flow, os.path.join(directory, "corpus_flow.csv"))
     _write_package_csv(p.excluded, os.path.join(directory, "excluded_guidelines.csv"))
@@ -793,6 +794,7 @@ def _draft_context(bundle: PublishBundle, exports: dict[str, dict]) -> dict:
         "table1_society": {r.society: _flat(r) for r in p.table1},
         "table2_certainty_strength": t2,
         "table_s1_guideline_mean": s1,
+        "table_s2_without_dedup": {r.society: _flat(r) for r in p.table1_without_dedup},
         "corpus_flow": flow,
         "excluded_guidelines": [_flat(r) for r in p.excluded],
         "raw_harmonized_mapping": [_flat(r) for r in p.raw_mapping],
@@ -819,6 +821,8 @@ def _write_package_captions(bundle: PublishBundle, path: str) -> None:
         "**Table 2. Certainty, and strength by certainty.** Current editions; counts with row percentages.", "",
         "**Table S1. Guideline-weighted sensitivity.** Unweighted mean of each guideline's percentage, "
         "against the pooled estimate; guidelines with an empty denominator are left out and counted.", "",
+        "**Table S2. Without duplicate removal.** Table 1 recomputed with every within-guideline copy kept; "
+        "every wrongly merged pair moves Table 1 toward this table.", "",
         f"**Notes.** {_common_caption(bundle)}", "",
         f"**Provenance.** {_provenance_note(bundle)}", "",
     ]
