@@ -2,16 +2,19 @@
 
     frozen DB ─▶ pipeline.duplicate_candidates (BioLORD ≥ 0.75 or lexical ≥ 0.70, within one guideline)
               ─▶ LLM per pair: same recommendation restated, or distinct?   (temperature 0, fixed seed)
-              ─▶ corpus/dedup/paper1_verdicts.csv  (commit it, then put its SHA-256 in configs/paper1.json)
+              ─▶ corpus/dedup/judges/<model>.csv   (one file per judge; paper1_dedup_consensus.py combines them)
 
 Usage:
     python scripts/paper1_dedup_adjudicate.py --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
-        [--model qwen38-64k:latest] [--dois DOI ...]   # --dois: a subset, e.g. the development guidelines
+        --model gemma3:27b --out corpus/dedup/judges/gemma3-27b.csv
+        [--dois DOI ...]        # a subset, e.g. the development guidelines
+        [--only-pairs CSV]      # only the pairs listed (doi, ordinal_a, ordinal_b), e.g. judge disagreements
 """
 
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import sys
@@ -68,6 +71,7 @@ def main() -> None:
     parser.add_argument("--model", default=_MODEL)
     parser.add_argument("--out", default=_OUT)
     parser.add_argument("--dois", nargs="*", help="adjudicate only these guidelines (a trial run)")
+    parser.add_argument("--only-pairs", help="adjudicate only the pairs in this CSV (doi, ordinal_a, ordinal_b)")
     args = parser.parse_args()
 
     with Store.open(args.db, AccessMode.READ_ONLY) as store:
@@ -76,6 +80,9 @@ def main() -> None:
         pairs = duplicate_candidates(store, _SNAPSHOT, _MANIFEST, load_similarity_model(_DEVICE, revision))
     if args.dois:
         pairs = [p for p in pairs if p.doi in set(args.dois)]
+    if args.only_pairs:
+        wanted = _pair_keys(args.only_pairs)
+        pairs = [p for p in pairs if (p.doi, p.ordinal_a, p.ordinal_b) in wanted]
 
     titles = {e.doi: e.title for e in load_manifest(_MANIFEST)}
     client = OllamaClient(args.model)
@@ -91,6 +98,11 @@ def main() -> None:
     write_adjudications(args.out, rows)
     n_dup = sum(r[1] == Verdict.DUPLICATE for r in rows)
     print(f"{len(rows)} pairs, {n_dup} duplicate → {args.out}")
+
+
+def _pair_keys(path: str) -> set[tuple[str, int, int]]:
+    with open(path, newline="", encoding="utf-8") as f:
+        return {(r["doi"], int(r["ordinal_a"]), int(r["ordinal_b"])) for r in csv.DictReader(f)}
 
 
 def _ask(client: OllamaClient, title: str, a: str, b: str) -> tuple[bool, str]:

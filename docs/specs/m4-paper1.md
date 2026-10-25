@@ -62,6 +62,10 @@ The unit of analysis is **one extracted, deduplicated recommendation**, not one 
    - Prompt development: the first prompt agreed with an independent reviewer on 313/338 first-screen pairs (3 false merges, 22 missed duplicates: dropped scope words, appended remarks, truncation); the revised prompt names those cases. Its agreement is reported on a random sample of pairs outside the first screen, labelled blind to the LLM verdict.
 3. Duplicates form clusters (connected components). Kept: the copy whose strength and certainty are both mapped; then the lowest ordinal. Clusters whose copies disagree on the harmonized grade are counted and reported, not resolved.
 4. Every count, table, figure and both validation scores use the deduplicated rows. The pre-dedup package (2026-10-20) is preserved for comparison.
+5. Amendment 2026-10-25, after the first deduplicated package was seen: a human can check about 15 pairs, too few to estimate verdict accuracy (0/15 errors still allows 22%). Hence:
+   - **Judges:** two local models from different families judge every screened pair with the step 2 prompt (`qwen38-64k`, `gemma3:27b`); where they disagree, a third (`mistral-small3.2:24b`) decides. Per-judge files in `corpus/dedup/judges/`; `scripts/paper1_dedup_consensus.py` writes the frozen verdicts.
+   - **Bound:** Table S2 recomputes Table 1 with every copy kept; any wrong merge moves Table 1 toward it.
+   - **Human check:** 15 pairs, fixed seed (`scripts/paper1_dedup_human_sample.py`): 5 merges whose copies differ in grade, 5 merges with the same grade, 5 pairs the first two judges split. Reported as errors per stratum with an exact CI, as a check, not a corpus error rate.
 
 | Outcome | Numerator | Denominator |
 |---|---|---|
