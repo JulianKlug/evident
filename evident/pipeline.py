@@ -57,6 +57,7 @@ from evident.dedup import (
     DedupResult,
     Verdict,
     check_complete,
+    cover,
     deduplicate,
     load_adjudications,
     load_human_check,
@@ -162,6 +163,7 @@ class PipelineDeps:
     code_sha: Callable[[], Optional[str]]
     publish_dir: str  # tables/, figures/, dashboard/ are (re)written here
     themes_path: Optional[str] = None  # frozen theme assignments; None → no theme figure
+    dedup_verdicts_path: Optional[str] = None  # frozen duplicate verdicts; None → every copy kept
 
 
 @dataclass(frozen=True)
@@ -316,6 +318,8 @@ class PublishReport:
     model: str = ""
     paths: list[str] = field(default_factory=list)  # every file written
     pdf_changed: list[str] = field(default_factory=list)  # published from runs whose PDF has since changed
+    n_duplicates_removed: int = 0
+    n_unjudged_pairs: int = 0  # screened pairs without a verdict (new runs): both copies kept
 
 
 @dataclass(frozen=True)
@@ -496,13 +500,11 @@ def publish_package(deps: PipelineDeps, snapshot_id: int, inputs: PackageInputs)
     # Within-guideline copies leave every table and both validation scores (spec §5)
     dedup, dedup_facts = _deduplicate(all_rows, similarity, cfg)
     rows = dedup.kept
-    recs_by_doi = {g.doi: [r for r in recs if (g.doi, r.ordinal) not in dedup.removed]
-                   for g, recs in _active_recs_by_guideline(deps.store, snap.id)}
+    recs_by_doi = _kept_recs_by_doi(deps.store, snap.id, dedup.removed)
     heldout_scores = heldout_report(score({lg.doi: recs_by_doi[lg.doi] for lg in heldout}, heldout, similarity))
     development_report = json.loads(development.report_json)
     if dedup_facts is not None:
-        labelled = deps.labelled()
-        development_report = json.loads(gate(score(recs_by_doi, labelled, similarity), None).to_json())
+        development_report = _rescored_development(deps, recs_by_doi, similarity)
     spot = [replace(g, matched_ordinals=remap_ordinals(g.doi, g.matched_ordinals, dedup.removed))
             for g in load_spotcheck(cfg.spotcheck_dir)]
 
@@ -835,8 +837,18 @@ def _outliers(store: Store, snapshot_id: int, guidelines: dict[int, Guideline]) 
 
 def _write_outputs(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry],
                    republished: bool) -> PublishReport:
-    rows, facts = _harmonized_rows(deps.store, snap, entries)
+    all_rows, facts = _harmonized_rows(deps.store, snap, entries)
+
+    # Same duplicate removal as publish --package; pairs no judge has seen keep both copies
+    dedup, n_unjudged = _live_deduplicate(all_rows, deps)
+    rows = dedup.kept
     bundle = _bundle(deps, snap, rows, facts)
+    if dedup.removed:
+        stored = deps.store.latest_validation(snap.id)
+        report = _rescored_development(deps, _kept_recs_by_doi(deps.store, snap.id, dedup.removed),
+                                       deps.similarity_model)
+        bundle = replace(bundle, validation=_summary_of(report, stored.gate, stored.baseline_snapshot_id)
+                         if stored else None)
     paths = render(bundle, deps.publish_dir)
 
     members = {m.guideline_id: m for m in deps.store.members(snap.id)}
@@ -845,7 +857,27 @@ def _write_outputs(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEnt
     n_superseded = len({r.doi for r in rows if r.edition == Edition.SUPERSEDED})
     pdf_changed = _pdf_changed(deps.store, snap.id, _guidelines_by_id(deps.store))
     return PublishReport(snap.id, republished, deps.publish_dir, len(contributing), n_excluded, n_superseded,
-                         bundle.model, paths, pdf_changed)
+                         bundle.model, paths, pdf_changed, len(dedup.removed), n_unjudged)
+
+
+def _live_deduplicate(rows: list[HarmonizedRow], deps: PipelineDeps) -> tuple[DedupResult, int]:
+    """Frozen verdicts applied to the live rows; (result, screened pairs without a verdict)."""
+    if deps.dedup_verdicts_path is None:
+        return DedupResult(list(rows), {}, 0, {}), 0
+    adjudications, n_unjudged = cover(_screen_rows(rows, deps.similarity_model),
+                                      load_adjudications(deps.dedup_verdicts_path))
+    return deduplicate(rows, adjudications), n_unjudged
+
+
+def _kept_recs_by_doi(store: Store, snapshot_id: int, removed: dict[tuple[str, int], int]) -> dict:
+    """Active recommendations per DOI without the removed copies, for scoring."""
+    return {g.doi: [r for r in recs if (g.doi, r.ordinal) not in removed]
+            for g, recs in _active_recs_by_guideline(store, snapshot_id)}
+
+
+def _rescored_development(deps: PipelineDeps, recs_by_doi: dict, similarity) -> dict:
+    """The development report recomputed on the kept rows; the stored gate decision is not changed."""
+    return json.loads(gate(score(recs_by_doi, deps.labelled(), similarity), None).to_json())
 
 
 def _harmonized_rows(store: Store, snap: Snapshot,

@@ -43,6 +43,7 @@ _COLUMNS = ("doi", "ordinal_a", "ordinal_b", "biolord", "lexical", "verdict", "r
 _FLOAT_DIGITS = 4
 MODEL_SEPARATOR = "+"  # consensus verdicts name both judges
 SPLIT_REASON = "judges disagree; both copies kept"  # in doubt, nothing is removed
+UNJUDGED_REASON = "no verdict yet; both copies kept"  # live publish: a pair screened after the verdicts froze
 _HUMAN_SAME, _HUMAN_DIFFERENT = "same", "different"  # labels in the human check sample
 _CI_LEVEL = 0.95
 
@@ -159,6 +160,23 @@ def check_complete(pairs: Sequence[CandidatePair], adjudications: Sequence[Adjud
     problems += [f"{d} rows {a}, {b}: {n} verdicts" for (d, a, b), n in sorted(judged.items()) if n > 1]
     if problems:
         raise DedupVerdictError(problems)
+
+
+def cover(pairs: Sequence[CandidatePair], adjudications: Sequence[Adjudication]) -> tuple[list[Adjudication], int]:
+    """Live publish: the verdict of each screened pair, distinct where none exists; and how many had none.
+
+    Unlike check_complete, never fails: `add` brings new runs whose pairs no judge has seen yet.
+    """
+    judged = {_key(a): a for a in adjudications}
+    out, n_unjudged = [], 0
+    for p in pairs:
+        key = (p.doi, p.ordinal_a, p.ordinal_b)
+        if key in judged:
+            out.append(judged[key])
+            continue
+        out.append(Adjudication(*key, Verdict.DISTINCT, UNJUDGED_REASON))
+        n_unjudged += 1
+    return out, n_unjudged
 
 
 # ── judges ──────────────────────────────────────────────────────
