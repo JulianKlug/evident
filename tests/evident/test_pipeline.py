@@ -33,7 +33,7 @@ from evident.pipeline import (
 )
 from evident.store import DuplicatePdfError, InvalidSnapshotTransitionError
 from evident.validation import ValidationJoinError
-from tests.evident.pipeline_fakes import CONFIG, WORSE_CONFIG, FakeRunner, World
+from tests.evident.pipeline_fakes import CONFIG, FEW_SHOT_EXAMPLE, WORSE_CONFIG, FakeRunner, World
 
 _A, _B, _C, _D = "10.1000/a", "10.1000/b", "10.1000/c", "10.1000/d"
 _NEW, _RESUME = SnapshotStart.NEW, SnapshotStart.RESUME
@@ -63,7 +63,7 @@ class TestSnapshot:
         assert world.runner.calls == [_A, _B, _C]
         run = world.store.active_run(report.snapshot_id, world.store.get_guideline(_A).id)
         assert (run.code_sha, run.thinking, json.loads(run.few_shot_json)) == (
-            "sha1", ThinkingMode.OFF, [{"recommendation": "x"}])
+            "sha1", ThinkingMode.OFF, [FEW_SHOT_EXAMPLE])
 
     def test_failing_runner_keeps_building_and_continues(self, world):
         world.runner = FakeRunner(fail=(_B,))
@@ -240,6 +240,23 @@ class TestPublish:
         captions = open(os.path.join(out, "figures", "captions.md")).read()
         assert "Validation on 2 labelled guidelines" in captions
         assert "unvalidated" not in captions  # both societies have a labelled guideline in the fakes
+
+
+    def test_publish_with_theme_assignments_draws_the_theme_figure(self, world, tmp_path):
+        themes = tmp_path / "assignments.csv"
+        themes.write_text("key,doi,society,method,phrase,theme\n")
+        snapshot(world.deps(), _NEW, CONFIG)
+        validate(world.deps())
+
+        publish(dataclasses.replace(world.deps(), themes_path=str(themes)))
+
+        assert os.path.isfile(os.path.join(world.publish_dir, "figures", "fig5_themes.svg"))
+        assert os.path.isfile(os.path.join(world.publish_dir, "tables", "themes.csv"))
+
+    def test_publish_without_theme_assignments_has_no_theme_figure(self, world):
+        _published(world)
+
+        assert not os.path.exists(os.path.join(world.publish_dir, "figures", "fig5_themes.svg"))
 
 
 class TestAdd:

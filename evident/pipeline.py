@@ -7,6 +7,9 @@
                                                                                    │
                                                           add <pdf> (same version) ┘
 
+    publish_package (read-only, frozen copy of a PUBLISHED snapshot):
+        audit (fail closed) ─▶ rows + held-out score + spot check ─▶ paper tables ─▶ <package>/ + outputs
+
 Every model, Ollama call and GT load comes in through PipelineDeps, so tests run without a GPU.
 """
 
@@ -17,10 +20,11 @@ import logging
 import os
 import shutil
 import statistics
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from enum import Enum
 from typing import Callable, Optional, Sequence
 
+from evaluation.matching import build_similarity_matrix
 from evident.analytics import (
     Edition,
     GuidelineFacts,
@@ -32,9 +36,40 @@ from evident.analytics import (
     strength_by_certainty,
     trends,
 )
-from evident.corpus import ManifestEntry, current_editions, load_manifest, sync_to_store
+from evident.corpus import (
+    Candidate,
+    ManifestEntry,
+    ManifestError,
+    check_candidates,
+    current_editions,
+    file_sha256,
+    load_candidates,
+    load_manifest,
+    load_theme_assignments,
+    sync_to_store,
+)
+from evident.dedup import (
+    JUDGE_PROMPT,
+    MODEL_SEPARATOR,
+    SCREEN_BIOLORD,
+    SPLIT_REASON,
+    SCREEN_LEXICAL,
+    CandidatePair,
+    DedupResult,
+    Verdict,
+    check_complete,
+    cover,
+    deduplicate,
+    load_adjudications,
+    load_human_check,
+    remap_ordinals,
+    removed_rows,
+    score_human_check,
+    screen,
+)
 from evident.domain import (
     Category,
+    ExtractionRun,
     ExtractorVersion,
     GateResult,
     Guideline,
@@ -50,12 +85,40 @@ from evident.extraction import (
     ExtractorConfig,
     PdfMissingError,
     check_artifacts,
+    prompt_template,
     version_for,
 )
 from evident.harmonization import harmonize
-from evident.publishing import PublishBundle, ValidationSummary, render
+from evident.paper import (
+    EDITION_RULE,
+    AnalysisConfig,
+    PaperPackage,
+    corpus_flow,
+    excluded_guidelines,
+    figure_data,
+    guideline_mean,
+    methods_facts,
+    raw_mapping,
+    spotcheck_bias,
+    table1,
+    table2,
+    trend_points,
+)
+from evident.publishing import PublishBundle, ValidationSummary, package_target_problem, render, render_package
 from evident.store import Store
-from evident.validation import GateReport, LabelledGuideline, SnapshotScore, gate, score
+from evident.themes import theme_certainty
+from evident.validation import (
+    GateReport,
+    HeldoutReport,
+    LabelledGuideline,
+    SnapshotScore,
+    gate,
+    heldout_report,
+    load_heldout,
+    load_spotcheck,
+    score,
+)
+from utils.doi import normalize_doi
 
 _log = logging.getLogger(__name__)
 
@@ -63,6 +126,15 @@ _SLOW_FACTOR = 3.0           # a run slower than 3 × median is flagged
 _LOW_RECALL_FACTOR = 0.5     # fewer recs than half the society median is flagged
 _UNGRADED_SHARE_MARGIN = 0.25  # ungraded share above society median + 0.25 is flagged
 _DIGEST_PREFIX = 12  # same length as `ollama list` IDs
+_BOOTSTRAP_UNIT = "guideline, resampled within society; ALL stratified by society"
+_WAL_SUFFIX = "-wal"  # SQLite write-ahead log beside the DB: readers see its frames, the DB hash does not
+_IGNORED_FILE_PREFIXES = ("~$", ".")  # editor lock files beside label files, e.g. .~lock.x.xlsx#
+
+
+class TreeState(str, Enum):
+    """Git working tree of the analysis code; a package needs CLEAN so analysis_sha names the code."""
+    CLEAN = "clean"
+    DIRTY = "dirty"
 
 
 class SnapshotStart(str, Enum):
@@ -92,6 +164,22 @@ class PipelineDeps:
     similarity_model: object
     code_sha: Callable[[], Optional[str]]
     publish_dir: str  # tables/, figures/, dashboard/ are (re)written here
+    themes_path: Optional[str] = None  # frozen theme assignments; None → no theme figure
+    dedup_verdicts_path: Optional[str] = None  # frozen duplicate verdicts; None → every copy kept
+
+
+@dataclass(frozen=True)
+class PackageInputs:
+    """What `publish --package` reads besides the store and manifest; all read-only."""
+    db_path: str
+    package_dir: str
+    config: AnalysisConfig
+    config_path: str
+    heldout_dir: str
+    search_queries: tuple[tuple[str, str, str], ...]  # (society, source, term with date window)
+    tree_state: TreeState
+    load_similarity: Callable[[str], object]  # embedding revision → BioLORD for held-out matching
+    draft_template: Optional[str] = None  # manuscript template; None → package without draft.md
 
 
 # ── errors ──────────────────────────────────────────────────────
@@ -183,6 +271,14 @@ class NoPublishedSnapshotError(PipelineError):
         super().__init__("No published snapshot; add extracts with the published version")
 
 
+class PackageAuditError(PipelineError):
+    """The analysis source is not the one the package was specified on; nothing is written."""
+
+    def __init__(self, problems: list[str]):
+        super().__init__("Analysis source failed the audit:\n" + "\n".join(f"  {p}" for p in problems))
+        self.problems = problems
+
+
 class ManifestEntryMissingError(PipelineError):
     def __init__(self, filename: str):
         super().__init__(f"No manifest row with pdf_filename {filename}; add the manifest row first")
@@ -224,6 +320,19 @@ class PublishReport:
     model: str = ""
     paths: list[str] = field(default_factory=list)  # every file written
     pdf_changed: list[str] = field(default_factory=list)  # published from runs whose PDF has since changed
+    n_duplicates_removed: int = 0
+    n_unjudged_pairs: int = 0  # screened pairs without a verdict (new runs): both copies kept
+
+
+@dataclass(frozen=True)
+class PackageReport:
+    snapshot_id: int
+    model: str
+    package_dir: str
+    package_paths: list[str]
+    publish_dir: str
+    paths: list[str]
+    heldout: HeldoutReport
 
 
 @dataclass(frozen=True)
@@ -363,6 +472,82 @@ def reject(deps: PipelineDeps, snapshot_id: int, reason: str) -> RejectReport:
     deps.store.reject_snapshot(snapshot_id, reason)
     snap = deps.store.get_snapshot(snapshot_id)
     return RejectReport(snapshot_id, _model_label(deps.store, snap), reason)
+
+
+def publish_package(deps: PipelineDeps, snapshot_id: int, inputs: PackageInputs) -> PackageReport:
+    """Render a paper's analysis package from a frozen copy of a published snapshot.
+
+    Never writes the store (no sync, no transition, no validation row): open it READ_ONLY.
+    Every check fails closed before anything is rendered; the package dir and the standard outputs
+    are both staged before either is swapped in.
+    """
+    cfg = inputs.config
+    entries = load_manifest(deps.manifest_path)
+    candidates = load_candidates(cfg.candidates_path)
+    snap = deps.store.get_snapshot(snapshot_id)
+    _audit_package(deps.store, snapshot_id, deps.manifest_path, entries, candidates, inputs)
+
+    development = deps.store.latest_validation(snap.id)
+    if development is None:
+        raise ValidationMissingError(snap.id)
+
+    # Held-out labels: exactly the prespecified DOIs, never the development set (HeldoutLabelError)
+    development_dois = {lg.doi for lg in deps.labelled()}
+    heldout = load_heldout(inputs.heldout_dir, cfg.heldout_dois, development_dois)
+
+    all_rows, facts = _harmonized_rows(deps.store, snap, entries)
+    version = deps.store.get_extractor_version(snap.extractor_version_id)
+    similarity = inputs.load_similarity(version.embedding_revision)  # same embeddings as the runs
+
+    # Within-guideline copies leave every table and both validation scores (spec §5)
+    dedup, dedup_facts = _deduplicate(all_rows, similarity, cfg)
+    rows = dedup.kept
+    recs_by_doi = _kept_recs_by_doi(deps.store, snap.id, dedup.removed)
+    heldout_scores = heldout_report(score({lg.doi: recs_by_doi[lg.doi] for lg in heldout}, heldout, similarity))
+    development_report = json.loads(development.report_json)
+    if dedup_facts is not None:
+        development_report = _rescored_development(deps, recs_by_doi, similarity)
+    spot = [replace(g, matched_ordinals=remap_ordinals(g.doi, g.matched_ordinals, dedup.removed))
+            for g in load_spotcheck(cfg.spotcheck_dir)]
+
+    current = current_editions(entries)
+    t1, t2 = table1(rows, cfg.bootstrap_n, cfg.bootstrap_seed), table2(rows)
+    society_of = {e.doi: e.society for e in entries}
+    paper = PaperPackage(
+        config=cfg,
+        table1=t1,
+        table2=t2,
+        guideline_mean=guideline_mean(rows),
+        figure_data=figure_data(t1, t2, trend_points(rows)),
+        corpus_flow=corpus_flow(candidates, entries, current),
+        excluded=excluded_guidelines(candidates),
+        raw_mapping=raw_mapping(rows),
+        spotcheck_bias=spotcheck_bias(rows, spot, cfg.bootstrap_n, cfg.bootstrap_seed),
+        validation_development=development_report,
+        validation_heldout=heldout_scores,
+        heldout_societies=tuple(sorted({society_of[d] for d in (lg.doi for lg in heldout)})),
+        methods_facts=methods_facts(cfg, entries, current, candidates, rows, inputs.search_queries, version,
+                                    len(development_dois), dedup_facts),
+        provenance=_provenance(deps, snap, version, inputs),
+        duplicates=removed_rows(all_rows, dedup),
+        draft_template=inputs.draft_template,
+        table1_without_dedup=table1(all_rows, cfg.bootstrap_n, cfg.bootstrap_seed),  # bounds verdict errors
+        **_model_specification(deps.store, snap, version),
+    )
+
+    # Captions and dashboard show the development scores the package reports, after duplicate removal
+    validation = _summary_of(development_report, development.gate, development.baseline_snapshot_id)
+    bundle = replace(_bundle(deps, snap, rows, facts, paper), validation=validation)
+    package_paths, paths = render_package(bundle, inputs.package_dir, deps.publish_dir)
+    return PackageReport(snap.id, bundle.model, inputs.package_dir, package_paths, deps.publish_dir, paths,
+                         heldout_scores)
+
+
+def duplicate_candidates(store: Store, snapshot_id: int, manifest_path: str, similarity) -> list[CandidatePair]:
+    """Screened within-guideline pairs of a snapshot (all editions), for offline adjudication; read-only."""
+    snap = store.get_snapshot(snapshot_id)
+    rows, _ = _harmonized_rows(store, snap, load_manifest(manifest_path))
+    return _screen_rows(rows, similarity)
 
 
 def add(deps: PipelineDeps, pdf_path: str, mode: IngestMode = IngestMode.NORMAL) -> AddReport:
@@ -655,11 +840,56 @@ def _outliers(store: Store, snapshot_id: int, guidelines: dict[int, Guideline]) 
 
 def _write_outputs(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry],
                    republished: bool) -> PublishReport:
-    """Rows from active runs of every included member, all editions; analytics decides which count where."""
-    guidelines = {g.doi: g for g in deps.store.list_guidelines()}
-    current = current_editions(entries)
+    all_rows, facts = _harmonized_rows(deps.store, snap, entries)
+
+    # Same duplicate removal as publish --package; pairs no judge has seen keep both copies
+    dedup, n_unjudged = _live_deduplicate(all_rows, deps)
+    rows = dedup.kept
+    bundle = _bundle(deps, snap, rows, facts)
+    if dedup.removed:
+        stored = deps.store.latest_validation(snap.id)
+        report = _rescored_development(deps, _kept_recs_by_doi(deps.store, snap.id, dedup.removed),
+                                       deps.similarity_model)
+        bundle = replace(bundle, validation=_summary_of(report, stored.gate, stored.baseline_snapshot_id)
+                         if stored else None)
+    paths = render(bundle, deps.publish_dir)
+
     members = {m.guideline_id: m for m in deps.store.members(snap.id)}
-    active = _active_recs(deps.store, snap.id)
+    contributing = {r.doi for r in rows if r.edition == Edition.CURRENT}
+    n_excluded = sum(1 for m in members.values() if m.excluded_reason)
+    n_superseded = len({r.doi for r in rows if r.edition == Edition.SUPERSEDED})
+    pdf_changed = _pdf_changed(deps.store, snap.id, _guidelines_by_id(deps.store))
+    return PublishReport(snap.id, republished, deps.publish_dir, len(contributing), n_excluded, n_superseded,
+                         bundle.model, paths, pdf_changed, len(dedup.removed), n_unjudged)
+
+
+def _live_deduplicate(rows: list[HarmonizedRow], deps: PipelineDeps) -> tuple[DedupResult, int]:
+    """Frozen verdicts applied to the live rows; (result, screened pairs without a verdict)."""
+    if deps.dedup_verdicts_path is None:
+        return DedupResult(list(rows), {}, 0, {}), 0
+    adjudications, n_unjudged = cover(_screen_rows(rows, deps.similarity_model),
+                                      load_adjudications(deps.dedup_verdicts_path))
+    return deduplicate(rows, adjudications), n_unjudged
+
+
+def _kept_recs_by_doi(store: Store, snapshot_id: int, removed: dict[tuple[str, int], int]) -> dict:
+    """Active recommendations per DOI without the removed copies, for scoring."""
+    return {g.doi: [r for r in recs if (g.doi, r.ordinal) not in removed]
+            for g, recs in _active_recs_by_guideline(store, snapshot_id)}
+
+
+def _rescored_development(deps: PipelineDeps, recs_by_doi: dict, similarity) -> dict:
+    """The development report recomputed on the kept rows; the stored gate decision is not changed."""
+    return json.loads(gate(score(recs_by_doi, deps.labelled(), similarity), None).to_json())
+
+
+def _harmonized_rows(store: Store, snap: Snapshot,
+                     entries: list[ManifestEntry]) -> tuple[list[HarmonizedRow], list[GuidelineFacts]]:
+    """Rows from active runs of every included member, all editions; analytics decides which count where."""
+    guidelines = {g.doi: g for g in store.list_guidelines()}
+    current = current_editions(entries)
+    members = {m.guideline_id: m for m in store.members(snap.id)}
+    active = _active_recs(store, snap.id)
 
     rows = []
     facts = []
@@ -672,12 +902,88 @@ def _write_outputs(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEnt
         rows.extend(
             HarmonizedRow(g.doi, g.society, g.year,
                           harmonize(r.raw_strength, r.raw_certainty, r.text, r.raw_category, g.grading_family),
-                          edition, r.text, r.page, r.raw_strength, r.raw_certainty)
+                          edition, r.text, r.page, r.raw_strength, r.raw_certainty, r.ordinal)
             for r in active.get(g.id, []))
+    return rows, facts
 
+
+def _screen_rows(rows: list[HarmonizedRow], similarity) -> list[CandidatePair]:
+    """Duplicate screen per guideline: BioLORD cosine matrix of its rows, then evident.dedup.screen."""
+    by_doi: dict[str, list[HarmonizedRow]] = {}
+    for r in rows:
+        by_doi.setdefault(r.doi, []).append(r)
+
+    pairs = []
+    for doi, group in sorted(by_doi.items()):
+        if len(group) < 2:
+            continue
+        texts = [r.text for r in group]
+        pairs.extend(screen(doi, [r.ordinal for r in group], texts, build_similarity_matrix(texts, texts, similarity)))
+    return pairs
+
+
+def _deduplicate(rows: list[HarmonizedRow], similarity,
+                 cfg: AnalysisConfig) -> tuple[DedupResult, Optional[dict]]:
+    """Frozen verdicts applied to the rows, with the Methods counts; no verdicts configured → rows unchanged.
+
+    Raises DedupVerdictError unless the verdicts cover exactly the pairs the screen finds now.
+    """
+    if cfg.dedup_verdicts_path is None:
+        return DedupResult(list(rows), {}, 0, {}), None
+
+    pairs = _screen_rows(rows, similarity)
+    adjudications = load_adjudications(cfg.dedup_verdicts_path)
+    check_complete(pairs, adjudications)
+    result = deduplicate(rows, adjudications)
+
+    by_key = {(r.doi, r.ordinal): r for r in rows}
+    removed = [by_key[key] for key in result.removed]
+    facts = {
+        "screen_biolord": SCREEN_BIOLORD,
+        "screen_lexical": SCREEN_LEXICAL,
+        "n_screened_pairs": len(pairs),
+        "n_duplicate_pairs": sum(a.verdict == Verdict.DUPLICATE for a in adjudications),
+        "n_removed": len(removed),
+        "n_removed_current_graded": sum(r.edition == Edition.CURRENT and r.grade.category == Category.GRADED
+                                        for r in removed),
+        "removed_by_society": result.removed_by_society,
+        "n_grade_conflicts": result.n_grade_conflicts,
+        "adjudication_models": sorted({m for a in adjudications for m in a.model.split(MODEL_SEPARATOR)}),
+        "human_check": _human_check(rows, result, cfg),
+        "n_judges_split": sum(a.reason == SPLIT_REASON for a in adjudications),
+        "n_blocked_by_grade": result.n_blocked_by_grade,
+    }
+    return result, facts
+
+
+def _model_specification(store: Store, snap: Snapshot, version: ExtractorVersion) -> dict:
+    """Supplement: the extraction prompt, each distinct few-shot set with the guidelines it served, the judge prompt.
+
+    The prompt is shown with the first set; runs drew their examples per guideline (target excluded).
+    """
+    by_set: dict[str, list[str]] = {}
+    for g, run in _active_runs_by_guideline(store, snap.id):
+        by_set.setdefault(run.few_shot_json or "[]", []).append(g.doi)
+    sets = [{"examples": json.loads(k), "dois": dois} for k, dois in sorted(by_set.items())]
+
+    cfg = ExtractorConfig.from_json(version.config_json)
+    examples = sets[0]["examples"] if sets else []
+    return {"extraction_prompt": prompt_template(cfg, examples), "few_shot_sets": sets, "judge_prompt": JUDGE_PROMPT}
+
+
+def _human_check(rows: list[HarmonizedRow], result: DedupResult, cfg: AnalysisConfig) -> Optional[dict]:
+    """The reviewer's labelled pairs scored against the final clusters; None when no check is configured."""
+    if cfg.dedup_human_sample_path is None:
+        return None
+    labels = load_human_check(cfg.dedup_human_sample_path, cfg.dedup_human_key_path)
+    return asdict(score_human_check(labels, rows, result.removed))
+
+
+def _bundle(deps: PipelineDeps, snap: Snapshot, rows: list[HarmonizedRow], facts: list[GuidelineFacts],
+            paper: Optional[PaperPackage] = None) -> PublishBundle:
     model = _model_label(deps.store, snap)
     labelled_dois = {lg.doi for lg in deps.labelled()}
-    bundle = PublishBundle(
+    return PublishBundle(
         snapshot_id=snap.id,
         extractor_version_id=snap.extractor_version_id,
         model=model,
@@ -690,30 +996,205 @@ def _write_outputs(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEnt
         guidelines=guideline_summary(rows, facts),
         captions=caption_facts(rows, facts, labelled_dois),
         recs=rows,
+        paper=paper,
+        themes=theme_certainty(rows, load_theme_assignments(deps.themes_path)) if deps.themes_path else [],
     )
-    paths = render(bundle, deps.publish_dir)
 
-    contributing = {r.doi for r in rows if r.edition == Edition.CURRENT}
-    n_excluded = sum(1 for m in members.values() if m.excluded_reason)
-    n_superseded = len({r.doi for r in rows if r.edition == Edition.SUPERSEDED})
-    pdf_changed = _pdf_changed(deps.store, snap.id, _guidelines_by_id(deps.store))
-    return PublishReport(snap.id, republished, deps.publish_dir, len(contributing), n_excluded, n_superseded,
-                         model, paths, pdf_changed)
+
+# ── package internals ───────────────────────────────────────────
+
+def _audit_package(store: Store, snapshot_id: int, manifest_path: str, entries: list[ManifestEntry],
+                   candidates: list[Candidate], inputs: PackageInputs) -> None:
+    """Fail closed unless the source is exactly the frozen one the config names (spec §3)."""
+    cfg = inputs.config
+    snap = store.get_snapshot(snapshot_id)
+    if snap is None or snap.state != SnapshotState.PUBLISHED:
+        raise PackageAuditError([f"snapshot {snapshot_id} is {snap.state.value if snap else 'missing'}, "
+                                 "not published"])
+
+    problems = []
+    if inputs.tree_state != TreeState.CLEAN:
+        problems.append("analysis code has uncommitted changes; commit them so analysis_sha names the code")
+    target = package_target_problem(inputs.package_dir)
+    if target:
+        problems.append(target)
+    if os.path.exists(inputs.db_path + _WAL_SUFFIX):
+        problems.append(f"{inputs.db_path}{_WAL_SUFFIX} exists: its frames are outside the DB hash")
+    if snapshot_id != cfg.snapshot_id:
+        problems.append(f"snapshot {snapshot_id} requested, config {cfg.name} names {cfg.snapshot_id}")
+    for label, path, expected in (("database", inputs.db_path, cfg.db_sha256),
+                                  ("manifest", manifest_path, cfg.manifest_sha256),
+                                  ("candidates", cfg.candidates_path, cfg.candidates_sha256)):
+        actual = _sha_or_none(path)
+        if actual != expected:
+            problems.append(f"{label} {path} SHA-256 {actual} differs from {expected}")
+
+    if cfg.dedup_verdicts_path is not None:
+        actual = _sha_or_none(cfg.dedup_verdicts_path)
+        if actual != cfg.dedup_verdicts_sha256:
+            problems.append(f"dedup verdicts {cfg.dedup_verdicts_path} SHA-256 {actual} differs from "
+                            f"{cfg.dedup_verdicts_sha256}")
+
+    for label, path, expected in (("human check sample", cfg.dedup_human_sample_path, cfg.dedup_human_sample_sha256),
+                                  ("human check key", cfg.dedup_human_key_path, cfg.dedup_human_key_sha256)):
+        if path is not None and _sha_or_none(path) != expected:
+            problems.append(f"{label} {path} SHA-256 {_sha_or_none(path)} differs from {expected}")
+
+    card_digest = (cfg.model_card or {}).get("model_digest")
+    version_digest = store.get_extractor_version(snap.extractor_version_id).model_digest
+    if cfg.model_card is not None and card_digest != version_digest:
+        problems.append(f"model card describes digest {card_digest}, the runs used {version_digest}")
+
+    if inputs.draft_template is not None and not os.path.isfile(inputs.draft_template):
+        problems.append(f"draft template {inputs.draft_template} missing")
+    if not os.path.isdir(cfg.spotcheck_dir):
+        problems.append(f"spot-check dir {cfg.spotcheck_dir} missing")
+    label_hashes = _dir_hashes(inputs.heldout_dir) if os.path.isdir(inputs.heldout_dir) else None
+    if label_hashes is None:
+        problems.append(f"held-out label dir {inputs.heldout_dir} missing")
+    elif label_hashes != cfg.heldout_labels_sha256:
+        problems.append(f"held-out labels in {inputs.heldout_dir} differ from the config's heldout_labels_sha256: "
+                        f"{_hash_diff(label_hashes, cfg.heldout_labels_sha256)}")
+
+    if len(entries) != cfg.n_guidelines:
+        problems.append(f"{len(entries)} manifest guidelines, expected {cfg.n_guidelines}")
+    try:
+        n_current = len(current_editions(entries))
+        if n_current != cfg.n_current:
+            problems.append(f"{n_current} current editions, expected {cfg.n_current}")
+    except ManifestError as e:
+        problems += e.problems
+    try:
+        check_candidates(candidates, entries)
+    except ManifestError as e:
+        problems += e.problems
+
+    manifest_dois = {e.doi for e in entries}
+    problems += [f"held-out {d} is not a manifest guideline" for d in cfg.heldout_dois
+                 if normalize_doi(d) not in manifest_dois]
+
+    problems += _member_problems(store, snap.id, entries)
+    if problems:
+        raise PackageAuditError(problems)
+
+
+def _member_problems(store: Store, snapshot_id: int, entries: list[ManifestEntry]) -> list[str]:
+    """Every manifest guideline, and nothing else, has an active run that read the synced PDF bytes."""
+    guidelines = _guidelines_by_id(store)
+    members = store.members(snapshot_id)
+    manifest_dois = {e.doi for e in entries}
+
+    problems = [f"{doi}: no active run" for doi in _coverage_gaps(store, snapshot_id, entries)]
+    for m in members:
+        g = guidelines[m.guideline_id]
+        if g.doi not in manifest_dois:
+            problems.append(f"{g.doi}: snapshot member not in the manifest")
+        if m.excluded_reason:
+            problems.append(f"{g.doi}: excluded ({m.excluded_reason})")
+        run = store.active_run(snapshot_id, m.guideline_id)
+        if run is None:
+            continue
+        if not store.recommendations(run.id):
+            problems.append(f"{g.doi}: run {run.id} has no recommendations")  # it would vanish from every table
+        if run.pdf_sha256 is None:
+            problems.append(f"{g.doi}: run {run.id} has no PDF hash")
+        elif run.pdf_sha256 != g.pdf_sha256:
+            problems.append(f"{g.doi}: run {run.id} read other PDF bytes than the guideline's")
+    return problems
+
+
+def _provenance(deps: PipelineDeps, snap: Snapshot, version: ExtractorVersion, inputs: PackageInputs) -> dict:
+    """Sources, versions and checksums; analysis_manifest.json adds the output hashes."""
+    cfg = inputs.config
+    runs = [run for _, run in _active_runs(deps.store, snap.id)]
+    return {
+        "package": cfg.name,
+        "snapshot": {"id": snap.id, "state": snap.state.value, "published_at": snap.published_at},
+        "extractor": {"version_id": version.id, "model_name": version.model_name,
+                      "model_digest": version.model_digest, "config": json.loads(version.config_json)},
+        "code": {"analysis_sha": deps.code_sha(),
+                 "extraction_shas": sorted({r.code_sha for r in runs if r.code_sha})},
+        "search": {"start": cfg.search_start, "cutoff": cfg.search_cutoff},
+        "edition_rule": EDITION_RULE,
+        "bootstrap": {"n": cfg.bootstrap_n, "seed": cfg.bootstrap_seed, "unit": _BOOTSTRAP_UNIT},
+        "analysis_config": asdict(cfg),
+        "inputs": {
+            "database": {"path": inputs.db_path, "sha256": file_sha256(inputs.db_path)},
+            "manifest": {"path": deps.manifest_path, "sha256": file_sha256(deps.manifest_path)},
+            "candidates": {"path": cfg.candidates_path, "sha256": file_sha256(cfg.candidates_path)},
+            "analysis_config": {"path": inputs.config_path, "sha256": file_sha256(inputs.config_path)},
+            "template": ({"path": inputs.draft_template, "sha256": file_sha256(inputs.draft_template)}
+                         if inputs.draft_template else None),
+            "heldout_labels": _dir_hashes(inputs.heldout_dir),
+            "spotcheck": _dir_hashes(cfg.spotcheck_dir),
+            "dedup_verdicts": ({"path": cfg.dedup_verdicts_path, "sha256": file_sha256(cfg.dedup_verdicts_path)}
+                               if cfg.dedup_verdicts_path else None),
+            "dedup_human_check": ({"sample": {"path": cfg.dedup_human_sample_path,
+                                              "sha256": file_sha256(cfg.dedup_human_sample_path)},
+                                   "key": {"path": cfg.dedup_human_key_path,
+                                           "sha256": file_sha256(cfg.dedup_human_key_path)}}
+                                  if cfg.dedup_human_sample_path else None),
+            "pdfs": {g.doi: run.pdf_sha256 for g, run in _active_runs_by_guideline(deps.store, snap.id)},
+        },
+    }
+
+
+def _dir_hashes(directory: str) -> dict[str, str]:
+    """{file name: SHA-256} of the regular files in a directory, e.g. the held-out label set; lock files skipped."""
+    names = sorted(f for f in os.listdir(directory)
+                   if os.path.isfile(os.path.join(directory, f)) and not f.startswith(_IGNORED_FILE_PREFIXES))
+    return {name: file_sha256(os.path.join(directory, name)) for name in names}
+
+
+def _hash_diff(actual: dict[str, str], expected: dict[str, str]) -> str:
+    """'changed a.xlsx; unexpected b.xlsx; missing c.xlsx'."""
+    changed = sorted(n for n in actual.keys() & expected.keys() if actual[n] != expected[n])
+    parts = [f"{label} {', '.join(names)}" for label, names in (
+        ("changed", changed), ("unexpected", sorted(actual.keys() - expected.keys())),
+        ("missing", sorted(expected.keys() - actual.keys()))) if names]
+    return "; ".join(parts)
+
+
+def _sha_or_none(path: str) -> Optional[str]:
+    return file_sha256(path) if path and os.path.isfile(path) else None
+
+
+def _active_runs(store: Store, snapshot_id: int) -> list[tuple[int, ExtractionRun]]:
+    """[(guideline id, active run)] of included members that have one."""
+    out = []
+    for m in store.members(snapshot_id):
+        run = None if m.excluded_reason else store.active_run(snapshot_id, m.guideline_id)
+        if run:
+            out.append((m.guideline_id, run))
+    return out
+
+
+def _active_runs_by_guideline(store: Store, snapshot_id: int) -> list[tuple[Guideline, ExtractionRun]]:
+    guidelines = _guidelines_by_id(store)
+    return sorted(((guidelines[gid], run) for gid, run in _active_runs(store, snapshot_id)),
+                  key=lambda pair: pair[0].doi)
+
+
+def _active_recs_by_guideline(store: Store, snapshot_id: int) -> list[tuple[Guideline, list[RawRecommendation]]]:
+    return [(g, store.recommendations(run.id)) for g, run in _active_runs_by_guideline(store, snapshot_id)]
 
 
 def _validation_summary(store: Store, snapshot_id: int) -> Optional[ValidationSummary]:
     validation = store.latest_validation(snapshot_id)
     if validation is None:
         return None
+    return _summary_of(json.loads(validation.report_json), validation.gate, validation.baseline_snapshot_id)
+
+
+def _summary_of(report: dict, gate: GateResult, baseline_snapshot_id: Optional[int]) -> Optional[ValidationSummary]:
     # A report without candidate metrics (hand-written in tests) shows as not validated
-    report = json.loads(validation.report_json)
     candidate = report.get("candidate")
     if candidate is None:
         return None
     return ValidationSummary(
-        gate=validation.gate,
+        gate=gate,
         n_guidelines=report["n_guidelines"],
-        baseline_snapshot_id=validation.baseline_snapshot_id,
+        baseline_snapshot_id=baseline_snapshot_id,
         f1=candidate["f1"],
         f1_ci=tuple(candidate["f1_ci"]),
         precision=candidate["precision"],

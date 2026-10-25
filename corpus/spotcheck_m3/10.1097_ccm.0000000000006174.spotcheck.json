@@ -1,0 +1,195 @@
+{
+ "doi": "10.1097/ccm.0000000000006174",
+ "n_reference_graded": 6,
+ "n_reference_ungraded": 9,
+ "tp": 6,
+ "fp": 1,
+ "fn": 0,
+ "strength_ok": 6,
+ "certainty_ok": 6,
+ "ungraded_extracted_as_ungraded": 0,
+ "reference": [
+  {
+   "ref_id": "A1",
+   "page": 5,
+   "text": "Clinicians should initiate glycemic management protocols and procedures to treat persistent hyperglycemia, >= 10 mmol/L (180 mg/dL) in critically ill adults",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "for",
+   "certainty": ""
+  },
+  {
+   "ref_id": "A2",
+   "page": 5,
+   "text": "Clinicians should use glycemic management protocols and procedures that demonstrate a low risk of hypoglycemia among critically ill adults and should treat hypoglycemia without delay",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "for",
+   "certainty": ""
+  },
+  {
+   "ref_id": "A3",
+   "page": 5,
+   "text": "Based on available RCT data, in critically ill adults, we 'suggest against' titrating an insulin infusion to a lower BG target INT 4.4-7.7 mmol/L vs CONV 7.8-11.1 mmol/L",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "A4",
+   "page": 5,
+   "text": "Research statement: we recommend high-quality interventional trials of individualized glycemic targets in critically ill adults, stratified by prior glycemic control",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "for",
+   "certainty": ""
+  },
+  {
+   "ref_id": "A5",
+   "page": 5,
+   "text": "We 'suggest' using continuous IV insulin infusion rather than intermittent subcutaneous insulin in the acute management of hyperglycemia in critically ill adults",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "A6",
+   "page": 5,
+   "text": "We 'suggest' frequent (<= 1 hr, continuous or near-continuous) glucose monitoring vs intervals > hourly in critically ill adults on IV insulin during glycemic instability",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "A7",
+   "page": 5,
+   "text": "We 'suggest' use of a protocol that includes explicit decision support tools over a protocol with no such tools in critically ill adults receiving IV insulin infusions",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "P1",
+   "page": 5,
+   "text": "Clinicians should initiate glycemic management protocols and procedures to treat persistent hyperglycemia, >= 10 mmol/L in critically ill children",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "for",
+   "certainty": ""
+  },
+  {
+   "ref_id": "P2",
+   "page": 5,
+   "text": "Clinicians should use glycemic management protocols and procedures that demonstrate a low risk of hypoglycemia among critically ill children and should treat hypoglycemia without delay",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "for",
+   "certainty": ""
+  },
+  {
+   "ref_id": "P3",
+   "page": 5,
+   "text": "We 'recommend against' INT BG control 4.4-7.7 mmol/L vs CONV 7.8-11.1 mmol/L in critically ill children",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "against",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "P4",
+   "page": 5,
+   "text": "We make 'no recommendation' regarding continuous IV insulin infusion over intermittent SC insulin in critically ill pediatric patients; 'in our practice' IV infusion is used",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": ""
+  },
+  {
+   "ref_id": "P5",
+   "page": 5,
+   "text": "We make 'no recommendation' regarding frequent (<= 1 hr) vs less frequent BG monitoring in pediatric patients on insulin infusion; 'in our practice' frequent monitoring",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": ""
+  },
+  {
+   "ref_id": "P6",
+   "page": 5,
+   "text": "We 'suggest' use of explicit decision support tools over no such tools in critically ill pediatric patients receiving IV insulin infusions",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "P7",
+   "page": 5,
+   "text": "Research statement: we strongly recommend high-quality research on explicit decision support tools for insulin infusion titration in pediatric patients",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "for",
+   "certainty": ""
+  },
+  {
+   "ref_id": "POC",
+   "page": 13,
+   "text": "Recommendation: The panel is unable to provide a specific statement (POC device vs central lab/blood gas analyzer for BG monitoring) due to inconsistent methodologies",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": ""
+  }
+ ],
+ "matches": [
+  {
+   "ref_id": "A3",
+   "extracted_id": 0,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "A5",
+   "extracted_id": 6,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "A6",
+   "extracted_id": 3,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "A7",
+   "extracted_id": 4,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "P3",
+   "extracted_id": 2,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "P6",
+   "extracted_id": 5,
+   "strength_ok": true,
+   "certainty_ok": true
+  }
+ ],
+ "false_positives": [
+  {
+   "extracted_id": 1,
+   "cause": "restatement",
+   "note": "body copy (pp.11-12) of pediatric strong-against INT BG rec P3, not merged with Table 3 row 2; also carries wrong certainty 'low' (body says moderate)"
+  }
+ ],
+ "false_negatives": [],
+ "notes": "Reference = Table 3 Summary of Recommendations (p.5), clean text; matches abstract counts (adults: 2 GPS, 4 conditional, 1 research; peds: 2 GPS, 1 strong, 1 conditional, 2 'in our practice', 1 research). Research statements counted as ungraded (best_practice bucket per task definition); 'no recommendation / in our practice' as no_recommendation. Added one body-only ungraded item: POC device question 'panel is unable to provide a specific statement' (p.13) as no_recommendation. None of the 9 ungraded items was extracted."
+}

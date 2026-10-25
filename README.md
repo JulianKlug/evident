@@ -47,6 +47,27 @@ Outside the repo (not installed by uv):
 | Guideline PDFs | `/mnt/data1/klug/datasets/evidence_extraction/pdfs` | `status` coverage |
 | Ground truth (ACP, ICU) | `/mnt/data1/klug/datasets/evidence_extraction` | `validate` (12 labelled guidelines) |
 
+## Dashboard (any machine, no GPU)
+
+Needs the frozen DB and held-out labels from the data root (ask the maintainers), and a clean
+git tree.
+
+```
+uv sync --extra pipeline
+uv run python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
+  publish --snapshot 8 --package out/paper1 --analysis-config configs/paper1.json \
+  --heldout-labels <data root>/intensive_care_medicine_heldout
+```
+
+Writes `out/dashboard/index.html` (self-contained), plus `out/tables`, `out/figures`, `out/paper1`.
+Details: `docs/paper1/README.md`.
+
+Serve locally, then open http://localhost:8000:
+
+```
+uv run python -m http.server 8000 --directory out/dashboard
+```
+
 ## Tests
 
 ```

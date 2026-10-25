@@ -1,0 +1,670 @@
+{
+ "doi": "10.1007/s00134-025-08137-z",
+ "n_reference_graded": 10,
+ "n_reference_ungraded": 40,
+ "tp": 10,
+ "fp": 5,
+ "fn": 0,
+ "strength_ok": 10,
+ "certainty_ok": 10,
+ "ungraded_extracted_as_ungraded": 16,
+ "reference": [
+  {
+   "ref_id": 1,
+   "page": 5,
+   "text": "Shock is defined as a life‑threatening acute circulatory failure charac‑terized by decreased tissue perfusion, leading to inadequate oxygen delivery and/or oxygen utilization to meet cellular metaboli",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded definition/Ungraded evidence/Strong agreement"
+  },
+  {
+   "ref_id": 2,
+   "page": 5,
+   "text": "The typical features are hypotension, tachycardia, and signs of hypop‑erfusion, such as abnormal skin perfusion, decreased urine output, and altered mental status. Although hypotension is commonly pre",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 3,
+   "page": 5,
+   "text": "Lactate levels are typically increased (> 2 mmol/L) in shock states",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 4,
+   "page": 8,
+   "text": "Serial assessment of tissue perfusion should be performed to follow shock evolution and to help assess the underlying pattern and the adequacy of CO and vascular function.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 5,
+   "page": 8,
+   "text": "Monitoring skin perfusion should be performed using the assessment of CRT and this could be complemented this with the assessment of skin temperature and mottling.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 6,
+   "page": 8,
+   "text": "In patients with a central venous catheter, serial measurements of (central) venous oxygen saturation (S(c)vO2) should be performed.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 7,
+   "page": 8,
+   "text": "In patients with a central venous catheter and an arterial catheter, serial measurement of the veno‑arterial difference in carbon dioxide partial pressure (Pv‑aCO2) should be performed.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 8,
+   "page": 8,
+   "text": "In patients with a central venous catheter and an arterial catheter, one may consider performing serial measurements of the ratio of Pv‑aCO2 over the arterio‑venous difference in oxygen partial conten",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 9,
+   "page": 9,
+   "text": "When feasible, the assessment of microcirculation may be considered as an adjunct to comprehensive hemodynamic evaluation.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 10,
+   "page": 10,
+   "text": "In patients with persistent shock after initial fluid resuscitation, fluid responsiveness should be assessed before continuing fluid resuscita‑tion.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 11,
+   "page": 10,
+   "text": "The potential benefit of fluid administration, predicted by the assess‑ment of fluid responsiveness, should be weighed against the potential risk of fluid administration.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 12,
+   "page": 13,
+   "text": "The risk of harm from fluid administration could be assessed using markers such as intravascular filling pressures, intra‑abdominal pres‑sure, extravascular lung water (EVLW), pulmonary vascular perme",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 13,
+   "page": 14,
+   "text": "A fluid challenge is defined as a bolus of 200 to 500 mL given over 5–10 min while evaluating its effects",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded definition/Low certainty of evidence/Strong agreement."
+  },
+  {
+   "ref_id": 14,
+   "page": 14,
+   "text": "One may consider assessing the effects of a fluid bolus on CO and, when not available, on pulse pressure rather than MAP .",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 15,
+   "page": 14,
+   "text": "The effectiveness of a fluid bolus in improving tissue perfusion should be evaluated by considering changes in variables such as CRT, skin mottling, S(c)vO2, carbon dioxide partial pressure (pCO2)‑der",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 16,
+   "page": 15,
+   "text": "We recommend using dynamic variables over static markers of preload for predicting fluid responsiveness, when applicable.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "high",
+   "printed_label": "Strong recommendation/High certainty of evidence/Strong agree‑"
+  },
+  {
+   "ref_id": 17,
+   "page": 15,
+   "text": "We recommend the passive leg raising (PLR) test to assess fluid responsiveness in mechanically ventilated patients in shock, with and without spontaneous breathing activity.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "high",
+   "printed_label": "Strong recommendation/High certainty of evidence/Strong agree‑"
+  },
+  {
+   "ref_id": 18,
+   "page": 15,
+   "text": "We recommend the end‑expiratory occlusion test as an alternative to PLR test in mechanically ventilated patients in shock without spontane‑ous breathing activity.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_label": "Strong recommendation/Moderate certainty of evidence/Strong"
+  },
+  {
+   "ref_id": 19,
+   "page": 15,
+   "text": "We are unable to provide recommendations regarding the use of the tidal volume challenge as alternative to PLR test in mechanically ventilated patients in shock, due to paucity and/or heterogeneity of",
+   "category": "no_recommendation",
+   "strength": null,
+   "direction": null,
+   "certainty": "low",
+   "printed_label": "No recommendation/Low certainty of evidence/Strong agreement"
+  },
+  {
+   "ref_id": 20,
+   "page": 15,
+   "text": "We recommend pulse pressure variation (PPV) to assess fluid responsiveness in mechanically ventilated patients in shock without spontaneous breathing activity and a tidal volume ≥ 8 mL/kg.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "high",
+   "printed_label": "Strong recommendation/High certainty of evidence/Strong agree‑"
+  },
+  {
+   "ref_id": 21,
+   "page": 15,
+   "text": "We suggest against the use of PPV alone to assess fluid responsive‑ness in mechanically ventilated patients in shock with spontaneous breathing activity and a tidal volume < 8 mL/kg.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "moderate",
+   "printed_label": "Suggest against/Moderate certainty of evidence/Strong agreement"
+  },
+  {
+   "ref_id": 22,
+   "page": 15,
+   "text": "We suggest using stroke volume variation (SVV) to assess fluid responsiveness in mechanically ventilated patients in shock without spontaneous breathing activity and a tidal volume ≥ 8 mL/kg.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate",
+   "printed_label": "Weak recommendation/Moderate certainty of evidence/Strong agree‑"
+  },
+  {
+   "ref_id": 23,
+   "page": 15,
+   "text": "We are unable to provide recommendations regarding the use of PPV to assess fluid responsiveness in mechanically ventilated patients in shock with spontaneous breathing activity.",
+   "category": "no_recommendation",
+   "strength": null,
+   "direction": null,
+   "certainty": "low",
+   "printed_label": "No recommendation/Low certainty of evidence/Strong agreement"
+  },
+  {
+   "ref_id": 24,
+   "page": 15,
+   "text": "We are unable to provide recommendations regarding the use of SVV to assess fluid responsiveness in mechanically ventilated patients in shock with spontaneous breathing activity.",
+   "category": "no_recommendation",
+   "strength": null,
+   "direction": null,
+   "certainty": "low",
+   "printed_label": "No recommendation/Low certainty of evidence/Strong agreement"
+  },
+  {
+   "ref_id": 25,
+   "page": 15,
+   "text": "We are unable to provide recommendations regarding the use of the mini‑fluid challenge test in patients with shock, due to paucity and/or heterogeneity of available data.",
+   "category": "no_recommendation",
+   "strength": null,
+   "direction": null,
+   "certainty": "low",
+   "printed_label": "No recommendation/Low certainty of evidence/Strong agreement"
+  },
+  {
+   "ref_id": 26,
+   "page": 15,
+   "text": "We suggest against the use of changes in IVC diameter alone in criti‑cally ill patients to assess fluid responsiveness.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "moderate",
+   "printed_label": "Suggest against/Moderate certainty of evidence/Weak agreement"
+  },
+  {
+   "ref_id": 27,
+   "page": 17,
+   "text": "CO and/or stroke volume should be monitored in patients who do not respond to initial therapy to assess the type of shock, evaluate hemodynamic status, and determine therapeutic response.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 28,
+   "page": 17,
+   "text": "Frequent reevaluation of CO may be considered.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 29,
+   "page": 17,
+   "text": "When CO is monitored, its adequacy should be interpreted by evalu‑ating organ function, tissue oxygenation, metabolism, and perfusion.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 30,
+   "page": 21,
+   "text": "Transpulmonary thermodilution or pulmonary artery dilution with the PAC may be considered in patients for whom CO monitoring is required.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 31,
+   "page": 21,
+   "text": "Transpulmonary thermodilution or the PAC in patients with shock and moderate‑to‑severe ARDS may be considered be used for guiding fluid therapy. Remark: In patients without RV failure, transpulmonary ",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 32,
+   "page": 21,
+   "text": "The PAC may be considered in patients with persistent shock and RV failure after cardiac surgery in addition to serial echocardiography",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 33,
+   "page": 21,
+   "text": "Less invasive CO monitoring devices could be used, if these have been proven to provide accurate estimation of CO for this specific context, over more invasive ones like the PAC or transpulmonary ther",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 34,
+   "page": 21,
+   "text": "We suggest using echocardiography as the first‑line imaging modality to assess the type of shock and hemodynamic status.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_label": "Weak recommendation/Low certainty of evidence/Strong agreement"
+  },
+  {
+   "ref_id": 35,
+   "page": 21,
+   "text": "Serial echocardiographic evaluations should be performed to provide additional information on cardiac function, even when CO is monitored.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 36,
+   "page": 23,
+   "text": "Arterial pressure should be monitored in patients with shock.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 37,
+   "page": 23,
+   "text": "Arterial pressure should be monitored with an arterial catheter in shock that is not responsive to initial therapy and/or requiring vaso‑pressor infusion.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 38,
+   "page": 24,
+   "text": "The target blood pressure should be individualized during resuscita‑tion of patients with shock.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 39,
+   "page": 24,
+   "text": "An initial MAP of 65–70 mmHg should be targeted in patients with septic shock.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 40,
+   "page": 24,
+   "text": "A higher MAP target may be considered in patients with septic shock and a history of chronic arterial hypertension who show clinical improvement with higher blood pressure.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 41,
+   "page": 24,
+   "text": "A higher MAP target may be considered in patients with septic shock with high CVP values who show clinical improvement with higher blood pressure.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 42,
+   "page": 24,
+   "text": "Lower MAP targets may be considered in patients with traumatic hemorrhagic shock and uncontrolled bleeding in the absence of traumatic brain injury.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 43,
+   "page": 24,
+   "text": "In the initial phase following trauma, a target systolic arterial pres‑sure of 80–90 mmHg (MAP 50–60 mmHg) should be used until major bleeding has been stopped when there is no clinical evidence of tr",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 44,
+   "page": 24,
+   "text": "Targeting an initial MAP of ≥ 65 mmHg may be considered in patients with cardiogenic shock.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 45,
+   "page": 26,
+   "text": "Serial monitoring of IAP may be considered in patients with shock and established risk factors for intra‑abdominal hypertension",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 46,
+   "page": 26,
+   "text": "Central venous pressure (CVP) should be measured in patients with shock who have a central venous catheter.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  },
+  {
+   "ref_id": 47,
+   "page": 26,
+   "text": "A pre‑specified CVP value should not be targeted during the resusci‑tation of patients with shock. 1997 Recommendations 3.6",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong agreement"
+  },
+  {
+   "ref_id": 48,
+   "page": 28,
+   "text": "We suggest performing one or more echocardiograms in patients with circulatory shock",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "printed_label": "Weak recommendation/Low certainty of evidence/Strong agreement"
+  },
+  {
+   "ref_id": 49,
+   "page": 29,
+   "text": "In patients with shock, echocardiographically defined phenotypes of left and RV systolic function may be of prognostic significance.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "printed_label": "Weak recommendation/Very low certainty of evidence/Strong agree‑"
+  },
+  {
+   "ref_id": 50,
+   "page": 31,
+   "text": "In patients with circulatory shock, echocardiography leads to changes in management and supports therapeutic impact.",
+   "category": "best_practice",
+   "strength": null,
+   "direction": null,
+   "certainty": null,
+   "printed_label": "Ungraded good practice statement/Ungraded evidence/Strong"
+  }
+ ],
+ "matches": [
+  {
+   "ref_id": 16,
+   "extracted_id": 23,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 17,
+   "extracted_id": 21,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 18,
+   "extracted_id": 20,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 20,
+   "extracted_id": 19,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 21,
+   "extracted_id": 26,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 22,
+   "extracted_id": 29,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 26,
+   "extracted_id": 25,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 34,
+   "extracted_id": 28,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 48,
+   "extracted_id": 27,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": 49,
+   "extracted_id": 10,
+   "strength_ok": true,
+   "certainty_ok": true
+  }
+ ],
+ "false_positives": [
+  {
+   "extracted_id": 9,
+   "cause": "other",
+   "note": "Table 1 (p4) 2014 ESICM column: superseded previous-guideline rec, not a 2025 statement; 2014 text carries no grade, extracted Strong/High is fabricated. 2025 counterpart is #48 (weak/low), already matched by row 27."
+  },
+  {
+   "extracted_id": 17,
+   "cause": "other",
+   "note": "Table 1 (p4) 2014 column: superseded 2014 rec (additional hemodynamic assessment / echo preferred); no grade printed."
+  },
+  {
+   "extracted_id": 18,
+   "cause": "other",
+   "note": "Table 1 (p4) 2014 column: 2014 CVP rec; 2025 version #46 is UGPS (extracted correctly as row 6 best_practice). Strong/High fabricated."
+  },
+  {
+   "extracted_id": 22,
+   "cause": "other",
+   "note": "Table 1 (p4) 2014 column: 2014 dynamic-vs-static + fluid challenge rec; no grade printed."
+  },
+  {
+   "extracted_id": 24,
+   "cause": "restatement",
+   "note": "Table 1 (p4) 2025 column copy of #16 + #17 merged in one row; both already matched by rows 23 and 21."
+  }
+ ],
+ "false_negatives": [],
+ "ungraded_matches": [
+  {
+   "ref_id": 40,
+   "extracted_id": 0
+  },
+  {
+   "ref_id": 41,
+   "extracted_id": 1
+  },
+  {
+   "ref_id": 39,
+   "extracted_id": 2
+  },
+  {
+   "ref_id": 47,
+   "extracted_id": 3
+  },
+  {
+   "ref_id": 36,
+   "extracted_id": 4
+  },
+  {
+   "ref_id": 37,
+   "extracted_id": 5
+  },
+  {
+   "ref_id": 46,
+   "extracted_id": 6
+  },
+  {
+   "ref_id": 27,
+   "extracted_id": 7
+  },
+  {
+   "ref_id": 28,
+   "extracted_id": 8
+  },
+  {
+   "ref_id": 43,
+   "extracted_id": 11
+  },
+  {
+   "ref_id": 42,
+   "extracted_id": 12
+  },
+  {
+   "ref_id": 45,
+   "extracted_id": 13
+  },
+  {
+   "ref_id": 44,
+   "extracted_id": 14
+  },
+  {
+   "ref_id": 12,
+   "extracted_id": 15
+  },
+  {
+   "ref_id": 38,
+   "extracted_id": 16
+  },
+  {
+   "ref_id": 29,
+   "extracted_id": 30
+  }
+ ],
+ "notes": "50 numbered statements in body boxes (pp5-28), each with printed label strength/certainty/agreement. 10 graded (GRADE strong/weak), 36 ungraded (34 UGPS + 2 ungraded definitions #1, #13), 4 \"No recommendation\" (#19,#23,#24,#25; printed low certainty). #21 and #26 labeled \"Suggest against\" -> weak/against. #49 is a prognostic statement but printed as Weak recommendation/Very low -> counted graded. Summary figures (Figs 1-6) are images with no text. Table 1 (pp3-4) compares 2014 vs 2025 statements; the extractor took 4 rows from the 2014 column (rows 9,17,18,22) and assigned Strong/High grades not printed anywhere -> FP cause \"other\" (superseded prior guideline). Ungraded: 16 of 40 ungraded reference items extracted, all as best_practice; none of the 4 no_recommendation items, none of the 2 definitions, and UGPS #2-11,#14,#15,#30-33,#35,#50 not extracted. #47 label fell on next page (p27); counted as UGPS."
+}

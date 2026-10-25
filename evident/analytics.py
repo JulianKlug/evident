@@ -40,6 +40,7 @@ class HarmonizedRow:
     page: Optional[int] = None
     raw_strength: str = ""
     raw_certainty: str = ""
+    ordinal: Optional[int] = None  # position in its run, as the M3 spot check refers to rows
 
 
 @dataclass(frozen=True)

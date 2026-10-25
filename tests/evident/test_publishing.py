@@ -1,6 +1,7 @@
 """Tests for evident.publishing: files written, determinism, captions, self-contained HTML, safe swap."""
 
 import csv
+import dataclasses
 import json
 import os
 import re
@@ -21,6 +22,7 @@ from evident.analytics import (
 )
 from evident.domain import AxisStatus, Category, Certainty, Direction, GateResult, HarmonizedGrade, Strength
 from evident.publishing import PublishBundle, ValidationSummary, render
+from evident.themes import rec_key, theme_certainty
 
 _M, _UG = AxisStatus.MAPPED, AxisStatus.UNGRADED
 
@@ -67,6 +69,11 @@ def _bundle(labelled=frozenset({"10.1/a"}), validation=_VALIDATION, rows=None):
         guidelines=guideline_summary(rows, _FACTS), captions=caption_facts(rows, _FACTS, set(labelled)),
         recs=rows,
     )
+
+
+def _theme_bundle():
+    assignments = {rec_key(r.doi, r.text): "Fluids" if r.society == "SCCM" else "Gout" for r in _ROWS}
+    return dataclasses.replace(_bundle(), themes=theme_certainty(_ROWS, assignments))
 
 
 def _files(out_dir):
@@ -174,3 +181,46 @@ def test_failure_keeps_previous_outputs(tmp_path, monkeypatch):
 
     assert _files(out) == _EXPECTED  # no staging dir left behind
     assert {rel: _read(os.path.join(out, rel), "rb") for rel in _EXPECTED} == before
+
+
+def test_common_caption_stated_once(tmp_path):
+    render(_bundle(), str(tmp_path))
+    captions = _read(tmp_path / "figures" / "captions.md")
+    assert captions.count("Snapshot 7, extractor version") == 1
+    assert captions.count("SCCM: extraction accuracy unvalidated") == 1
+    assert "**Notes (all figures and Table 1).**" in captions
+    notes, provenance = captions.split("**Notes (all figures and Table 1).**")[1].split("**Provenance.**")
+    assert "1 joint guideline(s) counted once" in notes and "10.1/b" not in notes and "Snapshot 7" not in notes
+    assert "10.1/b (SCCM with ESICM)" in provenance and "Snapshot 7, extractor version" in provenance
+
+
+def test_dashboard_validation_at_bottom_and_no_ungraded_share(tmp_path):
+    render(_bundle(), str(tmp_path))
+    html = _read(tmp_path / "dashboard" / "index.html")
+    assert "banner" not in html
+    assert "SCCM: extraction accuracy unvalidated (no labelled SCCM guideline)." in html
+    assert html.index("<h2>Recommendations</h2>") < html.index("<h2>Validation and provenance</h2>")
+    assert "Development, 12 labelled guidelines (in-sample)" in html
+    assert "gate pass" not in html
+    assert "Ungraded %" not in html and "ungraded_share, " not in html  # v2 ungraded share is incomplete
+    assert "ungraded_share" in _read(tmp_path / "tables" / "headline.csv")  # exports keep the column
+
+
+def test_theme_figure_and_table_when_themes(tmp_path):
+    render(_theme_bundle(), str(tmp_path))
+
+    assert set(_files(tmp_path)) - set(_EXPECTED) == {"figures/fig5_themes.png", "figures/fig5_themes.svg",
+                                                      "tables/themes.csv"}
+    themes = list(csv.DictReader(open(tmp_path / "tables" / "themes.csv")))
+    assert {(r["specialty"], r["societies"]) for r in themes} == {("Internal medicine", "ACP"),
+                                                                   ("Critical care", "SCCM")}
+    assert "**Figure 5. Certainty of evidence by theme (exploratory).**" in _read(tmp_path / "figures" / "captions.md")
+    assert "Figure 5. Certainty of evidence by theme (exploratory)" in _read(tmp_path / "dashboard" / "index.html")
+
+
+def test_theme_figure_byte_identical(tmp_path):
+    first, second = tmp_path / "1", tmp_path / "2"
+    render(_theme_bundle(), str(first))
+    render(_theme_bundle(), str(second))
+    rel = os.path.join("figures", "fig5_themes.svg")
+    assert _read(first / rel, "rb") == _read(second / rel, "rb")

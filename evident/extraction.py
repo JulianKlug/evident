@@ -24,12 +24,13 @@ from extraction.datasets import get_few_shot_examples, load_acp_datasets, load_i
 from extraction.deduplication import DedupKey
 from extraction.extractor import CallRecord, extract_guideline
 from extraction.llm_client import OllamaClient, ThinkMode
-from extraction.prompts import PromptStrategy, PromptVersion
+from extraction.prompts import PromptStrategy, PromptVersion, build_prompt
 from extraction.self_consistency import self_consistency_extract
 
 _BIOLORD = "FremyCompany/BioLORD-2023"
 _ZERO_SHOT = "zero_shot"
 _FEW_SHOT = "few_shot"
+_PAGE_PLACEHOLDER = "<text of one guideline page>"
 _POOL_COLUMNS = ("recommendation", "class", "LOE")
 
 
@@ -199,10 +200,14 @@ def check_artifacts(version: ExtractorVersion, live: Artifacts) -> None:
                                     live.few_shot_pool_sha256)
 
 
-def load_similarity_model() -> object:
-    """BioLORD (the only supported embedding model); slow, so load once per process."""
+def load_similarity_model(device: Optional[str] = None, revision: Optional[str] = None) -> object:
+    """BioLORD (the only supported embedding model); slow, so load once per process.
+
+    publish --package pins both for reproducible scoring: device "cpu", revision = the runs' embedding_revision.
+    None: GPU if present, latest cached revision.
+    """
     from extraction.benchmark import _BioLORDSimilarityModel
-    return _BioLORDSimilarityModel()
+    return _BioLORDSimilarityModel(device, revision)
 
 
 def load_models(cfg: ExtractorConfig) -> Models:
@@ -217,10 +222,7 @@ def run(cfg: ExtractorConfig, pdf_path: str, target_doi: str, models: Models) ->
     examples = []
     if cfg.few_shot == FewShotMode.FEW_SHOT:
         examples = get_few_shot_examples(GRADE, cfg.n_examples, exclude_doi=target_doi, seed=cfg.few_shot_seed)
-    strategy = PromptStrategy(
-        name=_FEW_SHOT if examples else _ZERO_SHOT, scheme=GRADE, examples=examples,
-        prompt_version=PromptVersion(cfg.prompt_version),
-    )
+    strategy = _strategy(cfg, examples)
 
     client = OllamaClient(model=cfg.model)
     common = dict(
@@ -248,6 +250,18 @@ def run(cfg: ExtractorConfig, pdf_path: str, target_doi: str, models: Models) ->
         calls=[_to_call(r) for r in result.call_records],
         n_pages=result.n_pages,
         few_shot=examples,
+    )
+
+
+def prompt_template(cfg: ExtractorConfig, examples: list[dict]) -> str:
+    """The extraction prompt as sent per page, with a placeholder for the page text (paper supplement)."""
+    return build_prompt(_PAGE_PLACEHOLDER, _strategy(cfg, examples))
+
+
+def _strategy(cfg: ExtractorConfig, examples: list[dict]) -> PromptStrategy:
+    return PromptStrategy(
+        name=_FEW_SHOT if examples else _ZERO_SHOT, scheme=GRADE, examples=examples,
+        prompt_version=PromptVersion(cfg.prompt_version),
     )
 
 

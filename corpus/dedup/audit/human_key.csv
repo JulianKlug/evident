@@ -1,0 +1,16 @@
+id,stratum,doi,ordinal_a,ordinal_b,verdict
+1,judges split,10.1007/s00134-023-07050-7,3,4,distinct
+2,"merged, grade differs",10.1097/pcc.0000000000002873,17,45,duplicate
+3,judges split,10.1097/ccm.0000000000002027,11,12,distinct
+4,judges split,10.1007/s00134-020-06283-0,22,23,distinct
+5,"merged, same grade",10.1097/ccm.0000000000005337,46,47,duplicate
+6,"merged, same grade",10.1007/s00134-016-4665-0,18,30,duplicate
+7,"merged, same grade",10.1097/pcc.0000000000003927,21,74,duplicate
+8,judges split,10.1097/pcc.0000000000002873,17,44,distinct
+9,"merged, grade differs",10.1007/s00134-025-08137-z,9,28,duplicate
+10,judges split,10.1097/pcc.0000000000002873,43,44,distinct
+11,"merged, grade differs",10.1007/s12028-015-0222-x,16,28,duplicate
+12,"merged, grade differs",10.1097/ccm.0000000000004192,9,27,duplicate
+13,"merged, same grade",10.1097/pcc.0000000000003927,36,43,duplicate
+14,"merged, grade differs",10.1097/pcc.0000000000003927,0,29,duplicate
+15,"merged, same grade",10.1097/pcc.0000000000001134,8,25,duplicate

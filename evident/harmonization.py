@@ -54,6 +54,10 @@ _CERTAINTY_STOP_PHRASE = "confidence in estimates of effect"
 _INSUFFICIENT = "insufficient"
 _CERTAINTY_ORDER = [Certainty.VERY_LOW, Certainty.LOW, Certainty.MODERATE, Certainty.HIGH]
 
+# GRADE number/letter notation, e.g. SCCM 2017 "2C" = weak / low; "0" = no recommendation
+_NUMERIC_STRENGTHS = {"0": "no recommendation", "1": "strong", "2": "weak"}
+_LETTER_CERTAINTIES = {"a": "high", "b": "moderate", "c": "low", "d": "very low"}
+
 
 class UnsupportedGradingFamilyError(ValueError):
     """Only GRADE is harmonized in M0; other families arrive in M6."""
@@ -64,6 +68,7 @@ def harmonize(raw_strength: str, raw_certainty: str, text: str,
     if family != GradingFamily.GRADE:
         raise UnsupportedGradingFamilyError(f"No harmonization for grading family '{family}'")
 
+    raw_strength, raw_certainty = _spell_out_notation(raw_strength, raw_certainty)
     strength_label = _clean(raw_strength)
     certainty_label = _clean(raw_certainty)
     category = _category(strength_label, text, Category(raw_category))
@@ -84,6 +89,15 @@ def harmonize(raw_strength: str, raw_certainty: str, text: str,
         strength_status=AxisStatus.MAPPED if strength else AxisStatus.UNMAPPED,
         certainty_status=certainty_status,
     )
+
+
+def _spell_out_notation(raw_strength: str, raw_certainty: str) -> tuple[str, str]:
+    """('2', 'C') → ('weak', 'low'); anything else, e.g. the legacy ('0', '0') placeholder, unchanged."""
+    strength = str(raw_strength).strip()
+    certainty = str(raw_certainty).strip().lower()
+    if strength not in _NUMERIC_STRENGTHS or certainty not in _LETTER_CERTAINTIES:
+        return raw_strength, raw_certainty
+    return _NUMERIC_STRENGTHS[strength], _LETTER_CERTAINTIES[certainty]
 
 
 def _clean(value: str) -> str:

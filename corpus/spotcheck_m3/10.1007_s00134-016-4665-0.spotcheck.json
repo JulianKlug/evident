@@ -1,0 +1,477 @@
+{
+ "doi": "10.1007/s00134-016-4665-0",
+ "n_reference_graded": 24,
+ "n_reference_ungraded": 2,
+ "tp": 24,
+ "fp": 16,
+ "fn": 0,
+ "strength_ok": 24,
+ "certainty_ok": 24,
+ "ungraded_extracted_as_ungraded": 0,
+ "reference": [
+  {
+   "ref_id": "1",
+   "page": 3,
+   "text": "We suggest using EEN in critically ill adult patients rather than early PN (Grade 2C) or delaying EN (Grade 2C)",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "2",
+   "page": 3,
+   "text": "We suggest delaying EN if shock is uncontrolled and haemodynamic and tissue perfusion goals are not reached, but start low dose EN as soon as shock is controlled",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "3",
+   "page": 3,
+   "text": "We suggest delaying EN in case of uncontrolled life-threatening hypoxaemia, hypercapnia or acidosis, but using EEN in patients with stable hypoxaemia...",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "4",
+   "page": 3,
+   "text": "We suggest that EN should not be delayed solely because of the concomitant use of neuromuscular blocking agents",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "5",
+   "page": 3,
+   "text": "We suggest starting low dose EEN in patients receiving therapeutic hypothermia and increase the dose after rewarming",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "6",
+   "page": 3,
+   "text": "We suggest using EEN in adult patients receiving extracorporeal membrane oxygenation",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "7",
+   "page": 3,
+   "text": "We suggest that EN should not be delayed solely because of prone positioning",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "8",
+   "page": 3,
+   "text": "We suggest using EEN in critically ill adult patients with traumatic brain injury",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "9",
+   "page": 3,
+   "text": "We suggest using EEN in critically ill adult patients with stroke (ischaemic or haemorrhagic)",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "10",
+   "page": 3,
+   "text": "We suggest using EEN in critically ill adult patients with spinal cord injury",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "11",
+   "page": 3,
+   "text": "We suggest using EEN in critically ill adult patients with severe acute pancreatitis",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "12",
+   "page": 3,
+   "text": "We suggest using EEN in critically ill adult patients after gastrointestinal surgery",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "13",
+   "page": 3,
+   "text": "We suggest using EEN in critically ill adult patients after abdominal aortic surgery",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "14",
+   "page": 3,
+   "text": "We suggest using EEN in critically ill adult patients with abdominal trauma after the continuity of the GI tract is confirmed/restored",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "15",
+   "page": 3,
+   "text": "We suggest delaying EN in critically ill adult patients with overt bowel ischaemia",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "16",
+   "page": 4,
+   "text": "We suggest delaying EN in critically ill adult patients with high-output intestinal fistula if reliable feeding access distal to the fistula is not achievable",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "17",
+   "page": 4,
+   "text": "We suggest using EEN in critically ill adult patients with an open abdomen",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "18a",
+   "page": 4,
+   "text": "We suggest using EEN in patients with intra-abdominal hypertension without abdominal compartment syndrome, but consider temporary reduction or discontinuation of EN...",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "18b",
+   "page": 4,
+   "text": "We suggest delaying EN in critically ill adult patients with abdominal compartment syndrome",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "19",
+   "page": 4,
+   "text": "We suggest delaying EN in patients with active upper GI bleeding, and starting EN when the bleeding has stopped and no signs of rebleeding are observed",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "20",
+   "page": 4,
+   "text": "We suggest starting low dose enteral nutrition when acute, immediately life-threatening metabolic derangements are controlled with or without liver support strategies...",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "21",
+   "page": 4,
+   "text": "We suggest delaying EN in critically ill adult patients if gastric aspirate volume is above 500 ml/6 h",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "22",
+   "page": 4,
+   "text": "We suggest using EEN in critically ill adult patients regardless of the presence of bowel sounds unless bowel ischaemia or obstruction is suspected",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "23",
+   "page": 4,
+   "text": "We suggest using EEN in critically ill adult patients presenting with diarrhoea",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "R7-remark",
+   "page": 12,
+   "text": "Remark: We suggest considering early use of prokinetics followed by post-pyloric feeding in case of persisting gastric retention.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "for",
+   "certainty": ""
+  },
+  {
+   "ref_id": "R20-remark",
+   "page": 16,
+   "text": "Remark: Arterial ammonia levels should be monitored.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "for",
+   "certainty": ""
+  }
+ ],
+ "matches": [
+  {
+   "ref_id": "1",
+   "extracted_id": 20,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "2",
+   "extracted_id": 1,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "3",
+   "extracted_id": 2,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "4",
+   "extracted_id": 15,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "5",
+   "extracted_id": 11,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "6",
+   "extracted_id": 16,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "7",
+   "extracted_id": 14,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "8",
+   "extracted_id": 28,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "9",
+   "extracted_id": 27,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "10",
+   "extracted_id": 26,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "11",
+   "extracted_id": 25,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "12",
+   "extracted_id": 18,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "13",
+   "extracted_id": 17,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "14",
+   "extracted_id": 23,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "15",
+   "extracted_id": 6,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "16",
+   "extracted_id": 5,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "17",
+   "extracted_id": 24,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "18a",
+   "extracted_id": 33,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "18b",
+   "extracted_id": 4,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "19",
+   "extracted_id": 8,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "20",
+   "extracted_id": 12,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "21",
+   "extracted_id": 3,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "22",
+   "extracted_id": 22,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "23",
+   "extracted_id": 19,
+   "strength_ok": true,
+   "certainty_ok": true
+  }
+ ],
+ "false_positives": [
+  {
+   "extracted_id": 0,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 21 (matched to table row)"
+  },
+  {
+   "extracted_id": 7,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 18b (matched to table row)"
+  },
+  {
+   "extracted_id": 9,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 16 (matched to table row)"
+  },
+  {
+   "extracted_id": 10,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 15 (matched to table row)"
+  },
+  {
+   "extracted_id": 13,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 20 (matched to table row)"
+  },
+  {
+   "extracted_id": 21,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 1 (matched to table row)"
+  },
+  {
+   "extracted_id": 29,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 13 (matched to table row)"
+  },
+  {
+   "extracted_id": 30,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 12 (matched to table row)"
+  },
+  {
+   "extracted_id": 31,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 6 (matched to table row)"
+  },
+  {
+   "extracted_id": 32,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 23 (matched to table row)"
+  },
+  {
+   "extracted_id": 34,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 17 (matched to table row)"
+  },
+  {
+   "extracted_id": 35,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 11 (matched to table row)"
+  },
+  {
+   "extracted_id": 36,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 10 (matched to table row)"
+  },
+  {
+   "extracted_id": 37,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 9 (matched to table row)"
+  },
+  {
+   "extracted_id": 38,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 8 (matched to table row)"
+  },
+  {
+   "extracted_id": 39,
+   "cause": "restatement",
+   "note": "body-text copy of Table 2 rec 22 (matched to table row)"
+  }
+ ],
+ "false_negatives": [],
+ "notes": "Reference = Table 2 (pp.3-4): 23 numbered recs with 18 split into 18a/18b = 24 items. Every item carries a GRADE strength ('conditional recommendation ... Grade 2C' or 'Grade 2D'); 'expert opinion' recs are Grade 2D = conditional, very low (methods p.2: expert opinion = very low quality evidence), so all are graded weak/for (direction 'for' = for the stated action, incl. 'delay EN'). Rec 1 is one sentence with two comparisons (vs early PN, vs delayed EN), each 2C: counted once. Ungraded items counted: the two formal body 'Remark' statements (Rec 7: prokinetics/post-pyloric feeding; Rec 20: monitor arterial ammonia); neither extracted. Excluded from reference: Table 1 general principles/precautions and prose 'we suggest/recommend' sentences inside rationale (e.g. diarrhoea causes, ACS withholding EN) - not stated as recommendations. All 16 FPs are body-text restatements (pp.7-16) not deduped against the Table 2 copies; several restated rows carry wrong certainty 'low' for 2D recs (rows 0,7,9,10,13,32,34,39) - irrelevant to TP scoring since table rows were matched. 'Weak For' raw_strength on rows 36-38 is extractor wording; harmonized same."
+}

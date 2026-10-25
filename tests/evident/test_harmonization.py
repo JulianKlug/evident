@@ -111,6 +111,16 @@ SYNTHETIC = [
     (("Insufficient Evidence", "", "X", G), (Category.NO_RECOMMENDATION, None, None, None, NG, NG)),
     # composite certainty with "to"
     (("Conditional", "very low to low", "We suggest X", G), (G, W, F, Certainty.VERY_LOW, M, M)),
+    # GRADE number/letter notation (SCCM 2017): 1/2 strength, A-D certainty, 0 no recommendation
+    (("1", "B", "We recommend X", G), (G, S, F, Certainty.MODERATE, M, M)),
+    (("2", "D", "We suggest X", G), (G, W, F, Certainty.VERY_LOW, M, M)),
+    ((" 2 ", "c", "We suggest against X", G), (G, W, A, Certainty.LOW, M, M)),
+    (("1", "A", "We recommend X", G), (G, S, F, Certainty.HIGH, M, M)),
+    (("0", "B", "ICU patients have more ADEs", G), (Category.NO_RECOMMENDATION, None, None, None, NG, NG)),
+    # notation needs both parts; a lone digit or the legacy "0" placeholder stays as before
+    (("2", "", "We suggest X", G), (G, None, None, None, U, U)),
+    (("0", "0", "X", G), (G, None, None, None, U, U)),
+    (("Strong", "B", "We recommend X", G), (G, S, F, None, M, U)),
 ]
 
 

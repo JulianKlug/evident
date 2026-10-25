@@ -920,7 +920,7 @@ Do the spot-check errors move the headline? Same 10 guidelines, same metric defi
 - Graded metrics: unbiased within 1 point, also without SSC (max +1.1). The errors cancel: restatements raise % against and % high/moderate by ~2 points, ungraded-given-a-grade and the 2014 table lower them. Per society: SCCM within 1 point; ESICM % strong +2.2 (2014 table); ACP +8.3 on 9 recs.
 - Ungraded share: unusable. The single-pass prompt asks for best-practice statements but the model rarely emits them (16 of 160, one guideline). The validation gate never saw this (ungraded P/R not gated; labelled set has almost no ungraded rows).
 
-Decision (design Decision 9): Paper 1 graded-only; ungraded statements via a separate pass in v3, in parallel (TODOS.md).
+Decision (design Decision 9): M4 draft graded-only; ungraded statements via a separate pass in v3, in parallel (TODOS.md).
 
 ## Grade label mapping: statements without a direction (2026-10-13)
 
@@ -934,7 +934,7 @@ All 8 `supersedes_doi` links checked. ERC-ESICM temperature control 2022 folded 
 
 SCCM is 31 of 64 current guidelines and 73% of graded recs, with no labels. Decision: hand-label 3 new SCCM guidelines, out of sample. Random sample (seed 1) of the 27 current SCCM guidelines not in the spot check: safe medication use 2017 (`10.1097/ccm.0000000000002533`), heat stroke 2025 (`10.1097/ccm.0000000000006551`), pediatric end-of-life 2026 (`10.1097/pcc.0000000000003914`); 32 extracted recs. Blind templates (ICU xlsx format + page, rules sheet) in `<data root>/intensive_care_medicine_heldout/`, kept out of the ICU dir so the 12-guideline gate stays comparable. Ungraded statements are labelled too (for v3). `validate` will report this set separately, not gated.
 
-## Corpus search extended before the Paper 1 freeze (2026-10-13)
+## Corpus search extended before the M4 draft freeze (2026-10-13)
 
 Society-page cross-check (ESICM guidelines page, SCCM list of guidelines, ACP clinical guidelines page) found graded guidelines the M3 title search missed: titles saying "recommendations"/"consensus"/"practice parameters", and co-led guidelines published outside ICM/CCM/PCCM/Annals. Decision: include society-led or co-led guidelines wherever published; widen the search.
 
@@ -950,3 +950,13 @@ Society attribution for co-led guidelines: the first corpus society in the bylin
 NCS/SCCM antithrombotic ICH 2026 is a focused update that reprints every still-valid 2016 recommendation (its Table 2), unlike PADIS and the other focused updates; linked as superseding 2016 (2016 → trends only). Its Table 1 sets each updated recommendation beside the 2016 version; v2 extracted some of those prior versions (~5–8 of 58 rows), the comparison-table error class seen in the M3 spot check. Kept as extracted; stated as a limitation.
 
 All 12 added guidelines extracted with v2 into snapshot 8 (`add`); `status`: 85/85 runs succeeded, nothing pending, no PDF drift; validation unchanged (F1 0.939). Current map 75 guidelines, 1294 graded recs. Headline ALL: strong 20.2 → 26.1%, against 18.3 → 17.7%, high/moderate 24.5 → 27.5%; ESICM strong 18.2 → 35.5% (resource-limited series and brain-injury ventilation are strong-heavy). Likely over-extraction: ATS/ESICM/SCCM ARDS 2017 gives 15 rows for 6 published recommendations (restatements).
+
+## M4: proof-of-principle analysis package (2026-10-13)
+
+Spec §3–§8. `publish --snapshot 8 --package DIR --analysis-config configs/paper1.json --heldout-labels DIR` opens the frozen DB read-only, audits it against the config (checksums, 85 runs with PDF hashes, 75 current editions, candidates = manifest), scores the held-out SCCM labels (BioLORD on CPU), and writes `out/paper1/` (`docs/paper1/README.md`) besides the standard outputs. Analytics in `evident/paper.py`; held-out and spot-check loaders in `evident/validation.py`; draft skeleton `docs/paper1/draft.md.j2`. Spot-check reference lists committed to `corpus/spotcheck_m3/`.
+
+On the frozen DB: audit passes; the package stops at the held-out labels (3 blank templates), as specified. Table 1 reproduces the headline (ALL 1294 graded; strong 26.1% [20.5, 32.4], against 17.7% [13.0, 22.9], high/moderate 27.5% [22.9, 32.6]). `validate --snapshot 8` on a copy: unchanged (F1 0.939). Spot-check bias now: published − truth strong +0.9, against −1.2, high/moderate 0.0 points; published values moved slightly from the 2026-10-13 bias note (graded 264 → 262) because the no-direction rule came after it.
+
+Captions: each figure states its own caption; the corpus/provenance note appears once. Dashboard: ungraded share hidden (CSV columns kept). SCCM caption changes to "evaluated separately on 3 held-out guidelines" only when the package carries held-out results.
+
+Held-out SCCM (2026-10-19): labels blind, pages left blank (optional now). 2017 safe medication guideline labelled in its own 1/2 + A–D notation, now mapped under GRADE (no snapshot 8 row uses it); its 3 evidence statements are labelled but not scored; one duplicate row removed. Result (n=3, Wilson intervals ignore clustering): TP 29, FP 3, FN 0; P 0.906 [0.758, 0.968], R 1.000 [0.883, 1.000], F1 0.951; strength 29/29, certainty and combined 26/29 (0.897). Ungraded statements: 0/17 recovered (expected for v2). Package from `3738471`, hashes in `freeze.md`. ERS labels deferred to M6 (`TODOS.md`).

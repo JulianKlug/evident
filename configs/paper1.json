@@ -1,0 +1,43 @@
+{
+  "name": "paper1",
+  "snapshot_id": 8,
+  "search_start": "2016-01-01",
+  "search_cutoff": "2026-10-04",
+  "db_sha256": "145ae06aab900753313fa9df79c91aa28bc4a32d836506b0ce78c2dd3b573bc0",
+  "manifest_sha256": "24f955c44e4c9abbc2d06cc5dc6c08fbca70d48848c584e3eb9ad28caa1292a7",
+  "candidates_sha256": "323fc2ae01059ec538449f7580327637fa86b72fadb20972d426484a236f9a28",
+  "candidates_path": "corpus/candidates.csv",
+  "n_guidelines": 85,
+  "n_current": 75,
+  "bootstrap_n": 2000,
+  "bootstrap_seed": 0,
+  "heldout_dois": [
+    "10.1097/ccm.0000000000002533",
+    "10.1097/ccm.0000000000006551",
+    "10.1097/pcc.0000000000003914"
+  ],
+  "spotcheck_dir": "corpus/spotcheck_m3",
+  "focused_update_overlap_max": 25,
+  "heldout_labels_sha256": {
+    "10.1097_ccm.0000000000002533.xlsx": "113466fb6392049784829b81cd2f26a4136f00fe8f6a5b998bc9ae8011d0dc7f",
+    "10.1097_ccm.0000000000006551.xlsx": "7fee54aa6c5fa5382779eceef928335fe4b10803c667c594fc70fdbba2fdd58f",
+    "10.1097_pcc.0000000000003914.xlsx": "fdb835f7ca6ebaeb4711ab45171aaea7e6c2511639f3bfcb98082c5cdc2051eb"
+  },
+  "dedup_verdicts_path": "corpus/dedup/paper1_verdicts.csv",
+  "dedup_verdicts_sha256": "e9f2f7099cb441155ce6adb292f72ccbca4da5657c94c78bf53c1acef65847e4",
+  "dedup_human_sample_path": "corpus/dedup/audit/human_sample.csv",
+  "dedup_human_sample_sha256": "7c9e82867b8052209574e40eb7c7ddadfaad3772e12278ec1c12ecbf63e96295",
+  "dedup_human_key_path": "corpus/dedup/audit/human_key.csv",
+  "dedup_human_key_sha256": "293388b6fc9c49b91d38790e48eceb8e933c4d8b22ec640e19630d1d5d80a7e5",
+  "model_card": {
+    "base_model": "qwen3.8:27b",
+    "architecture": "qwen35",
+    "parameters": "27.3B",
+    "quantization": "Q4_K_M",
+    "context_length": 65536,
+    "license": "Apache-2.0",
+    "runtime": "Ollama",
+    "model_digest": "12af24e3ee72bf54bca064a972bf767938a96149d671eaa64c9506c7ea54c08c",
+    "temperature": 0
+  }
+}

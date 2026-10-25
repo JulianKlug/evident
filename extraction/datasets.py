@@ -19,6 +19,7 @@ _DATA_ROOT = "/mnt/data1/klug/datasets/evidence_extraction"
 _ACP_DIR = os.path.join(_DATA_ROOT, "General internal medicine", "ACP")
 _ERS_DIR = os.path.join(_DATA_ROOT, "Pneumology", "ERS_guidelines")
 _ICU_DIR = os.path.join(_DATA_ROOT, "intensive_care_medicine")
+_LOCK_PREFIXES = ("~$", ".")  # editor lock files while a label file is open: ~$x.xlsx (Excel), .~lock.x.xlsx# (LibreOffice)
 
 _INVALID_CLASSES = ["0.0", "nan", ""]
 _NO_RECOMMENDATION_CLASS = "no recommendation"
@@ -192,18 +193,19 @@ def load_ers_datasets() -> list[GuidelineDataset]:
     return datasets
 
 
-def load_icu_datasets(gt_mode: GtMode = GtMode.GRADED_ONLY) -> list[GuidelineDataset]:
-    """Load ICU guideline datasets (GRADE scheme)."""
-    if not os.path.isdir(_ICU_DIR):
+def load_icu_datasets(gt_mode: GtMode = GtMode.GRADED_ONLY, directory: str | None = None) -> list[GuidelineDataset]:
+    """Load ICU guideline datasets (GRADE scheme) from `directory`, default the ICU dir (held-out labels live elsewhere)."""
+    directory = directory or _ICU_DIR
+    if not os.path.isdir(directory):
         return []
-    xlsx_files = sorted(f for f in os.listdir(_ICU_DIR) if f.endswith('.xlsx'))
+    xlsx_files = sorted(f for f in os.listdir(directory) if f.endswith('.xlsx') and not f.startswith(_LOCK_PREFIXES))
     if not xlsx_files:
         return []
 
     # Read every xlsx; forward-fill Key/Title/DOI per file (only set on first row of each group)
     frames = []
     for name in xlsx_files:
-        file_df = pd.read_excel(os.path.join(_ICU_DIR, name))
+        file_df = pd.read_excel(os.path.join(directory, name))
         file_df[["Key", "Title", "DOI"]] = file_df[["Key", "Title", "DOI"]].ffill()
         frames.append(file_df)
     df = pd.concat(frames, ignore_index=True)

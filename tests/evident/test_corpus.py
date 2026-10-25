@@ -12,12 +12,14 @@ from evident.corpus import (
     current_editions,
     load_candidates,
     load_manifest,
+    load_theme_assignments,
     sync_to_store,
 )
 from evident.store import DuplicatePdfError, Store
 
 _REPO_MANIFEST = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "manifest.csv")
 _REPO_CANDIDATES = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "candidates.csv")
+_REPO_THEMES = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "themes", "assignments.csv")
 _N_REPO_GUIDELINES = 85
 _HEADER = "doi,society,year,title,topic_id,supersedes_doi,grading_family,pdf_filename"
 _A = "10.1007/a,ESICM,2016,Fluids v1,fluids,,grade,"
@@ -216,3 +218,37 @@ class TestCandidates:
         with pytest.raises(ManifestError) as err:
             check_candidates(load_candidates(_candidates(tmp_path, _INCLUDE_A, _INCLUDE_B)), manifest[:1])
         assert err.value.problems == ["included candidate 10.1007/b has no manifest row"]
+
+
+_THEME_HEADER = "key,doi,society,method,phrase,theme"
+
+
+def test_theme_assignments_load(tmp_path):
+    path = tmp_path / "assignments.csv"
+    path.write_text(f"{_THEME_HEADER}\nk1,10.1/a,SCCM,llm,fluid resuscitation,Fluids\nk2,10.1/b,ACP,topic,,Gout\n")
+
+    assert load_theme_assignments(str(path)) == {"k1": "Fluids", "k2": "Gout"}
+
+
+@pytest.mark.parametrize("body, problem", [
+    ("k1,10.1/a,SCCM,llm,x,Fluids\nk1,10.1/a,SCCM,llm,x,Fluids\n", "duplicate key k1"),
+    ("k1,10.1/a,SCCM,llm,x,\n", "empty key or theme"),
+])
+def test_theme_assignments_problems(tmp_path, body, problem):
+    path = tmp_path / "assignments.csv"
+    path.write_text(f"{_THEME_HEADER}\n{body}")
+
+    with pytest.raises(ManifestError, match=problem):
+        load_theme_assignments(str(path))
+
+
+def test_theme_assignments_need_every_column(tmp_path):
+    path = tmp_path / "assignments.csv"
+    path.write_text("key,theme\nk1,Fluids\n")
+
+    with pytest.raises(ManifestError, match="missing column"):
+        load_theme_assignments(str(path))
+
+
+def test_repo_theme_assignments_load():
+    assert load_theme_assignments(_REPO_THEMES)

@@ -1,0 +1,450 @@
+{
+ "doi": "10.1097/pcc.0000000000001134",
+ "n_reference_graded": 25,
+ "n_reference_ungraded": 1,
+ "tp": 21,
+ "fp": 10,
+ "fn": 4,
+ "strength_ok": 20,
+ "certainty_ok": 21,
+ "ungraded_extracted_as_ungraded": 0,
+ "reference": [
+  {
+   "ref_id": "G1",
+   "page": 3,
+   "text": "R1A. We recommend that patients in the PICU undergo detailed nutritional assessment within 48 hr of admission.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G2",
+   "page": 3,
+   "text": "R1A (2nd statement). We suggest that the nutritional status of patients be re-evaluated at least weekly throughout hospitalization.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G3",
+   "page": 3,
+   "text": "R1B. We recommend that weight and height/length be measured on admission to the PICU, and z scores for BMI-for-age ... be used to screen for patients at extremes; under 36 mo head circumference must b",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G4",
+   "page": 3,
+   "text": "R2A. We suggest that measured energy expenditure by indirect calorimetry (IC) be used to determine energy requirements and guide prescription of the daily energy goal.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G5",
+   "page": 3,
+   "text": "R2B. If IC measurement of REE is not feasible, we suggest that the Schofield or FAO/WHO/UNU equations may be used without the addition of stress factors to estimate energy expenditure.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G6",
+   "page": 3,
+   "text": "R2B (2nd directive). The Harris-Benedict equations and the RDAs ... should not be used to determine energy requirements in critically ill children.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G7",
+   "page": 3,
+   "text": "R2C. We suggest achieving delivery of at least two thirds of the prescribed daily energy requirement by the end of the first week in the PICU.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G8",
+   "page": 3,
+   "text": "R2C (2nd). We suggest attentiveness to individualized energy requirements, timely initiation and attainment of energy targets, and energy balance to prevent unintended cumulative caloric deficit or ex",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G9",
+   "page": 3,
+   "text": "R3A. We recommend a minimum protein intake of 1.5 g/kg/d.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "G10",
+   "page": 3,
+   "text": "R3B. We suggest provision of protein early in the course of critical illness to attain protein delivery goals and promote positive nitrogen balance.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "G11",
+   "page": 4,
+   "text": "R3C. We do not recommend the use of RDA values to guide protein prescription in critically ill children.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "against",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "G12",
+   "page": 4,
+   "text": "R4A. We recommend EN as the preferred mode of nutrient delivery to the critically ill child.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G13",
+   "page": 4,
+   "text": "R4A (2nd). We suggest that interruptions to EN be minimized in an effort to achieve nutrient delivery goals by the enteral route.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G14",
+   "page": 4,
+   "text": "R4B. Early initiation of EN (within 24-48 hr of PICU admission) and achievement of up to two thirds of the nutrient goal in the first week have been associated with improved clinical outcomes (no dire",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G15",
+   "page": 4,
+   "text": "R5A. We suggest the use of a stepwise algorithmic approach to advance EN in children admitted to the PICU.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G16",
+   "page": 4,
+   "text": "R5B. We suggest a nutrition support team, including a dedicated dietitian, be available on the PICU team.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G17",
+   "page": 4,
+   "text": "R6A. We suggest the gastric route be the preferred site for EN in patients in the PICU; postpyloric route may be used if gastric feeding not tolerated or high aspiration risk.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G18",
+   "page": 4,
+   "text": "R6B. We suggest that EN be initiated in all critically ill children, unless it is contraindicated.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G19",
+   "page": 4,
+   "text": "R6B (2nd). We suggest early initiation of EN, within the first 24-48 hr after admission to the PICU, in eligible patients.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G20",
+   "page": 4,
+   "text": "R6B (3rd). We suggest the use of institutional EN guidelines and stepwise algorithms that include criteria for eligibility for EN, timing of initiation, and rate of increase.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G21",
+   "page": 4,
+   "text": "R7A. We do not recommend the initiation of PN within 24 hr of PICU admission.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "against",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "G22",
+   "page": 5,
+   "text": "R7B. In children tolerating EN, we suggest stepwise advancement of nutrient delivery via the enteral route and delaying commencement of PN.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G23",
+   "page": 5,
+   "text": "R7B (2nd). Supplemental PN should be delayed until 1 wk after PICU admission in patients with normal baseline nutritional state and low risk of nutritional deterioration.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G24",
+   "page": 5,
+   "text": "R7B (3rd). We suggest PN supplementation in children who are unable to receive any EN during the first week in the PICU.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G25",
+   "page": 5,
+   "text": "R8. We do not recommend the use of immunonutrition in critically ill children.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "against",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "U1",
+   "page": 4,
+   "text": "R6A. Existing data are insufficient to make recommendations regarding the use of continuous vs intermittent gastric feeding.",
+   "category": "no_recommendation",
+   "strength": "",
+   "direction": "",
+   "certainty": ""
+  }
+ ],
+ "matches": [
+  {
+   "ref_id": "G1",
+   "extracted_id": 23,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G2",
+   "extracted_id": 29,
+   "strength_ok": false,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G3",
+   "extracted_id": 24,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G4",
+   "extracted_id": 28,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G5",
+   "extracted_id": 30,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G7",
+   "extracted_id": 25,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G8",
+   "extracted_id": 26,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G9",
+   "extracted_id": 22,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G10",
+   "extracted_id": 27,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G11",
+   "extracted_id": 21,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G12",
+   "extracted_id": 11,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G14",
+   "extracted_id": 7,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G15",
+   "extracted_id": 14,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G16",
+   "extracted_id": 12,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G17",
+   "extracted_id": 13,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G18",
+   "extracted_id": 6,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G21",
+   "extracted_id": 2,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G22",
+   "extracted_id": 17,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G23",
+   "extracted_id": 1,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G24",
+   "extracted_id": 5,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G25",
+   "extracted_id": 3,
+   "strength_ok": true,
+   "certainty_ok": true
+  }
+ ],
+ "false_positives": [
+  {
+   "extracted_id": 10,
+   "cause": "restatement",
+   "note": "body copy of R1B"
+  },
+  {
+   "extracted_id": 9,
+   "cause": "restatement",
+   "note": "body copy of R2A"
+  },
+  {
+   "extracted_id": 15,
+   "cause": "restatement",
+   "note": "body copy of R2B"
+  },
+  {
+   "extracted_id": 8,
+   "cause": "restatement",
+   "note": "body copy of R2C-i"
+  },
+  {
+   "extracted_id": 4,
+   "cause": "restatement",
+   "note": "body copy of R2C-ii (truncated)"
+  },
+  {
+   "extracted_id": 20,
+   "cause": "restatement",
+   "note": "body copy of R3C"
+  },
+  {
+   "extracted_id": 0,
+   "cause": "restatement",
+   "note": "body copy of R4B"
+  },
+  {
+   "extracted_id": 18,
+   "cause": "restatement",
+   "note": "body copy of full R6A (row 13 matched)"
+  },
+  {
+   "extracted_id": 19,
+   "cause": "restatement",
+   "note": "body copy of full R6B; like row 6 it merges all three 6B statements"
+  },
+  {
+   "extracted_id": 16,
+   "cause": "restatement",
+   "note": "body copy of R7B-i"
+  }
+ ],
+ "false_negatives": [
+  {
+   "ref_id": "G6",
+   "cause": "not_extracted",
+   "note": "R2B Harris-Benedict/RDA \"should not be used\" directive dropped; extractor kept only the Schofield sentence"
+  },
+  {
+   "ref_id": "G13",
+   "cause": "merged",
+   "note": "included inside row 11 together with G12 (EN preferred)"
+  },
+  {
+   "ref_id": "G19",
+   "cause": "merged",
+   "note": "rows 6 and 19 each merge all three R6B statements into one"
+  },
+  {
+   "ref_id": "G20",
+   "cause": "merged",
+   "note": "rows 6 and 19 each merge all three R6B statements into one"
+  }
+ ],
+ "notes": "17 numbered recommendations (R1A..R8), one Quality/GRADE per number; table (p3-5) and body grades agree. Counting rule: each separately stated directive sentence within a numbered rec is its own item (25 graded), all inheriting that number's printed grade; R4B has no directive verb but is numbered and graded, counted once. G2 ('we suggest' weekly re-evaluation) and G13 ('we suggest' minimize EN interruptions) are worded 'suggest' but sit under R1A/R4A printed GRADE strong; reference uses printed strong, so G2 strength_ok=false (extractor gave weak). G6 (Harris-Benedict/RDA should not be used) is a judgment call; excluding it gives fn=3. Elaborations (postpyloric 'may be used', 'PN may be supplemented' if malnourished, 'should be individualized', research-gap 'validated screening methods must be developed') not counted. U1 (no recommendation on continuous vs intermittent feeding) only appears inside graded rows 18 (6A full text). Alternative per-number counting (17 graded items): tp=17, fn=0, and rows 29, 26, 1, 5 would become 'split' FPs (fp=14). Direction for R4B set 'for' (implicit endorsement of early EN)."
+}

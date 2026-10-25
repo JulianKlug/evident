@@ -1,0 +1,72 @@
+{
+ "doi": "10.7326/m19-0882",
+ "n_reference_graded": 3,
+ "n_reference_ungraded": 1,
+ "tp": 3,
+ "fp": 0,
+ "fn": 0,
+ "strength_ok": 3,
+ "certainty_ok": 3,
+ "ungraded_extracted_as_ungraded": 0,
+ "reference": [
+  {
+   "ref_id": "1a",
+   "page": 1,
+   "text": "ACP suggests that clinicians discuss whether to initiate testosterone treatment in men with age-related low testosterone with sexual dysfunction who want to improve sexual function",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "1b",
+   "page": 1,
+   "text": "ACP suggests that clinicians should re-evaluate symptoms within 12 months and periodically thereafter. Clinicians should discontinue testosterone treatment in men with age-related low testosterone with sexual dysfunction in whom there is no improvement",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "1c",
+   "page": 1,
+   "text": "ACP suggests that clinicians consider intramuscular rather than transdermal formulations when initiating testosterone treatment to improve sexual function in men with age-related low testosterone, as costs are considerably lower",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "for",
+   "certainty": ""
+  },
+  {
+   "ref_id": "2",
+   "page": 1,
+   "text": "ACP suggests that clinicians not initiate testosterone treatment in men with age-related low testosterone to improve energy, vitality, physical function, or cognition",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low"
+  }
+ ],
+ "matches": [
+  {
+   "ref_id": "1a",
+   "extracted_id": 0,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "1b",
+   "extracted_id": 2,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "2",
+   "extracted_id": 1,
+   "strength_ok": true,
+   "certainty_ok": true
+  }
+ ],
+ "false_positives": [],
+ "false_negatives": [],
+ "notes": "Recommendations 1a, 1b, 2 carry '(conditional recommendation; low-certainty evidence)' in abstract (p1) and body (p4, p7). Recommendation 1c (intramuscular over transdermal) has no printed strength/certainty in either copy; Figure 2 (pp5-6) is an image with no text. Classified as ungraded per instructions (wording 'suggests' implies conditional, but grade not printed). It was not extracted at all. If 1c were treated as graded it would be 1 FN (cause not_extracted)."
+}

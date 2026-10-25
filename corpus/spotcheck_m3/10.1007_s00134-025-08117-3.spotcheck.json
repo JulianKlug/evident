@@ -1,0 +1,1234 @@
+{
+ "doi": "10.1007/s00134-025-08117-3",
+ "n_reference_graded": 31,
+ "n_reference_ungraded": 74,
+ "tp": 30,
+ "fp": 2,
+ "fn": 1,
+ "strength_ok": 28,
+ "certainty_ok": 29,
+ "ungraded_extracted_as_ungraded": 0,
+ "reference": [
+  {
+   "ref_id": "G1",
+   "page": 12,
+   "text": "We recommend the use of 100% inspired oxygen until SpO2/PaO2 can be measured reliably in adults with ROSC after cardiac arrest in the pre-hospital setting",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "G2",
+   "page": 12,
+   "text": "We recommend the use of 100% inspired oxygen until SpO2/PaO2 can be measured reliably in adults with ROSC after cardiac arrest in the in-hospital setting",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G3",
+   "page": 12,
+   "text": "We recommend avoiding hypoxemia in adults with ROSC after cardiac arrest in any setting",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G4",
+   "page": 12,
+   "text": "We suggest avoiding hyperoxemia in adults with ROSC after cardiac arrest in any setting",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G5",
+   "page": 14,
+   "text": "When early coronary angiography is considered for comatose post-arrest patients without ST elevation, we suggest that either an early or delayed approach for angiography is reasonable",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low",
+   "note": "direction is neutral (either approach); coded for"
+  },
+  {
+   "ref_id": "G6",
+   "page": 18,
+   "text": "ILCOR made a weak recommendation against the routine use of vasopressin and corticosteroids in conjunction with standard care for adult in-hospital cardiac arrest",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low",
+   "note": "certainty printed as 'low to moderate'; coded as lowest (low)"
+  },
+  {
+   "ref_id": "G7",
+   "page": 18,
+   "text": "ILCOR suggests that intravenous insulin combined with glucose can be used in cases where cardiac arrest is suspected to be caused by acute hyperkalaemia",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G8",
+   "page": 18,
+   "text": "ILCOR concluded that there is insufficient evidence to support or oppose the use of intravenous sodium bicarbonate or calcium (weak recommendation, very low certainty)",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "unknown",
+   "certainty": "very_low",
+   "note": "labelled weak recommendation but direction not stated (support or oppose)"
+  },
+  {
+   "ref_id": "G9",
+   "page": 19,
+   "text": "ILCOR made a weak recommendation against the routine use of these [MCS] devices in cardiogenic shock patients following cardiac arrest and ROSC (low certainty)",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G10",
+   "page": 19,
+   "text": "MCS may be considered for carefully selected patients in appropriate settings where the devices can be effectively used",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G11",
+   "page": 20,
+   "text": "We suggest against the use of prophylactic antiseizure medication in post-cardiac arrest adults",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G12",
+   "page": 20,
+   "text": "We suggest treatment of rhythmic and periodic EEG patterns that are on the ictal-interictal continuum in comatose post-cardiac arrest adults",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G13",
+   "page": 22,
+   "text": "We suggest actively preventing fever by targeting a temperature <= 37.5 C for patients who remain comatose after ROSC from cardiac arrest",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G14",
+   "page": 22,
+   "text": "We recommend against the routine use of prehospital cooling with rapid infusion of large volumes of cold intravenous fluid immediately after ROSC",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "against",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "G15",
+   "page": 22,
+   "text": "We suggest surface or endovascular temperature control techniques when temperature control is used in comatose patients after ROSC",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G16",
+   "page": 24,
+   "text": "Insufficient evidence to recommend the use of any specific drug therapy [neuroprotection] for comatose survivors of cardiac arrest (weak recommendation, low- to very low-certainty evidence)",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "unknown",
+   "certainty": "very_low",
+   "note": "direction not stated; certainty printed 'low- to very low'; coded as lowest (very_low)"
+  },
+  {
+   "ref_id": "G17",
+   "page": 24,
+   "text": "ILCOR treatment recommendation suggests against the use of prophylactic antibiotics in patients following ROSC",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G18",
+   "page": 25,
+   "text": "We suggest no modification of standard glucose management protocols for adults with ROSC after cardiac arrest",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate",
+   "note": "printed 'moderate-quality evidence'"
+  },
+  {
+   "ref_id": "G19",
+   "page": 28,
+   "text": "We recommend that neuroprognostication always be undertaken using a multimodal approach because no single test has sufficient specificity to eliminate false positives",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G20",
+   "page": 28,
+   "text": "We suggest using pupillary light reflex at 72 h or later after ROSC for predicting neurological outcome of adults who are comatose after cardiac arrest",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G21",
+   "page": 28,
+   "text": "We suggest using bilateral absence of corneal reflex at 72 h or later after ROSC for predicting poor neurological outcome",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G22",
+   "page": 28,
+   "text": "We suggest using the presence of myoclonus or status myoclonus within 7 days after ROSC, in combination with other tests, for predicting poor neurological outcome",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G23",
+   "page": 28,
+   "text": "We also suggest recording EEG in the presence of myoclonic jerks to detect any associated epileptiform activity",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G24",
+   "page": 29,
+   "text": "We suggest using a bilaterally absent N20 wave of SSEP at >= 24 h from ROSC in combination with other indices to predict poor outcome",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G25",
+   "page": 29,
+   "text": "We suggest against using the absence of EEG background reactivity alone to predict poor outcome",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G26",
+   "page": 29,
+   "text": "We suggest using suppression or burst-suppression on EEG to predict poor outcome in adult patients who are comatose and off sedation",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G27",
+   "page": 33,
+   "text": "We suggest using NSE within 72 h after ROSC, in combination with other tests, for predicting neurological outcome",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "G28",
+   "page": 33,
+   "text": "We suggest against using S-100B protein for predicting neurological outcome",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "G29",
+   "page": 33,
+   "text": "We suggest against using serum GFAP, serum tau protein, or NfL for predicting poor neurological outcome",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "against",
+   "certainty": "very_low",
+   "note": "one sentence covering three biomarkers: one item"
+  },
+  {
+   "ref_id": "G30",
+   "page": 36,
+   "text": "We suggest using a marked reduction of GM/WM ratio on brain CT within 72 h or extensive diffusion restriction on brain MRI at 2-7 days in combination with other predictors for prognosticating poor out",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low",
+   "note": "printed 'very low-quality evidence'"
+  },
+  {
+   "ref_id": "G31",
+   "page": 52,
+   "text": "ILCOR suggests that adult patients with non-traumatic OHCA should be cared for in cardiac arrest centres (weak recommendation, low-certainty evidence)",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "U1",
+   "page": 12,
+   "text": "Following reliable measurement of arterial oxygen values, we suggest targeting SpO2 94-98% or PaO2 75-100 mmHg (good practice statement)",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": ""
+  },
+  {
+   "ref_id": "U2",
+   "page": 13,
+   "text": "When relying on pulse oximetry, be aware of increased risk of inaccuracy that may conceal hypoxemia in patients with darker skin pigmentation (good practice statement)",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": ""
+  },
+  {
+   "ref_id": "U3",
+   "page": 19,
+   "text": "When MCS devices are used, closely monitor for adverse events and complications (good practice statement)",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": ""
+  },
+  {
+   "ref_id": "U4",
+   "page": 20,
+   "text": "We suggest treatment of clinically apparent and EEG seizures in post-cardiac arrest adults (good practice statement)",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": ""
+  },
+  {
+   "ref_id": "U5",
+   "page": 22,
+   "text": "Comatose patients with mild hypothermia after ROSC should not be actively warmed to achieve normothermia (good practice statement)",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": ""
+  },
+  {
+   "ref_id": "U6",
+   "page": 22,
+   "text": "When a cooling device is used, we suggest a temperature control device with feedback system (good practice statement)",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": ""
+  },
+  {
+   "ref_id": "U7",
+   "page": 22,
+   "text": "We suggest active prevention of fever for 36 to 72 h in post-cardiac arrest patients who remain comatose (good practice statement)",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": ""
+  },
+  {
+   "ref_id": "U8",
+   "page": 16,
+   "text": "ERC/ESICM recommends that bradycardia (heart rate < 30-40/min) be left untreated provided there are no signs of hypoperfusion",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "ungraded ERC/ESICM statement"
+  },
+  {
+   "ref_id": "U9",
+   "page": 2,
+   "text": "Post-resuscitation care is started immediately after sustained return of spontaneous circulation (ROSC), regardless of location (Fig. 2).",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U10",
+   "page": 2,
+   "text": "Prioritise immediate coronary angiography for patients with clear ST-elevation on the ECG or other high suspicion of coronary occlusion (e.g. haemodynamic and/or electrical instability). Perform a hea",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U11",
+   "page": 2,
+   "text": "If there are signs or symptoms pre-arrest suggesting a non-coronary cause (e.g. headache, seizures or neurological deficits, shortness of breath or documented hypoxaemia in patients with known respira",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U12",
+   "page": 4,
+   "text": "Airway and ventilation support should continue after ROSC is achieved.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U13",
+   "page": 4,
+   "text": "Patients who have had a brief period of cardiac arrest and an immediate return of normal cerebral function and are breathing normally, may not require airway or ventilatory support but should be given",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U14",
+   "page": 4,
+   "text": "Patients who remain comatose following ROSC, or who have another clinical indication for sedation and mechanical ventilation, should have their trachea intubated if this has not been done already duri",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U15",
+   "page": 4,
+   "text": "Tracheal intubation (with or without drugs) should be performed only by experienced operators who have a high success rate.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U16",
+   "page": 4,
+   "text": "Correct placement of the tracheal tube must be confirmed with waveform capnography.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U17",
+   "page": 4,
+   "text": "In the absence of personnel experienced in tracheal intubation, it is reasonable to retain or insert a supraglottic airway (SGA) or maintain the airway with basic techniques until personnel skilled in",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U18",
+   "page": 4,
+   "text": "Post ROSC patients may require drug assisted tracheal intubation – the same level of care should be provided as for any other critically ill patient with a physiologically or anatomically challenging ",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U19",
+   "page": 6,
+   "text": "Obtain arterial blood gases and monitor end tidal CO2 in mechanically ventilated patients.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U20",
+   "page": 6,
+   "text": "Target normocapnia – a partial pressure of carbon dioxide of 4.7–6.0 kPa (or approximately 35-45 mmHg) in adults with ROSC after cardiac arrest.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U21",
+   "page": 6,
+   "text": "In patients with accidental hypothermia or treated with hypothermia monitor  PaCO2 frequently as hypocapnia may occur.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U22",
+   "page": 6,
+   "text": "In hypothermic patients use consistently either temperature or non-temperature corrected blood gas values.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U23",
+   "page": 6,
+   "text": "Use a lung protective ventilation strategy aiming for a tidal volume of 6–8 mL  kg−1 ideal body weight.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U24",
+   "page": 6,
+   "text": "Emergent cardiac catheterisation laboratory evaluation (and primary percutaneous coronary intervention (PPCI) if required) should be performed in adult patients with ROSC after cardiac arrest of suspe",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U25",
+   "page": 6,
+   "text": "In patients with ROSC after out-of-hospital cardiac arrest (OHCA) without ST-elevation on the ECG, cardiac catheterisation laboratory evaluation should be delayed unless the clinical context suggests ",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U26",
+   "page": 6,
+   "text": "All patients should be monitored with an arterial line for continuous blood pressure measurements, and it is reasonable to monitor cardiac output in haemodynamically unstable patients.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U27",
+   "page": 6,
+   "text": "Perform echocardiograpy as soon as possible in all patients to detect any underlying cardiac pathology and quantify the degree of myocardial dysfunction.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U28",
+   "page": 6,
+   "text": "Avoid hypotension and target a mean arterial pressure (MAP) > 60–65 mmHg after cardiac arrest (Fig. 3).",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded (ERC/ESICM 'suggests'; extracted as graded)"
+  },
+  {
+   "ref_id": "U29",
+   "page": 6,
+   "text": "Maintain perfusion with fluids, noradrenaline and/or dobutamine, depending on individual patient need for intravascular volume, vasoconstriction or inotropy.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U30",
+   "page": 6,
+   "text": "Do not give steroids routinely after cardiac arrest.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U31",
+   "page": 6,
+   "text": "Avoid hypokalaemia and hyperkalaemia, which are associated with ventricular arrhythmias.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U32",
+   "page": 6,
+   "text": "In patients with arrhythmia immediately after ROSC, follow the ALS guideline for peri-arrest arrhythmia.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U33",
+   "page": 6,
+   "text": "In patients with arrhythmia after ROSC, treat any potential underlying causes, such as coronary occlusion or electrolyte disorders.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U34",
+   "page": 6,
+   "text": "In patients with no arrhythmia after ROSC, do not routinely give anti-arrhythmic drug prophylaxis.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U35",
+   "page": 6,
+   "text": "Use electroencephalography (EEG) to diagnose electrographic seizures in patients with clinical convulsions and to monitor treatment effects.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U36",
+   "page": 6,
+   "text": "Use levetiracetam or sodium valproate as first-line antiepileptic drugs in addition to sedative drugs to treat seizures after cardiac arrest.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U37",
+   "page": 6,
+   "text": "Attempt a wake-up trial in patients with myoclonus and benign EEG background (days after arrest).",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U38",
+   "page": 7,
+   "text": "Use short-acting sedative agents and daily sedation holds when treating post-cardiac arrest patients receiving mechanical ventilation – this may enable earlier clinical examination that is less confou",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U39",
+   "page": 7,
+   "text": "We do not recommend systematic use of neuromuscular blocking drugs in comatose post-cardiac arrest patients.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U40",
+   "page": 7,
+   "text": "In patients with critical hypoxaemia and ARDS following cardiac arrest, the use of a neuromuscular blocker may be considered.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U41",
+   "page": 7,
+   "text": "Patients should be nursed 30° head-up.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U42",
+   "page": 7,
+   "text": "It is reasonable to start gastric feeding at low rates (trophic feeding) and increase as tolerated.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U43",
+   "page": 7,
+   "text": "Given the high incidence of upper gastrointestinal ulceration in post-cardiac arrest patients and the use of anticoagulant and antiplatelet drugs both pre and post arrest, use stress ulcer prophylaxis",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U44",
+   "page": 8,
+   "text": "Anticoagulation of post-cardiac arrest patients should be individualised and be based on general ICU recommendations.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U45",
+   "page": 8,
+   "text": "In patients who are comatose after resuscitation from cardiac arrest, neurological prognostication should be performed using clinical examination, electrophysiology, biomarkers, and imaging, to both i",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U46",
+   "page": 8,
+   "text": "The clinical neurological examination is central to prognostication. To avoid falsely pessimistic predictions, clinicians should exclude potential residual effects of sedatives and other drugs that ma",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U47",
+   "page": 8,
+   "text": "Perform a daily neurological examination in patients who are unconscious after cardiac arrest.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U48",
+   "page": 8,
+   "text": "Clinical examination is prone to interference from sedatives, opioids or muscle relaxants. Potential confounding from residual sedation should always be considered and excluded.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U49",
+   "page": 8,
+   "text": "Consider neurological prognostication in patients who are not awake and obeying commands (Glasgow coma scale motor score < 6) at 72 h or later after ROSC",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U50",
+   "page": 9,
+   "text": "Perform EEG from day 1 after ROSC to predict outcome and detect seizure activity in comatose patients. Routine EEG or continuous EEG monitoring may be used.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U51",
+   "page": 9,
+   "text": "Always consider the EEG and somatosensory evoked potentials (SSEPs) results in the context of clinical examination findings and other tests. drug when performing SSEPs.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U52",
+   "page": 9,
+   "text": "Use brain imaging studies to predict poor neurological outcome after cardiac arrest. Ensure that the images are evaluated by someone with specific experience in these studies.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U53",
+   "page": 9,
+   "text": "Where specialist neuroradiology expertise is unavailable, consider telemedicine consultation for brain imaging interpretation.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U54",
+   "page": 9,
+   "text": "Repeat the brain CT if the patient is unconscious at the time of prognostication (72 h–96 h after ROSC) and the first brain CT does not show signs of HIBI.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U55",
+   "page": 9,
+   "text": "Once major confounders have been excluded, start the prognostication assessment with an accurate clinical examination (Fig. 5 ).",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U56",
+   "page": 9,
+   "text": "In an unconscious patient at ≥ 72 h from ROSC, in the absence of confounders, poor outcome is likely when two or more of the following predictors are present: no pupillary and corneal reflexes at ≥ 72",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U57",
+   "page": 9,
+   "text": "Separate discussions around withdrawal of life-sustaining treatment and the assessment of prognosis for neurological recovery; withdrawal of life-sustaining treatment decisions should consider aspects",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U58",
+   "page": 9,
+   "text": "Allocate sufficient time for communication around the level-of-treatment decision within the team and with the relatives.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U59",
+   "page": 9,
+   "text": "After a decision on withdrawal of life-sustaining treatment, use a structured approach to shift from curative to end-of-life palliative care and consider organ donation.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U60",
+   "page": 9,
+   "text": "Implement early mobilisation, delirium management and ICU diaries during hospitalisation",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U61",
+   "page": 9,
+   "text": "Provide information for patients and co-survivors",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U62",
+   "page": 9,
+   "text": "Perform functional assessments of physical and non-physical impairments before discharge to identify rehabilitation needs and refer to early rehabilitation if indicated.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U63",
+   "page": 9,
+   "text": "Provide cardiac rehabilitation as indicated by the cause of the cardiac arrest. account for extracerebral factors that may influence patient outcomes. CT: computed tomography; EEG: electroencephalogra",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U64",
+   "page": 11,
+   "text": "Organise a follow-up of cardiac arrest survivors within three months after hospital discharge; screening for cognitive, physical, emotional problems, fatigue, and impact on life roles.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U65",
+   "page": 11,
+   "text": "Invite co-survivors to the follow-up; ask about emotional problems and impact on life roles.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U66",
+   "page": 11,
+   "text": "Undertake specialist referral and further rehabilitation as indicated.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U67",
+   "page": 11,
+   "text": "We recommend that all patients who have restoration of circulation after CPR and who subsequently progress to death be evaluated for organ donation.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U68",
+   "page": 11,
+   "text": "In comatose ventilated patients who do not fulfil neurological criteria for death, if a decision to start end-of-life care and withdrawal of life support is made, organ donation should be considered f",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U69",
+   "page": 11,
+   "text": "All decisions concerning organ donation must follow local legal and ethical requirements.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U70",
+   "page": 11,
+   "text": "Cardiac arrest registries should report if organ donation after initial resuscitation from cardiac arrest occurred.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U71",
+   "page": 11,
+   "text": "Diagnostic testing of patients with unexplained cardiac arrest includes blood sample collection for toxicology and genetic testing, data retrieval from cardiac implantable electronic devices and weara",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U72",
+   "page": 11,
+   "text": "A confirmed diagnosis of a heritable condition should prompt targeted genetic testing.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U73",
+   "page": 11,
+   "text": "Long-term follow-up of unexplained cardiac arrest patients is recommended because of the high risk of recurrence of arrhythmia.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  },
+  {
+   "ref_id": "U74",
+   "page": 11,
+   "text": "Health care networks should establish local protocols to develop and maintain a cardiac arrest network. cal mechanisms contribute to primary ischaemic and sec-",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "",
+   "certainty": "",
+   "note": "concise-guideline bullet, ungraded"
+  }
+ ],
+ "matches": [
+  {
+   "ref_id": "G1",
+   "extracted_id": 15,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G2",
+   "extracted_id": 14,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G3",
+   "extracted_id": 12,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G5",
+   "extracted_id": 31,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G6",
+   "extracted_id": 5,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G7",
+   "extracted_id": 7,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G8",
+   "extracted_id": 3,
+   "strength_ok": null,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G9",
+   "extracted_id": 4,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G10",
+   "extracted_id": 8,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G11",
+   "extracted_id": 17,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G12",
+   "extracted_id": 23,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G13",
+   "extracted_id": 16,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G14",
+   "extracted_id": 11,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G15",
+   "extracted_id": 22,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G16",
+   "extracted_id": 9,
+   "strength_ok": null,
+   "certainty_ok": false
+  },
+  {
+   "ref_id": "G17",
+   "extracted_id": 0,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G18",
+   "extracted_id": 21,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G19",
+   "extracted_id": 13,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G20",
+   "extracted_id": 27,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G21",
+   "extracted_id": 25,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G22",
+   "extracted_id": 30,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G23",
+   "extracted_id": 10,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G24",
+   "extracted_id": 24,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G25",
+   "extracted_id": 20,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G26",
+   "extracted_id": 28,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G27",
+   "extracted_id": 26,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G28",
+   "extracted_id": 18,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G29",
+   "extracted_id": 19,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G30",
+   "extracted_id": 29,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "G31",
+   "extracted_id": 6,
+   "strength_ok": true,
+   "certainty_ok": true
+  }
+ ],
+ "false_positives": [
+  {
+   "extracted_id": 1,
+   "cause": "category",
+   "note": "Bradycardia statement is an ungraded ERC/ESICM statement (p16, no strength/certainty printed); extractor assigned weak/low. Matches U8."
+  },
+  {
+   "extracted_id": 2,
+   "cause": "category",
+   "note": "MAP > 60-65 mmHg: 'ERC/ESICM suggests', ungraded (p16 and concise bullet p6); extractor assigned weak/low."
+  }
+ ],
+ "false_negatives": [
+  {
+   "ref_id": "G4",
+   "cause": "not_extracted",
+   "note": "Hyperoxemia bullet (weak, low) in the p12 ILCOR oxygen list; adjacent bullets were extracted."
+  }
+ ],
+ "notes": "Graded reference = statements printed with a strength and certainty in the 'Evidence informing the guidelines' section (ILCOR treatment recommendations adopted by ERC/ESICM). Concise-guideline bullets (pp2-11) are ungraded summaries; those restating a graded rec or GPS were merged into it, the rest listed as ungraded (U9+). The ungraded count (~74) is approximate: concise bullets were counted one per bullet, descriptive bullets (e.g. 'index tests are aimed at...') and the list lead-in excluded; 'we suggest' expert-opinion sentences in the evidence text were treated as restatements of concise bullets. The 100% oxygen rec is one sentence with separate grades for pre-hospital (strong, moderate) and in-hospital (strong, low); counted as two items (G1, G2). If counted as one, extracted row 14 or 15 becomes a 'split' FP. G8 (bicarbonate/calcium) and G16 (neuroprotective drugs) are 'insufficient evidence' statements labelled 'weak recommendation'; counted graded per the printed strength, but direction is not stated, so strength_ok = null (excluded): strength_ok is 28/28 evaluable (28/30 of TP). If treated as no_recommendation instead, rows 3 and 9 become 'category' FPs (tp 28, fp 4). Certainty ranges coded at the lowest level: G6 'low to moderate' -> low (row 5 ok); G16 'low- to very low' -> very_low (row 9 'low' marked not ok). Extractor emitted no ungraded rows, so ungraded_extracted_as_ungraded = 0; 2 ungraded statements were extracted as graded (FPs). G10 matched row 8; concise bullet on MCS in select populations treated as its restatement."
+}

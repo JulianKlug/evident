@@ -9,6 +9,8 @@ import os
 from dataclasses import replace
 from typing import Optional
 
+import pandas as pd
+
 from evident.domain import Category, GradingFamily, LlmCall, RawRecommendation, ThinkingMode
 from evident.extraction import Artifacts, ExtractionMode, ExtractionOutput, ExtractorConfig, FewShotMode
 from evident.pipeline import PipelineDeps
@@ -20,6 +22,7 @@ from utils.doi import doi_to_filename
 CONFIG = ExtractorConfig(mode=ExtractionMode.SINGLE_PASS, model="qwen3:14b", thinking=ThinkingMode.OFF,
                          prompt_version="v0", few_shot=FewShotMode.FEW_SHOT)
 WORSE_CONFIG = replace(CONFIG, model="qwen3:8b")  # FakeRunner returns fewer recs for it
+FEW_SHOT_EXAMPLE = {"recommendation": "We suggest early mobilisation", "class": "Weak For", "LOE": "Low"}
 
 _HEADER = "doi,society,year,title,topic_id,supersedes_doi,grading_family,pdf_filename\n"
 
@@ -40,6 +43,10 @@ GUIDELINES = {
     ]),
     "10.1000/d": ("ACP", 2025, "topic-d", [
         ("ACP suggests cognitive behavioural therapy for insomnia disorder", "conditional recommendation", "low"),
+    ]),
+    "10.1000/e": ("SCCM", 2025, "topic-e", [  # held out in package tests
+        ("We recommend active cooling for patients with exertional heat stroke", "strong", "moderate"),
+        ("We suggest against dantrolene for heat stroke", "conditional", "very low"),
     ]),
 }
 LABELLED_DOIS = ("10.1000/a", "10.1000/b")
@@ -67,7 +74,7 @@ class FakeRunner:
         recs = [RawRecommendation(i, text, s, c, Category.GRADED, page=1, chunk_id=0)
                 for i, (text, s, c) in enumerate(rows)]
         calls = [LlmCall(chunk_id=0, prompt_sha256="p", raw_text="r", eval_tokens=10)]
-        return ExtractionOutput(recs=recs, calls=calls, n_pages=1, few_shot=[{"recommendation": "x"}])
+        return ExtractionOutput(recs=recs, calls=calls, n_pages=1, few_shot=[FEW_SHOT_EXAMPLE])
 
 
 class FakeProbe:
@@ -125,3 +132,19 @@ class World:
             runner=runner or self.runner, probe=self.probe, labelled=labelled,
             similarity_model=FakeEncoder(), code_sha=lambda: "sha1", publish_dir=self.publish_dir,
         )
+
+
+def write_heldout_xlsx(directory: str, doi: str, rows: list[tuple], sheet: str = "labels") -> str:
+    """A held-out label file as annotators fill it: rows of (recommendation, class, LOE, page); Key/Title/DOI once."""
+    os.makedirs(directory, exist_ok=True)
+    records = [{"Key": doi if i == 0 else None, "Title": f"Title {doi}" if i == 0 else None,
+                "DOI": doi if i == 0 else None, "recommendation": text, "class": cls, "LOE": loe, "page": page}
+               for i, (text, cls, loe, page) in enumerate(rows)]
+    if not records:
+        records = [{"Key": doi, "Title": f"Title {doi}", "DOI": doi, "recommendation": None, "class": None,
+                    "LOE": None, "page": None}]
+    path = os.path.join(directory, doi.replace("/", "_") + ".xlsx")
+    with pd.ExcelWriter(path) as writer:
+        pd.DataFrame(records).to_excel(writer, sheet_name=sheet, index=False)
+        pd.DataFrame({"rule": ["Label blind."]}).to_excel(writer, sheet_name="rules", index=False)
+    return path

@@ -1,0 +1,307 @@
+{
+ "doi": "10.1097/ccm.0000000000006549",
+ "n_reference_graded": 15,
+ "n_reference_ungraded": 2,
+ "tp": 15,
+ "fp": 9,
+ "fn": 0,
+ "strength_ok": 13,
+ "certainty_ok": 15,
+ "ungraded_extracted_as_ungraded": 0,
+ "reference": [
+  {
+   "ref_id": "R1",
+   "page": 3,
+   "text": "We recommend liberalized ICU family presence policies as the default practice in ICUs.",
+   "category": "graded",
+   "strength": "strong",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "R2",
+   "page": 5,
+   "text": "We suggest offering the option of families being present on rounds in the ICU.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "R3",
+   "page": 6,
+   "text": "We suggest offering family participation in bedside care.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "very_low"
+  },
+  {
+   "ref_id": "R4",
+   "page": 6,
+   "text": "We suggest offering family presence during resuscitation, with an assigned staff member to support the family. There are not sufficient data for a statement regarding family presence during invasive b",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "R5",
+   "page": 6,
+   "text": "We suggest providing educational programs for families of ICU patients to orient them to the ICU environment, ICU team, and ICU concepts.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "moderate"
+  },
+  {
+   "ref_id": "R6",
+   "page": 7,
+   "text": "We make no suggestion for or against specific tools relevant to family-centered ICU care designed for clinical teams.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "neither",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "R7",
+   "page": 7,
+   "text": "We suggest providing ICU diaries for families of ICU patients.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "R8",
+   "page": 8,
+   "text": "We make no suggestion for or against any specific decision-making support tools for families of ICU patients.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "neither",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "R9",
+   "page": 8,
+   "text": "We suggest providing bereavement support to families of patients who have died in the ICU.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "R10",
+   "page": 9,
+   "text": "We suggest identifying and supporting the mental health and psychological needs of families of ICU patients.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "R11",
+   "page": 9,
+   "text": "We suggest identifying and supporting the spiritual needs of families of ICU patients.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "B1",
+   "page": 10,
+   "text": "Best practice statement. We recommend ICUs use family support zones or incorporate supportive features to meet family needs during patients ICU stays.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "for",
+   "certainty": ""
+  },
+  {
+   "ref_id": "B2",
+   "page": 10,
+   "text": "Best practice statement. We recommend that ICUs implement practices to systematically identify and reduce barriers so as to promote equitable critical care delivery for patients families.",
+   "category": "best_practice",
+   "strength": "",
+   "direction": "for",
+   "certainty": ""
+  },
+  {
+   "ref_id": "R12",
+   "page": 11,
+   "text": "We suggest using standardized approaches for interdisciplinary family conferences and facilitation of communication in ICUs.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "R13",
+   "page": 11,
+   "text": "We suggest ICUs provide communication skills training to clinicians, if local resources permit.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "R14",
+   "page": 11,
+   "text": "We suggest critical care trainees participate in high fidelity (e.g., standardized actor) simulation communication education training programs.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  },
+  {
+   "ref_id": "R15",
+   "page": 12,
+   "text": "We suggest structured programs to support clinicians in promoting the delivery of family-centered ICU care.",
+   "category": "graded",
+   "strength": "weak",
+   "direction": "for",
+   "certainty": "low"
+  }
+ ],
+ "matches": [
+  {
+   "ref_id": "R1",
+   "extracted_id": 3,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R2",
+   "extracted_id": 15,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R3",
+   "extracted_id": 12,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R4",
+   "extracted_id": 14,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R5",
+   "extracted_id": 18,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R6",
+   "extracted_id": 1,
+   "strength_ok": false,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R7",
+   "extracted_id": 19,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R8",
+   "extracted_id": 0,
+   "strength_ok": false,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R9",
+   "extracted_id": 17,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R10",
+   "extracted_id": 9,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R11",
+   "extracted_id": 11,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R12",
+   "extracted_id": 23,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R13",
+   "extracted_id": 7,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R14",
+   "extracted_id": 6,
+   "strength_ok": true,
+   "certainty_ok": true
+  },
+  {
+   "ref_id": "R15",
+   "extracted_id": 21,
+   "strength_ok": true,
+   "certainty_ok": true
+  }
+ ],
+ "false_positives": [
+  {
+   "extracted_id": 13,
+   "cause": "restatement",
+   "note": "body copy of R4 (row 14 matched)"
+  },
+  {
+   "extracted_id": 16,
+   "cause": "restatement",
+   "note": "body copy of R9"
+  },
+  {
+   "extracted_id": 8,
+   "cause": "restatement",
+   "note": "body copy of R10"
+  },
+  {
+   "extracted_id": 10,
+   "cause": "restatement",
+   "note": "body copy of R11"
+  },
+  {
+   "extracted_id": 22,
+   "cause": "restatement",
+   "note": "body copy of R12"
+  },
+  {
+   "extracted_id": 5,
+   "cause": "restatement",
+   "note": "body copy of R14"
+  },
+  {
+   "extracted_id": 20,
+   "cause": "restatement",
+   "note": "body copy of R15"
+  },
+  {
+   "extracted_id": 2,
+   "cause": "category",
+   "note": "B1 best practice statement extracted as graded strong/for"
+  },
+  {
+   "extracted_id": 4,
+   "cause": "category",
+   "note": "B2 best practice statement extracted as graded strong/for"
+  }
+ ],
+ "false_negatives": [],
+ "notes": "Reference = Table 1 (p4-5) + boxed body statements: 17 statements (abstract confirms 1 strong, 14 conditional, 2 BPS). Table text clean. R6/R8 'We make no suggestion for or against ...' are printed as conditional recommendation, low certainty; counted graded (per abstract's 14 conditional) with direction 'neither'. Extractor labeled them 'Conditional Against' -> strength_ok=false (direction invented). If direction were ignored for these, strength_ok would be 15/15. Restatement FPs: extractor emitted both table and body copies of 7 recs without dedup. Both BPS extracted as graded strong (raw_certainty 'Best practice statement', certainty empty)."
+}

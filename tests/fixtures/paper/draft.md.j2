@@ -1,0 +1,24 @@
+{#- Test stand-in for the private M4 draft (docs/paper1/draft.md.j2, not tracked): same fields, no prose. -#}
+{%- set t = table1_society -%}
+{%- set mf = methods_facts -%}
+{%- set dev = validation_development.report -%}
+{%- set held = validation_sccm_heldout.report -%}
+# Package `{{ analysis.package }}`, snapshot {{ analysis.snapshot.id }}
+
+Of {{ t.ALL.n_graded }} graded recommendations, {{ t.ALL.strong_pct | pct }}% were strong ({{ t.ALL.strong_num }}/{{ t.ALL.strong_den }}; 95% CI {{ t.ALL.strong_ci_low | ci(t.ALL.strong_ci_high) }}).
+
+We ran {{ mf.search.queries | length }} PubMed queries ({{ (mf.search.queries | length) // (mf.corpus.included_by_society | length) }} per society).
+
+{% if mf.dedup.applied %}Duplicates removed: {{ mf.dedup.n_removed }}.{% else %}No duplicate verdicts.{% endif %}
+
+Development F1 {{ dev.candidate.f1 | p3 }} ({{ dev.candidate.f1_ci | ci3 }}); held-out F1 {{ held.f1 | p3 }} ({{ held.precision_ci | ci3 }}).
+
+{% for s, tables in table2_certainty_strength.items() -%}
+- {{ s }}: {% for level in tables.certainty.values() %}{{ level.n }} ({{ level.pct | pct }}%) {% endfor %}
+{% endfor %}
+Flow: {{ corpus_flow.included.all }} included; {{ excluded_guidelines | length }} excluded; {{ raw_harmonized_mapping | length }} raw grades; S1 {{ table_s1_guideline_mean.ALL.strong.mean_pct | pct }}; spot check {{ spotcheck_bias.strong.diff_pp | pct }}.
+
+{% for id, caption in captions.items() -%}
+- `{{ id }}`: {{ caption }}
+{% endfor %}
+{{ notes.common }}

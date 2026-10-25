@@ -1,0 +1,1355 @@
+key,doi,society,method,phrase,theme
+2afa98158ca79d17,10.1007/s00134-016-4382-8,ESICM,llm,sepsis management protocols,ICU organisation and safety
+461be5317ba80b1d,10.1007/s00134-016-4382-8,ESICM,llm,fluid resuscitation,Fluids
+4c07ded54f8230b4,10.1007/s00134-016-4382-8,ESICM,llm,respiratory support,Respiratory support
+630bfbd1077dc5a8,10.1007/s00134-016-4382-8,ESICM,llm,sepsis monitoring,Shock and hemodynamics
+6571b6061b5e8340,10.1007/s00134-016-4382-8,ESICM,llm,fluid administration in sepsis,Fluids
+6fc5da76cf39a443,10.1007/s00134-016-4382-8,ESICM,llm,transfusion in severe anemia,"Transfusion, coagulation and VTE"
+72f0501c0a0a4fee,10.1007/s00134-016-4382-8,ESICM,llm,mechanical ventilation in sepsis-induced acute lung injury,Respiratory support
+89996f207a08d6d8,10.1007/s00134-016-4382-8,ESICM,llm,vascular access,Airway and procedures
+a005314d62f10c98,10.1007/s00134-016-4382-8,ESICM,llm,fluid resuscitation,Fluids
+c1f6764ee1f1aaca,10.1007/s00134-016-4382-8,ESICM,llm,transfusion in severe anemia and malaria,"Transfusion, coagulation and VTE"
+e3cdd3e0e4ab1d73,10.1007/s00134-016-4382-8,ESICM,llm,fluid resuscitation,Fluids
+ec57d85d4838b000,10.1007/s00134-016-4382-8,ESICM,llm,fluid resuscitation,Fluids
+0f17288eaf6a3950,10.1007/s00134-016-4415-3,ESICM,llm,empirical antimicrobial timing,Infection and antimicrobials
+3b9856fc44d322a7,10.1007/s00134-016-4415-3,ESICM,llm,combination antimicrobial therapy,Infection and antimicrobials
+66dd6bd1ff6be708,10.1007/s00134-016-4415-3,ESICM,llm,source control timing,Infection and antimicrobials
+866e64e4132ec0f5,10.1007/s00134-016-4415-3,ESICM,llm,combination antimicrobial therapy,Infection and antimicrobials
+8abf80212fd908a0,10.1007/s00134-016-4415-3,ESICM,llm,antimicrobial de-escalation,Infection and antimicrobials
+91dd15c6903e9a03,10.1007/s00134-016-4415-3,ESICM,llm,blood culture timing,Infection and antimicrobials
+a182be59614f93e3,10.1007/s00134-016-4415-3,ESICM,llm,empirical antimicrobial therapy,Infection and antimicrobials
+a66a76137634fc8e,10.1007/s00134-016-4415-3,ESICM,llm,blood culture timing,Infection and antimicrobials
+b03ef96f73d11a28,10.1007/s00134-016-4415-3,ESICM,llm,antimicrobial therapy,Infection and antimicrobials
+bc1d7e8c5179ac1d,10.1007/s00134-016-4415-3,ESICM,llm,empirical antimicrobial therapy,Infection and antimicrobials
+bf394fc74f6f4b99,10.1007/s00134-016-4415-3,ESICM,llm,empirical antimicrobial timing,Infection and antimicrobials
+d2b12894967bb103,10.1007/s00134-016-4415-3,ESICM,llm,source control timing,Infection and antimicrobials
+ddf2496efdf842e4,10.1007/s00134-016-4415-3,ESICM,llm,combination antimicrobial therapy,Infection and antimicrobials
+edb9964abd7a5ec4,10.1007/s00134-016-4415-3,ESICM,llm,antimicrobial de-escalation,Infection and antimicrobials
+f24f13af779b71ff,10.1007/s00134-016-4415-3,ESICM,llm,source control,Infection and antimicrobials
+0621ac4910c78fee,10.1007/s00134-016-4602-2,ESICM,llm,corticosteroid use,Corticosteroids
+0ff3535473cc3936,10.1007/s00134-016-4602-2,ESICM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+14f0ce05c3c1f222,10.1007/s00134-016-4602-2,ESICM,llm,fluid bolus therapy,Fluids
+1da6e3013783b21c,10.1007/s00134-016-4602-2,ESICM,llm,fluid resuscitation,Fluids
+3809a5092e7087f9,10.1007/s00134-016-4602-2,ESICM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+4b7850fcd4d88172,10.1007/s00134-016-4602-2,ESICM,llm,colloid use,Fluids
+5664e267786a9e60,10.1007/s00134-016-4602-2,ESICM,llm,colloid use,Fluids
+56c7a7726c9314df,10.1007/s00134-016-4602-2,ESICM,llm,fluid bolus therapy,Fluids
+7024b500c52579d2,10.1007/s00134-016-4602-2,ESICM,llm,enteral nutrition timing,Nutrition
+78d4fd830f577a34,10.1007/s00134-016-4602-2,ESICM,llm,fluid resuscitation,Fluids
+7c145ba0ab7f4bae,10.1007/s00134-016-4602-2,ESICM,llm,fluid bolus therapy,Fluids
+86bbd29b4cbbb4b5,10.1007/s00134-016-4602-2,ESICM,llm,permissive hypercapnia,Respiratory support
+89bb1db1f8799638,10.1007/s00134-016-4602-2,ESICM,llm,enteral nutrition timing,Nutrition
+976200582eedeee1,10.1007/s00134-016-4602-2,ESICM,llm,fluid bolus therapy,Fluids
+abdfee12e5582e0f,10.1007/s00134-016-4602-2,ESICM,llm,fluid bolus therapy,Fluids
+c5da068fd4984480,10.1007/s00134-016-4602-2,ESICM,llm,fluid resuscitation,Fluids
+cb3687aeb1e60e13,10.1007/s00134-016-4602-2,ESICM,llm,corticosteroid use,Corticosteroids
+ec9aab3b0e3485a4,10.1007/s00134-016-4602-2,ESICM,llm,permissive hypercapnia,Neurocritical care
+ef97fcdba0663e8b,10.1007/s00134-016-4602-2,ESICM,llm,fluid resuscitation,Fluids
+023fc49433ed9611,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+03922f48e48ccdb0,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+07db5d2cba137e94,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+0951820037079b87,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+1e63ec43df1d0c3e,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+2570c9bfbaabeb13,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+34d6cc4409e24a9a,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+3bc2f5f1b1dccd45,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+3fba83bd847f9984,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+417139c77620476c,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+44bf4a80cbe053fe,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+4513e40b8c21484f,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+4568e8a3db9754c6,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+528685f6bac2765c,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+58e5da719c9d1873,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+644b8a01deaed0e6,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+6ef5662dcfa3ebd8,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+741e0f298fe77f30,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+7a2df757e6703e45,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+7b9dc08673262999,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+7cd480a2f6d0335f,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+800d146c3e85edcc,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+8146c405939455c9,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+81910767587848c4,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+845a9cabbf9f439e,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+85537382f0195d5a,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+8f2ef2fd9c0feb18,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+90dcbf2deacaca01,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+92650df4c0d49ec3,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+9579cb5907c3f4c3,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+99f661ef64d79e17,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+9a24235746c4d08e,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+9c3d06a97560a46a,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+c2c5c5f795f9f7c3,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+e6ef053d7fe37789,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+ebcc1ee0fdd5ff23,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+ec4ae0d13ba4ae2a,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+f61c8a71dc538814,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+f8ad54a11b4346ec,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+f9a7111565ed84a9,10.1007/s00134-016-4665-0,ESICM,llm,enteral nutrition timing,Nutrition
+02ac307b88aa7701,10.1007/s00134-017-4831-z,ESICM,llm,anticoagulation choice (lmwh vs ufh),"Transfusion, coagulation and VTE"
+0d6d8b2e14249064,10.1007/s00134-017-4831-z,ESICM,llm,vte prophylaxis,"Transfusion, coagulation and VTE"
+11899bf352a40ecc,10.1007/s00134-017-4831-z,ESICM,llm,corticosteroid use in septic shock,Corticosteroids
+2a35042dedff6438,10.1007/s00134-017-4831-z,ESICM,llm,glucose control,Glucose control
+7722c4425390c801,10.1007/s00134-017-4831-z,ESICM,llm,neuromuscular blockade in ards,Respiratory support
+ab8a4baade8ec5a8,10.1007/s00134-017-4831-z,ESICM,llm,mechanical vte prophylaxis,"Transfusion, coagulation and VTE"
+b3f4f7f08fdfcb6d,10.1007/s00134-017-4831-z,ESICM,llm,enteral nutrition timing,Nutrition
+be4238151c2518da,10.1007/s00134-017-4831-z,ESICM,llm,vte prophylaxis combination,"Transfusion, coagulation and VTE"
+cf294e61740ce4d6,10.1007/s00134-017-4831-z,ESICM,llm,stress ulcer prophylaxis,GI prophylaxis
+daa43fa7f4550628,10.1007/s00134-017-4831-z,ESICM,llm,enteral nutrition timing,Nutrition
+db912300dca85870,10.1007/s00134-017-4831-z,ESICM,llm,stress ulcer prophylaxis,GI prophylaxis
+f0eb2a4f581d7d57,10.1007/s00134-017-4831-z,ESICM,llm,renal replacement therapy modality,Kidney
+f5e7f598ef9e5fe4,10.1007/s00134-017-4831-z,ESICM,llm,fluid resuscitation,Fluids
+f72c928ce33c9f6f,10.1007/s00134-017-4831-z,ESICM,llm,enteral nutrition timing,Nutrition
+f9af9b5e6ac9063a,10.1007/s00134-017-4831-z,ESICM,llm,enteral nutrition timing,Nutrition
+082d8ea43d7167be,10.1007/s00134-017-4972-0,ESICM,llm,icu training programs,ICU organisation and safety
+0ed2a1b9f319987f,10.1007/s00134-017-4972-0,ESICM,llm,hand hygiene facilities,Infection and antimicrobials
+17b5ef4900caf0be,10.1007/s00134-017-4972-0,ESICM,llm,examination gloves availability,Infection and antimicrobials
+2bbee81378449ea9,10.1007/s00134-017-4972-0,ESICM,llm,mechanical ventilator availability,Respiratory support
+36ffc2d758ae39b5,10.1007/s00134-017-4972-0,ESICM,llm,closed format icu model,ICU organisation and safety
+499b55dea4a58f67,10.1007/s00134-017-4972-0,ESICM,llm,blood gas analysis,Respiratory support
+4fedd5bc98383c42,10.1007/s00134-017-4972-0,ESICM,llm,icu nurse staffing,ICU organisation and safety
+514ef924c719f6ae,10.1007/s00134-017-4972-0,ESICM,llm,ultrasound training for staff,Airway and procedures
+608b96a60341457f,10.1007/s00134-017-4972-0,ESICM,llm,icu protocols and checklists,ICU organisation and safety
+61d3c743706df56d,10.1007/s00134-017-4972-0,ESICM,llm,protocols for power cuts,ICU organisation and safety
+64ba7d8a8e8dbb94,10.1007/s00134-017-4972-0,ESICM,llm,centralized oxygen supply,ICU organisation and safety
+687511cd779d2596,10.1007/s00134-017-4972-0,ESICM,llm,oxygen supply selection,ICU organisation and safety
+6f1f3400d92c8958,10.1007/s00134-017-4972-0,ESICM,llm,point-of-care blood glucose measurement,Glucose control
+7b02249f8f81e9df,10.1007/s00134-017-4972-0,ESICM,llm,icu architectural design,ICU organisation and safety
+7d03e2a08716329d,10.1007/s00134-017-4972-0,ESICM,llm,hand hygiene,Infection and antimicrobials
+89211857b9da05ea,10.1007/s00134-017-4972-0,ESICM,llm,blood lactate measurement,Shock and hemodynamics
+8bdbbeeb04c8ec53,10.1007/s00134-017-4972-0,ESICM,llm,quality indicators and benchmarking,ICU organisation and safety
+8eaedb36643f055f,10.1007/s00134-017-4972-0,ESICM,llm,backup electrical sources,ICU organisation and safety
+905a17343173bf75,10.1007/s00134-017-4972-0,ESICM,llm,hand hygiene for ebola virus disease,Infection and antimicrobials
+92f54134ddfbcaf2,10.1007/s00134-017-4972-0,ESICM,llm,icu training,ICU organisation and safety
+9890c84f60528777,10.1007/s00134-017-4972-0,ESICM,llm,ppe availability for infectious diseases,Infection and antimicrobials
+997569d4dc673a35,10.1007/s00134-017-4972-0,ESICM,llm,ppe for invasive procedures,Infection and antimicrobials
+9d81292458c28f64,10.1007/s00134-017-4972-0,ESICM,llm,hand hygiene,Infection and antimicrobials
+9d9586430cdaa760,10.1007/s00134-017-4972-0,ESICM,llm,electrical backup for medical equipment,ICU organisation and safety
+a3ec3bac715d9791,10.1007/s00134-017-4972-0,ESICM,llm,reuse of disposable equipment,ICU organisation and safety
+a8b603d0d32a5638,10.1007/s00134-017-4972-0,ESICM,llm,end tidal co2 measurement,Respiratory support
+aa9d5853cf9839e1,10.1007/s00134-017-4972-0,ESICM,llm,documentation and record keeping,ICU organisation and safety
+d33993cff4fce195,10.1007/s00134-017-4972-0,ESICM,llm,point-of-care ultrasound,Airway and procedures
+dd1d6831e8faaf5a,10.1007/s00134-017-4972-0,ESICM,llm,icu monitoring,ICU organisation and safety
+e5c5cc6c5f7c4324,10.1007/s00134-017-4972-0,ESICM,llm,mechanical ventilation,Respiratory support
+e89aeee0701585d4,10.1007/s00134-017-4972-0,ESICM,llm,voltage stabilizers,ICU organisation and safety
+edff9cbd492ec874,10.1007/s00134-017-4972-0,ESICM,llm,icu staff training,ICU organisation and safety
+17be8bb21e39ad95,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+19be2a9f78a6b7b3,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+21c3ddcb619ff032,10.1007/s00134-018-5086-z,ESICM,llm,intracranial pressure management,Neurocritical care
+22d591cfc7288214,10.1007/s00134-018-5086-z,ESICM,llm,osmotherapy,Neurocritical care
+287643e5070337c3,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+2a0705e1f370ade6,10.1007/s00134-018-5086-z,ESICM,llm,intracranial pressure management,Neurocritical care
+2d1ee4cac02fd1e0,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+32bcd08ad1914e52,10.1007/s00134-018-5086-z,ESICM,llm,intracranial pressure management,Neurocritical care
+3b4e7a71e1f2eda3,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+44c2d84f82649fdf,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+4884fe820457a282,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+49535218dae10b47,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+4e6c4cc529a35f41,10.1007/s00134-018-5086-z,ESICM,llm,osmotherapy,Neurocritical care
+4fdbe459abe5ad89,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+5907933a6e01c923,10.1007/s00134-018-5086-z,ESICM,llm,intracranial pressure management,Neurocritical care
+59f010d4abd8d61a,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+639e9f334b636c2f,10.1007/s00134-018-5086-z,ESICM,llm,intracranial pressure management,Neurocritical care
+674ab7f699aae0d3,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+74710fa53bd386f5,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+7cc62da3a76cfe0d,10.1007/s00134-018-5086-z,ESICM,llm,osmotherapy,Neurocritical care
+81beaca877c1af11,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+8499f480d5df7be1,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+8a3ae2e05d40cdec,10.1007/s00134-018-5086-z,ESICM,llm,osmotherapy,Neurocritical care
+9151d2b4c47d7a0a,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+b507db070b2b4f64,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+c2f10174902638c4,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+ce6a1e6e7eb81f44,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+dcad016e9f3b52dd,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+e5898158075c688f,10.1007/s00134-018-5086-z,ESICM,llm,fluid resuscitation,Fluids
+ef0efa167163d634,10.1007/s00134-018-5086-z,ESICM,llm,intracranial pressure management,Neurocritical care
+19aa2b58d870f4ef,10.1007/s00134-019-05884-8,ESICM,llm,enteral nutrition timing,Other
+1e4c8f2c1bc3d6c0,10.1007/s00134-019-05884-8,ESICM,llm,transfusion triggers,"Transfusion, coagulation and VTE"
+266a6ecb94992304,10.1007/s00134-019-05884-8,ESICM,llm,prophylactic plasma transfusion,"Transfusion, coagulation and VTE"
+3ae85692dbec1d3b,10.1007/s00134-019-05884-8,ESICM,llm,blood conservation devices,"Transfusion, coagulation and VTE"
+407a49c875b47880,10.1007/s00134-019-05884-8,ESICM,llm,enteral nutrition timing,Other
+427544e3eb59698f,10.1007/s00134-019-05884-8,ESICM,llm,transfusion threshold,"Transfusion, coagulation and VTE"
+45a5386d727e7cee,10.1007/s00134-019-05884-8,ESICM,llm,prophylactic platelet transfusion,"Transfusion, coagulation and VTE"
+4c63caf6b621ba5c,10.1007/s00134-019-05884-8,ESICM,llm,transfusion threshold,"Transfusion, coagulation and VTE"
+6c0ca6e7106ff64e,10.1007/s00134-019-05884-8,ESICM,llm,prophylactic platelet transfusion,"Transfusion, coagulation and VTE"
+6df17594124a9474,10.1007/s00134-019-05884-8,ESICM,llm,blood collection tubes,"Transfusion, coagulation and VTE"
+7f1330084c59fcd0,10.1007/s00134-019-05884-8,ESICM,llm,transfusion threshold,"Transfusion, coagulation and VTE"
+8e004532fd7a0fed,10.1007/s00134-019-05884-8,ESICM,llm,enteral nutrition timing,Other
+987de02bf3e52428,10.1007/s00134-019-05884-8,ESICM,llm,epo and iron combination,"Transfusion, coagulation and VTE"
+9a6fe36992c8c023,10.1007/s00134-019-05884-8,ESICM,llm,iron therapy,"Transfusion, coagulation and VTE"
+a3eeb03837572419,10.1007/s00134-019-05884-8,ESICM,llm,erythropoietin use,"Transfusion, coagulation and VTE"
+a43417223bc2fa74,10.1007/s00134-019-05884-8,ESICM,llm,iron therapy,"Transfusion, coagulation and VTE"
+c13c60fae2d5d48a,10.1007/s00134-019-05884-8,ESICM,llm,prophylactic plasma transfusion,"Transfusion, coagulation and VTE"
+ce50a5948a4c66f9,10.1007/s00134-019-05884-8,ESICM,llm,platelet transfusion for thrombocytopenia,"Transfusion, coagulation and VTE"
+d4a47d9c76ec6d57,10.1007/s00134-019-05884-8,ESICM,llm,transfusion threshold,"Transfusion, coagulation and VTE"
+d8b89c1466a0940c,10.1007/s00134-019-05884-8,ESICM,llm,transfusion threshold,"Transfusion, coagulation and VTE"
+f54a116ad0dfa6be,10.1007/s00134-019-05884-8,ESICM,llm,prophylactic plasma transfusion,"Transfusion, coagulation and VTE"
+f84f4b40a8e473df,10.1007/s00134-019-05884-8,ESICM,llm,epo and iron combination,"Transfusion, coagulation and VTE"
+02e33be14cbe1d9a,10.1007/s00134-020-05948-0,ESICM,llm,arterial blood gas sampling,Airway and procedures
+0a60fe03f02f422b,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for respiratory failure prevention,Respiratory support
+1395718d5c328e85,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive respiratory support,Respiratory support
+14dfdee751de7a87,10.1007/s00134-020-05948-0,ESICM,llm,high flow nasal cannula in cardiac surgery,Respiratory support
+25b7144dfd296ce4,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for hypoxaemia,Respiratory support
+25e3fb3f040d05e8,10.1007/s00134-020-05948-0,ESICM,llm,high flow nasal cannula for hypoxaemia,Respiratory support
+2c9253b295ecf28e,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for hypoxaemia,Respiratory support
+3712287644505357,10.1007/s00134-020-05948-0,ESICM,llm,high flow nasal cannula for hypoxaemia,Respiratory support
+4f0dbaf22bef1149,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for atelectasis,Respiratory support
+51c8f4fcb8498505,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for respiratory deterioration,Respiratory support
+53d0993d7f6c4742,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for hypoxaemia,Respiratory support
+5ada120dd82136b2,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for atelectasis,Respiratory support
+648a05142fcb8c9f,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation training and monitoring,Airway and procedures
+7e05954770d8d0c5,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for respiratory deterioration,Respiratory support
+81c497f3673d6dfc,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation in transplantation,Respiratory support
+8ba00ca3cb1ccaf3,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation training and monitoring,Airway and procedures
+90db16119e8fb5c9,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for pneumonia prevention,Respiratory support
+9c9220327c3a2a7d,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive respiratory support,Respiratory support
+a5ad8f3c84ca466c,10.1007/s00134-020-05948-0,ESICM,llm,arterial blood gas sampling,Airway and procedures
+a5c4423a3ee5cd4a,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation in transplantation,Respiratory support
+b0c301ee95d2b921,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for pneumonia prevention,Respiratory support
+b27aa9909ae28634,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation training and monitoring,Airway and procedures
+b47e3ae5fbcceaf1,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation training and monitoring,Airway and procedures
+b5c057562c8981ab,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for atelectasis,Respiratory support
+b85f1ff3de578d61,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for respiratory failure prevention,Respiratory support
+bdf79f948eb59c65,10.1007/s00134-020-05948-0,ESICM,llm,hfnc use,Respiratory support
+ce6274ec07d8c312,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for atelectasis,Respiratory support
+d93ffa3bfe2c18a4,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive respiratory support,Respiratory support
+e7ace8bfb0012768,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation training and monitoring,Airway and procedures
+f039fe179aa436b9,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for hypoxaemia,Respiratory support
+f1748143f4286d3a,10.1007/s00134-020-05948-0,ESICM,llm,noninvasive ventilation for hypoxaemia,Respiratory support
+118016088e2ae441,10.1007/s00134-020-06227-8,ESICM,llm,neuromuscular blockade in ards,"Sedation, analgesia and neuromuscular blockade"
+13c4563d7892a147,10.1007/s00134-020-06227-8,ESICM,llm,neuromuscular blockade in ards,"Sedation, analgesia and neuromuscular blockade"
+2bc5974d0edc5e1f,10.1007/s00134-020-06227-8,ESICM,llm,neuromuscular blockade in ards,"Sedation, analgesia and neuromuscular blockade"
+ff4b6f096f2aae75,10.1007/s00134-020-06227-8,ESICM,llm,neuromuscular blockade in ards,"Sedation, analgesia and neuromuscular blockade"
+03e8982de4e9628f,10.1007/s00134-020-06283-0,ESICM,llm,mechanical ventilation,Respiratory support
+05130d2f6418aedb,10.1007/s00134-020-06283-0,ESICM,llm,extubation in abi,Airway and procedures
+0bb32e533a0e0ebe,10.1007/s00134-020-06283-0,ESICM,llm,intracranial pressure management,Neurocritical care
+1168b8c6bcb5b9bd,10.1007/s00134-020-06283-0,ESICM,llm,prone positioning in abi with ards,Respiratory support
+150f1aeafcf5c937,10.1007/s00134-020-06283-0,ESICM,llm,failed extubation in abi,Other
+21de1adcaae0b152,10.1007/s00134-020-06283-0,ESICM,llm,mechanical ventilation,Respiratory support
+33f7468f7a6a2ec8,10.1007/s00134-020-06283-0,ESICM,llm,endotracheal intubation in abi,Airway and procedures
+4c2ab81102291031,10.1007/s00134-020-06283-0,ESICM,llm,high-flow nasal cannula in abi,Respiratory support
+53e684a097e5b038,10.1007/s00134-020-06283-0,ESICM,llm,abi with severe ards,Other
+573878d1e767560b,10.1007/s00134-020-06283-0,ESICM,llm,airway management,Airway and procedures
+5887efc8c42004ef,10.1007/s00134-020-06283-0,ESICM,llm,,Other
+58a06973b4ac0938,10.1007/s00134-020-06283-0,ESICM,llm,pao2 targeting in abi,Respiratory support
+5a0ed3007aac91ee,10.1007/s00134-020-06283-0,ESICM,llm,pao2 targeting in abi with icp elevation,Respiratory support
+64f8476b4758d783,10.1007/s00134-020-06283-0,ESICM,llm,tracheostomy in abi,Airway and procedures
+6b6b07bca8ab824f,10.1007/s00134-020-06283-0,ESICM,llm,airway protective reflexes,Airway and procedures
+6f5f6f9f55388017,10.1007/s00134-020-06283-0,ESICM,llm,,Other
+70c1e1d2919a1c42,10.1007/s00134-020-06283-0,ESICM,llm,reduced consciousness in abi,Other
+75b522ebc375d785,10.1007/s00134-020-06283-0,ESICM,llm,mechanical ventilation,Respiratory support
+7948dea8e6e98015,10.1007/s00134-020-06283-0,ESICM,llm,tracheostomy in abi,Airway and procedures
+796c167112aa57fe,10.1007/s00134-020-06283-0,ESICM,llm,neuromuscular blockers in abi with ards,"Sedation, analgesia and neuromuscular blockade"
+7978576efd72fd66,10.1007/s00134-020-06283-0,ESICM,llm,airway management,Airway and procedures
+7b23aabc3c75cd26,10.1007/s00134-020-06283-0,ESICM,llm,lung protective ventilation in abi with ards,Respiratory support
+7f146136bd8032f8,10.1007/s00134-020-06283-0,ESICM,llm,paco2 targeting in abi,Respiratory support
+8401b432783b6f92,10.1007/s00134-020-06283-0,ESICM,llm,airway management,Airway and procedures
+867b0c4c18a2a995,10.1007/s00134-020-06283-0,ESICM,llm,peep in abi with icp elevation,Respiratory support
+8ca18eb743d15861,10.1007/s00134-020-06283-0,ESICM,llm,neurological condition trajectory,Neurocritical care
+92affbb5310ca0c9,10.1007/s00134-020-06283-0,ESICM,llm,lung protective ventilation in abi,Respiratory support
+a032072fde654c4c,10.1007/s00134-020-06283-0,ESICM,llm,weaning mechanical ventilation in abi,Neurocritical care
+a273d5abef6cc6d5,10.1007/s00134-020-06283-0,ESICM,llm,airway management,Airway and procedures
+a7eea6345767c25b,10.1007/s00134-020-06283-0,ESICM,llm,high-flow nasal cannula in abi,Respiratory support
+ac143ea784d24110,10.1007/s00134-020-06283-0,ESICM,llm,extubation in abi,Airway and procedures
+b2135cc8efb3d2f3,10.1007/s00134-020-06283-0,ESICM,llm,prone positioning in abi with ards,Respiratory support
+c13765ffdd6dbbc4,10.1007/s00134-020-06283-0,ESICM,llm,airway management,Airway and procedures
+daa3e5a639df03f7,10.1007/s00134-020-06283-0,ESICM,llm,mechanical ventilation,Respiratory support
+dbcdd7c6c603fe21,10.1007/s00134-020-06283-0,ESICM,llm,lung protective ventilation in abi with ards,Respiratory support
+dc1a117c4b2f309f,10.1007/s00134-020-06283-0,ESICM,llm,extubation in abi,Neurocritical care
+e9deb4d6dfe047fd,10.1007/s00134-020-06283-0,ESICM,llm,endotracheal intubation in abi,Airway and procedures
+ef859e36b3f88769,10.1007/s00134-020-06283-0,ESICM,llm,lung protective ventilation in abi,Respiratory support
+f3207459b61fc4de,10.1007/s00134-020-06283-0,ESICM,llm,extubation in abi,Neurocritical care
+1428a4050c390905,10.1007/s00134-020-06312-y,ESICM,llm,hfnc in postoperative care,Respiratory support
+1ef3f2ebbfc85a55,10.1007/s00134-020-06312-y,ESICM,llm,nippv vs hfnc post-extubation,Respiratory support
+52f13081d360a643,10.1007/s00134-020-06312-y,ESICM,llm,hfnc in hypoxemic respiratory failure,Respiratory support
+d6f1f67465c62a66,10.1007/s00134-020-06312-y,ESICM,llm,hfnc in postoperative care,Respiratory support
+ea4481f63a74e93b,10.1007/s00134-020-06312-y,ESICM,llm,hfnc post-extubation,Respiratory support
+f4890613a1aa63a6,10.1007/s00134-020-06312-y,ESICM,llm,hfnc during intubation,Respiratory support
+0172f0e74623f8af,10.1007/s00134-021-06531-x,ESICM,llm,platelet use in bleeding,"Transfusion, coagulation and VTE"
+0b5e6b3c63202486,10.1007/s00134-021-06531-x,ESICM,llm,txa in post-cardiac surgery bleeding,"Transfusion, coagulation and VTE"
+27c75f233ba31d1b,10.1007/s00134-021-06531-x,ESICM,llm,coagulation testing in cardiac surgery,"Transfusion, coagulation and VTE"
+480ba6a6ee02d016,10.1007/s00134-021-06531-x,ESICM,llm,fibrinogen replacement in trauma,"Transfusion, coagulation and VTE"
+612b09ad178eacd7,10.1007/s00134-021-06531-x,ESICM,llm,txa in trauma bleeding,"Transfusion, coagulation and VTE"
+6842199bdc62f021,10.1007/s00134-021-06531-x,ESICM,llm,txa in gi bleeding,"Transfusion, coagulation and VTE"
+847ce6b43c8f6e01,10.1007/s00134-021-06531-x,ESICM,llm,rbc transfusion threshold,"Transfusion, coagulation and VTE"
+90cdc7a718df43f3,10.1007/s00134-021-06531-x,ESICM,llm,coagulation testing in bleeding patients,"Transfusion, coagulation and VTE"
+95a5bf70094997a1,10.1007/s00134-021-06531-x,ESICM,llm,rbc transfusion threshold,"Transfusion, coagulation and VTE"
+aa298c6bbc7e8f75,10.1007/s00134-021-06531-x,ESICM,llm,txa in postpartum hemorrhage,"Transfusion, coagulation and VTE"
+bca246fd857d1396,10.1007/s00134-021-06531-x,ESICM,llm,transfusion strategy in massive bleeding,"Transfusion, coagulation and VTE"
+bec30f295fcd04eb,10.1007/s00134-021-06531-x,ESICM,llm,,Other
+ca10b4223b77cff7,10.1007/s00134-021-06531-x,ESICM,llm,coagulation testing in trauma,"Transfusion, coagulation and VTE"
+ceb4a46e03316c60,10.1007/s00134-021-06531-x,ESICM,llm,pcc vs plasma in massive bleeding,"Transfusion, coagulation and VTE"
+d08602fea9fb10f3,10.1007/s00134-021-06531-x,ESICM,llm,transfusion testing in ecmo patients,"Transfusion, coagulation and VTE"
+dc544723a5e994cc,10.1007/s00134-021-06531-x,ESICM,llm,fibrinogen use in cardiac surgery,"Transfusion, coagulation and VTE"
+deb84213659ea409,10.1007/s00134-021-06531-x,ESICM,llm,traumatic brain injury transfusion,"Transfusion, coagulation and VTE"
+f20484ce9679015f,10.1007/s00134-021-06531-x,ESICM,llm,rbc transfusion threshold,"Transfusion, coagulation and VTE"
+9f9015927cdacc44,10.1007/s00134-022-06660-x,ESICM,llm,sedation in mechanically ventilated patients,"Sedation, analgesia and neuromuscular blockade"
+435a2f806610fde4,10.1007/s00134-023-07033-8,ESICM,llm,oxygen therapy for scap with hypoxaemia,Respiratory support
+4b520d2b083cbac8,10.1007/s00134-023-07033-8,ESICM,llm,empirical oseltamivir for influenza,Infection and antimicrobials
+6647c5ff953264da,10.1007/s00134-023-07033-8,ESICM,llm,respiratory sample testing for scap,Infection and antimicrobials
+6bd211aec50d90a4,10.1007/s00134-023-07033-8,ESICM,llm,corticosteroids in scap with shock,Corticosteroids
+a73de169e66ccdd8,10.1007/s00134-023-07033-8,ESICM,llm,oseltamivir for influenza-related scap,Infection and antimicrobials
+b1153051fa1de0ad,10.1007/s00134-023-07033-8,ESICM,llm,non-invasive ventilation for hypoxaemia,Respiratory support
+b749ac292edfe386,10.1007/s00134-023-07033-8,ESICM,llm,empirical antibiotic combination in scap,Infection and antimicrobials
+e0be3d5431c4597b,10.1007/s00134-023-07033-8,ESICM,llm,pct-guided antibiotic duration in scap,Infection and antimicrobials
+ee021d73894c1108,10.1007/s00134-023-07033-8,ESICM,llm,empirical antibiotic selection in scap,Infection and antimicrobials
+229604c72b0fe827,10.1007/s00134-023-07050-7,ESICM,llm,peep titration in ards,Respiratory support
+36091e5d3907be43,10.1007/s00134-023-07050-7,ESICM,llm,awake prone positioning in ahrf,Respiratory support
+3dd4949f12d6ac2c,10.1007/s00134-023-07050-7,ESICM,llm,hfno vs. conventional oxygen in ahrf,Respiratory support
+3e4391d807e9f3d0,10.1007/s00134-023-07050-7,ESICM,llm,tidal volume ventilation in ards,Respiratory support
+496acd995a65a0a1,10.1007/s00134-023-07050-7,ESICM,llm,ards from covid-19,Respiratory support
+56d1e9e0ab8072d6,10.1007/s00134-023-07050-7,ESICM,llm,recruitment maneuvers in ards,Respiratory support
+59169877f9310dde,10.1007/s00134-023-07050-7,ESICM,llm,ards from covid-19,Respiratory support
+68ecf2658fa17b53,10.1007/s00134-023-07050-7,ESICM,llm,hfno vs. conventional oxygen in ards,Respiratory support
+6cdf9196ed18c965,10.1007/s00134-023-07050-7,ESICM,llm,nmba use in ards,Respiratory support
+796d8bc5cec5671c,10.1007/s00134-023-07050-7,ESICM,llm,covid-19,Other
+8d0fe6030d3b9236,10.1007/s00134-023-07050-7,ESICM,llm,ecmo in ards,Respiratory support
+9641ffed46d7d829,10.1007/s00134-023-07050-7,ESICM,llm,recruitment maneuvers in ards,Respiratory support
+9ffb6730c14dedfc,10.1007/s00134-023-07050-7,ESICM,llm,cpap vs. conventional oxygen in ahrf,Respiratory support
+a3c527fa4069763e,10.1007/s00134-023-07050-7,ESICM,llm,severe ards from covid-19,Respiratory support
+a74808453cd695ea,10.1007/s00134-023-07050-7,ESICM,llm,cpap/niv in ahrf,Respiratory support
+a83e69f51fed8757,10.1007/s00134-023-07050-7,ESICM,llm,randomized controlled trials,Other
+c01b8c6fde2584c5,10.1007/s00134-023-07050-7,ESICM,llm,prone position in ards,Respiratory support
+c3d2b76ffcbcfb3a,10.1007/s00134-023-07050-7,ESICM,llm,ahrf from covid-19,Respiratory support
+c68ace480b3d4c96,10.1007/s00134-023-07050-7,ESICM,llm,proning in ards,Respiratory support
+ca57b4bfdd0200cc,10.1007/s00134-023-07050-7,ESICM,llm,peep/fio2 strategy in ards,Respiratory support
+cb0a48d6d6ab7eae,10.1007/s00134-023-07050-7,ESICM,llm,hfno in ahrf,Respiratory support
+f01338886eeff0e0,10.1007/s00134-023-07050-7,ESICM,llm,cpap in ahrf,Respiratory support
+1f58493eb9b62f84,10.1007/s00134-024-07369-9,ESICM,llm,fluid resuscitation,Fluids
+44b98c708f3ebb26,10.1007/s00134-024-07369-9,ESICM,llm,fluid resuscitation,Fluids
+4a35a2cbf7430dbf,10.1007/s00134-024-07369-9,ESICM,llm,fluid resuscitation,Fluids
+60ba1f24376cce2e,10.1007/s00134-024-07369-9,ESICM,llm,fluid resuscitation,Fluids
+630be99ab7cd8540,10.1007/s00134-024-07369-9,ESICM,llm,fluid resuscitation,Fluids
+7adbc821b1c56acd,10.1007/s00134-024-07369-9,ESICM,llm,fluid resuscitation,Fluids
+98e261162fca6e3e,10.1007/s00134-024-07369-9,ESICM,llm,fluid resuscitation,Fluids
+bd92336fb56e0a06,10.1007/s00134-024-07369-9,ESICM,llm,fluid resuscitation,Fluids
+be6f4a533bf5e690,10.1007/s00134-024-07369-9,ESICM,llm,fluid resuscitation,Fluids
+ed50eacf3549ffa7,10.1007/s00134-024-07369-9,ESICM,llm,fluid resuscitation,Fluids
+f7f54ccf39ea67c9,10.1007/s00134-024-07369-9,ESICM,llm,fluid resuscitation,Fluids
+0185fde3d9acdcba,10.1007/s00134-024-07579-1,ESICM,llm,bereavement support,"Family, communication and end of life"
+0791ea901c890a82,10.1007/s00134-024-07579-1,ESICM,llm,cultural eol care,"Family, communication and end of life"
+2cc8ce457e10bead,10.1007/s00134-024-07579-1,ESICM,llm,eol family conferences,"Family, communication and end of life"
+31f6702074236be7,10.1007/s00134-024-07579-1,ESICM,llm,family support after icu treatment,"Family, communication and end of life"
+320858b8d76dec63,10.1007/s00134-024-07579-1,ESICM,llm,communication with families,"Family, communication and end of life"
+39f89c2653bf9710,10.1007/s00134-024-07579-1,ESICM,llm,flexible visiting,ICU organisation and safety
+487d6cbbe63e9fda,10.1007/s00134-024-07579-1,ESICM,llm,communication tools for families,"Family, communication and end of life"
+56a4b36d1dcb5eac,10.1007/s00134-024-07579-1,ESICM,llm,eol communication training,"Family, communication and end of life"
+82cb55f2d55a7cef,10.1007/s00134-024-07579-1,ESICM,llm,conflict prevention,ICU organisation and safety
+8db02de4cfcf87f6,10.1007/s00134-024-07579-1,ESICM,llm,symptom assessment in icu,Other
+fca5dba902aa7ad3,10.1007/s00134-024-07579-1,ESICM,llm,condolence letters,"Family, communication and end of life"
+9b1a1871d4a93c5f,10.1007/s00134-025-07840-1,ESICM,llm,fluid resuscitation,Fluids
+b55a9e819f3778cc,10.1007/s00134-025-07840-1,ESICM,llm,fluid resuscitation,Fluids
+b858125bf419d671,10.1007/s00134-025-07840-1,ESICM,llm,fluid resuscitation,Fluids
+e5b8a081b11768e0,10.1007/s00134-025-07840-1,ESICM,llm,fluid resuscitation,Fluids
+050b48bd06907bdc,10.1007/s00134-025-08058-x,ESICM,llm,fluid resuscitation,Fluids
+4fde22c7d989d40c,10.1007/s00134-025-08058-x,ESICM,llm,fluid resuscitation,Fluids
+ca9c838c2271d966,10.1007/s00134-025-08058-x,ESICM,llm,fluid resuscitation,Fluids
+006b0fc0f8ab18ce,10.1007/s00134-025-08117-3,ESICM,llm,eeg suppression for prognosis,Neurocritical care
+09c93b8e57a34d64,10.1007/s00134-025-08117-3,ESICM,llm,cardiogenic shock devices,Shock and hemodynamics
+0cb7e4fcf4c6b706,10.1007/s00134-025-08117-3,ESICM,llm,eeg reactivity for prognosis,Neurocritical care
+2bfc5dda8479eef7,10.1007/s00134-025-08117-3,ESICM,llm,nse for prognosis,Neurocritical care
+3332aef5c5ba5fd0,10.1007/s00134-025-08117-3,ESICM,llm,vasopressin and corticosteroids,Shock and hemodynamics
+3a9bc4ce8195a2f3,10.1007/s00134-025-08117-3,ESICM,llm,ssep for prognosis,Neurocritical care
+42bbf48f8143e51d,10.1007/s00134-025-08117-3,ESICM,llm,fever prevention,Neurocritical care
+4cc6720bf09e238c,10.1007/s00134-025-08117-3,ESICM,llm,insulin and glucose for hyperkalaemia,Other
+5cefde8ec5212f48,10.1007/s00134-025-08117-3,ESICM,llm,sodium bicarbonate/calcium use,Other
+6701e49900c883b1,10.1007/s00134-025-08117-3,ESICM,llm,corneal reflex for prognosis,Neurocritical care
+6ad40d356a40f193,10.1007/s00134-025-08117-3,ESICM,llm,myoclonus for prognosis after cardiac arrest,Neurocritical care
+70eba01ab6c5fd34,10.1007/s00134-025-08117-3,ESICM,llm,eeg for myoclonic jerks,Neurocritical care
+75e8c7eec5e08c28,10.1007/s00134-025-08117-3,ESICM,llm,mechanical circulatory support,Shock and hemodynamics
+76b97189cca215f6,10.1007/s00134-025-08117-3,ESICM,llm,"gfap, tau, nfl for prognosis",Neurocritical care
+813d9c5d2b16d475,10.1007/s00134-025-08117-3,ESICM,llm,oxygen use in-hospital,Shock and hemodynamics
+85fa85f6d7c505e9,10.1007/s00134-025-08117-3,ESICM,llm,neuroprognostication,Neurocritical care
+867ad4816a703e35,10.1007/s00134-025-08117-3,ESICM,llm,map targeting after cardiac arrest,Shock and hemodynamics
+94f0a07e86d50828,10.1007/s00134-025-08117-3,ESICM,llm,prophylactic antibiotics after rosc,Infection and antimicrobials
+a12f3800207794f9,10.1007/s00134-025-08117-3,ESICM,llm,antiseizure medication,Neurocritical care
+a3461e2128df0be7,10.1007/s00134-025-08117-3,ESICM,llm,brain imaging for prognosis after cardiac arrest,Neurocritical care
+abd9c40de89b5c70,10.1007/s00134-025-08117-3,ESICM,llm,pupillary light reflex for prognosis,Neurocritical care
+af601ed571b9fabc,10.1007/s00134-025-08117-3,ESICM,llm,hypoxemia avoidance,Shock and hemodynamics
+c0720bcf4339e966,10.1007/s00134-025-08117-3,ESICM,llm,coronary angiography timing in post-arrest patients,Other
+c27cfc4f4d5b0145,10.1007/s00134-025-08117-3,ESICM,llm,eeg patterns treatment,Neurocritical care
+c33b77833d9ddd2d,10.1007/s00134-025-08117-3,ESICM,llm,prehospital cooling,Shock and hemodynamics
+ce30076493518d0d,10.1007/s00134-025-08117-3,ESICM,llm,temperature control techniques,Neurocritical care
+cee41430c5a36e6b,10.1007/s00134-025-08117-3,ESICM,llm,bradycardia management,Shock and hemodynamics
+d0b10e3425b615b0,10.1007/s00134-025-08117-3,ESICM,llm,oxygen use pre-hospital,Shock and hemodynamics
+d69e1ae3d1866bc0,10.1007/s00134-025-08117-3,ESICM,llm,neuroprotective therapies,Neurocritical care
+e17cc414344d14fd,10.1007/s00134-025-08117-3,ESICM,llm,s-100b for prognosis,Neurocritical care
+ea56583847eb4c9a,10.1007/s00134-025-08117-3,ESICM,llm,glucose management,Glucose control
+fe2f7f2ecf7721f3,10.1007/s00134-025-08117-3,ESICM,llm,cardiac arrest centres,ICU organisation and safety
+00f4b26f81aca1c2,10.1007/s00134-025-08137-z,ESICM,llm,hemodynamic assessment in shock,Shock and hemodynamics
+014aa3aa40c0872d,10.1007/s00134-025-08137-z,ESICM,llm,echocardiographic shock phenotypes,Shock and hemodynamics
+1897b913b3d858b6,10.1007/s00134-025-08137-z,ESICM,llm,cvp targeting in shock resuscitation,Shock and hemodynamics
+274de2e0c687499d,10.1007/s00134-025-08137-z,ESICM,llm,lower map targeting in traumatic hemorrhagic shock,Shock and hemodynamics
+28ef89ea53d975e9,10.1007/s00134-025-08137-z,ESICM,llm,hemodynamic monitoring,Shock and hemodynamics
+2c4be913b5474cf0,10.1007/s00134-025-08137-z,ESICM,llm,arterial pressure monitoring in shock,Shock and hemodynamics
+320d37d7403ee613,10.1007/s00134-025-08137-z,ESICM,llm,plr test for fluid responsiveness in shock,Shock and hemodynamics
+35f5b9ff523dd600,10.1007/s00134-025-08137-z,ESICM,llm,individualized blood pressure targeting in shock,Shock and hemodynamics
+59af1c39c053f6b5,10.1007/s00134-025-08137-z,ESICM,llm,cvp measurement in shock with central line,Shock and hemodynamics
+66149b2acb4e6cdf,10.1007/s00134-025-08137-z,ESICM,llm,ppv for fluid responsiveness in shock,Shock and hemodynamics
+6bd92b112dcc5005,10.1007/s00134-025-08137-z,ESICM,llm,arterial catheter use in refractory shock,Shock and hemodynamics
+6ecc8a11fd6eb78d,10.1007/s00134-025-08137-z,ESICM,llm,co reevaluation in shock,Shock and hemodynamics
+6f7e7d159dfb1775,10.1007/s00134-025-08137-z,ESICM,llm,fluid resuscitation,Fluids
+751d1aafc5f3396a,10.1007/s00134-025-08137-z,ESICM,llm,co/stroke volume monitoring in shock,Shock and hemodynamics
+77431e38549bb013,10.1007/s00134-025-08137-z,ESICM,llm,end-expiratory occlusion test for fluid responsiveness,Shock and hemodynamics
+8287f83160ca759e,10.1007/s00134-025-08137-z,ESICM,llm,map target in septic shock with high cvp,Shock and hemodynamics
+90c47cafa7227b55,10.1007/s00134-025-08137-z,ESICM,llm,cvp measurement in shock with central line,Shock and hemodynamics
+91f8b2ed2e95d8db,10.1007/s00134-025-08137-z,ESICM,llm,hemodynamic monitoring,Shock and hemodynamics
+93340528f97d8741,10.1007/s00134-025-08137-z,ESICM,llm,fluid administration risk assessment,Fluids
+96325b351238e087,10.1007/s00134-025-08137-z,ESICM,llm,map targeting in cardiogenic shock,Shock and hemodynamics
+9c76d99fc68b5f41,10.1007/s00134-025-08137-z,ESICM,llm,fluid resuscitation,Fluids
+9d644fc3d5f658a9,10.1007/s00134-025-08137-z,ESICM,llm,map target in septic shock with hypertension,Shock and hemodynamics
+a26659e4ebd03526,10.1007/s00134-025-08137-z,ESICM,llm,fluid resuscitation,Fluids
+add76a50bddc464e,10.1007/s00134-025-08137-z,ESICM,llm,map target in septic shock,Shock and hemodynamics
+af18b1bb20a1a87c,10.1007/s00134-025-08137-z,ESICM,llm,echocardiography in circulatory shock,Shock and hemodynamics
+b8121cffe5f487fc,10.1007/s00134-025-08137-z,ESICM,llm,fluid resuscitation,Fluids
+d3be985f93163867,10.1007/s00134-025-08137-z,ESICM,llm,map targeting in traumatic shock,Shock and hemodynamics
+d4ca29bb1fe5f748,10.1007/s00134-025-08137-z,ESICM,llm,iap monitoring in shock with abdominal risk,Shock and hemodynamics
+d9fcc2ba48525ba9,10.1007/s00134-025-08137-z,ESICM,llm,hemodynamic monitoring,Shock and hemodynamics
+eb2528e1565490aa,10.1007/s00134-025-08137-z,ESICM,llm,fluid resuscitation,Fluids
+ec30f97fbb40702b,10.1007/s00134-025-08137-z,ESICM,llm,fluid resuscitation,Shock and hemodynamics
+00b893cb4d7f05a9,10.1007/s12028-026-02601-4,SCCM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+0d02f3521c9e0b36,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+15b2b8fab1c8be39,10.1007/s12028-026-02601-4,SCCM,llm,protamine dosing,"Transfusion, coagulation and VTE"
+21dc9a8923462d14,10.1007/s12028-026-02601-4,SCCM,llm,coagulation monitoring,"Transfusion, coagulation and VTE"
+23d796292694902a,10.1007/s12028-026-02601-4,SCCM,llm,dabigatran reversal,"Transfusion, coagulation and VTE"
+260776fac972fc3a,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+2b187e7ecfebead0,10.1007/s12028-026-02601-4,SCCM,llm,toxin decontamination,Other
+32544b5a92320217,10.1007/s12028-026-02601-4,SCCM,llm,protamine dosing,"Transfusion, coagulation and VTE"
+37e7cd1efae8d646,10.1007/s12028-026-02601-4,SCCM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+3bc3e3b078cd9e95,10.1007/s12028-026-02601-4,SCCM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+4403f5f971ecdc72,10.1007/s12028-026-02601-4,SCCM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+4828c916cbd0ec1a,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+48fbd1d06ec2b017,10.1007/s12028-026-02601-4,SCCM,llm,protamine dosing,"Transfusion, coagulation and VTE"
+4aa893451dbcdd3c,10.1007/s12028-026-02601-4,SCCM,llm,antifibrinolytic use,"Transfusion, coagulation and VTE"
+4ad86f4a2d254351,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+4d962f9b7b966de4,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+5fd44f377e4b6fb7,10.1007/s12028-026-02601-4,SCCM,llm,protamine dosing,"Transfusion, coagulation and VTE"
+605f70acf8b31d83,10.1007/s12028-026-02601-4,SCCM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+63784e8386df32d5,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+65162a8f0ec469d4,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+65896b5797c40bd5,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+6a0674a1cb632425,10.1007/s12028-026-02601-4,SCCM,llm,dabigatran reversal,"Transfusion, coagulation and VTE"
+6d7b1d6ebfc68c03,10.1007/s12028-026-02601-4,SCCM,llm,dabigatran reversal,"Transfusion, coagulation and VTE"
+6f3dfd01ad8efe85,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+720dfcf77b3501b7,10.1007/s12028-026-02601-4,SCCM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+753d218d539d5a15,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+771023a7d66e0afa,10.1007/s12028-026-02601-4,SCCM,llm,vha-guided management,Other
+7a2e5150f70a8f6f,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+7a86deaac53eb4bf,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+7b1915234653b64b,10.1007/s12028-026-02601-4,SCCM,llm,toxin decontamination,Other
+87bc83e22e1c06a1,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+88aa78cde426b9fa,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+8c005766e1b4066e,10.1007/s12028-026-02601-4,SCCM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+8da9106c2324fedc,10.1007/s12028-026-02601-4,SCCM,llm,protamine use,"Transfusion, coagulation and VTE"
+925d4ab911127f18,10.1007/s12028-026-02601-4,SCCM,llm,cryoprecipitate use,"Transfusion, coagulation and VTE"
+95baa72cca62be0b,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+979936bbf8880fab,10.1007/s12028-026-02601-4,SCCM,llm,vitamin k use,"Transfusion, coagulation and VTE"
+9946da33170c67dd,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+a2166f8f6438ff23,10.1007/s12028-026-02601-4,SCCM,llm,dabigatran reversal,"Transfusion, coagulation and VTE"
+ac133a8f88ced811,10.1007/s12028-026-02601-4,SCCM,llm,protamine use,"Transfusion, coagulation and VTE"
+b2b45bcd1ccc1a06,10.1007/s12028-026-02601-4,SCCM,llm,protamine dosing,"Transfusion, coagulation and VTE"
+baedec60684e186a,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+bb18ab592e17e4f7,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+bd8aad74646125bd,10.1007/s12028-026-02601-4,SCCM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+c38419d752f9b0df,10.1007/s12028-026-02601-4,SCCM,llm,coagulation factor replacement,"Transfusion, coagulation and VTE"
+c481efdd3f75e7f4,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+c94fb847f397e294,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+d563fb6b3601fa7e,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+dacebc7aa750e636,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+e4d928e22399ec11,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+e9318807b93a90eb,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+f265b0a458b2d8d5,10.1007/s12028-026-02601-4,SCCM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+f2b0104332acd401,10.1007/s12028-026-02601-4,SCCM,llm,anticoagulant reversal,"Transfusion, coagulation and VTE"
+f3529bb98a7a241f,10.1007/s12028-026-02601-4,SCCM,llm,protamine dosing,"Transfusion, coagulation and VTE"
+f436273a133141d2,10.1007/s12028-026-02601-4,SCCM,llm,coagulation factor replacement,"Transfusion, coagulation and VTE"
+f51d80654ef5c6ff,10.1007/s12028-026-02601-4,SCCM,llm,platelet transfusion,"Transfusion, coagulation and VTE"
+fafd410b6ad6e745,10.1007/s12028-026-02601-4,SCCM,llm,prothrombin complex concentrate type,"Transfusion, coagulation and VTE"
+fc5d9cb3e337fd51,10.1007/s12028-026-02601-4,SCCM,llm,coagulation factor replacement,"Transfusion, coagulation and VTE"
+06bb39cdb76a0dd5,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+07e0633da5086def,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+0d759f4f218cbb96,10.1097/ccm.0000000000001525,SCCM,llm,enteral feeding protocols,Nutrition
+0f70977444ec4802,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition tolerance,Nutrition
+11581af9df881554,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+12ce99e9c8eaea0d,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing in burns,Nutrition
+1378fab3494e3c95,10.1097/ccm.0000000000001525,SCCM,llm,micronutrient evaluation and replacement,Nutrition
+17a46a31227b8139,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition in liver disease,Nutrition
+194a49e3f16f8161,10.1097/ccm.0000000000001525,SCCM,llm,parenteral nutrition content,Nutrition
+1db21d99a190defd,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition route,Nutrition
+2739825352961376,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition content,Nutrition
+2e176843c4ab8cf0,10.1097/ccm.0000000000001525,SCCM,llm,enteral vs parenteral nutrition,Nutrition
+308ca50a55b9ad04,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition assessment,Nutrition
+30f8fc4edb1525a0,10.1097/ccm.0000000000001525,SCCM,llm,renal failure nutrition,Nutrition
+312ec048619550f0,10.1097/ccm.0000000000001525,SCCM,llm,enteral formula selection in liver disease,Nutrition
+340b9bc19e3f6af2,10.1097/ccm.0000000000001525,SCCM,llm,indirect calorimetry in burns,Nutrition
+3adab122017ca04f,10.1097/ccm.0000000000001525,SCCM,llm,enteral vs parenteral nutrition,Nutrition
+3af469b6fd179505,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+43283f08a57f0d5d,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+4a165396270af5e5,10.1097/ccm.0000000000001525,SCCM,llm,antioxidant vitamins and minerals,Nutrition
+4a7871972bb88adb,10.1097/ccm.0000000000001525,SCCM,llm,aspiration detection methods,Nutrition
+4a936f70e61288db,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+4cdd3f4513a361a3,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition content,Nutrition
+52d0d4c8c4546eb2,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition initiation,Nutrition
+54a5a1372f9fae51,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+56a7cf758b8d2f19,10.1097/ccm.0000000000001525,SCCM,llm,glucose control,Glucose control
+587216d752be706f,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+591cba54b90fa805,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition content,Nutrition
+5b6a88dafedf0d1c,10.1097/ccm.0000000000001525,SCCM,llm,acute pancreatitis enteral feeding,Nutrition
+605d91a7d1da2ac6,10.1097/ccm.0000000000001525,SCCM,llm,glutamine supplementation,Nutrition
+626ef32bed5ce51d,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition in ards/ali,Nutrition
+6304ccdbd0a51153,10.1097/ccm.0000000000001525,SCCM,llm,nutrition refeeding strategies,Nutrition
+63ca9b8c6f8e8cf5,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition energy goals,Nutrition
+64b745bd64dc18d4,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+65643ef1f732c362,10.1097/ccm.0000000000001525,SCCM,llm,parenteral nutrition content,Nutrition
+6f8b54c37c51c808,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition route,Nutrition
+726986bb4bd371e7,10.1097/ccm.0000000000001525,SCCM,llm,parenteral nutrition initiation,Nutrition
+73ed92d8c7dbb08b,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+73f6be444ed4e7ae,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition protocols,Nutrition
+774d92dea2125f53,10.1097/ccm.0000000000001525,SCCM,llm,immune-modulating enteral formulas,Nutrition
+77e3d6c7f4deb580,10.1097/ccm.0000000000001525,SCCM,llm,nutrition risk and therapy,Nutrition
+79ec40d77970d094,10.1097/ccm.0000000000001525,SCCM,llm,nutrition assessment in obesity,Nutrition
+7aa00fd17dc7af66,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+7d3d0f8fdf7b9b11,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+7fe231a4ec59e218,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition content,Nutrition
+81a50c256463f299,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition content,Nutrition
+84f6b77b50e39d2c,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+8674a56c9a5b3c5b,10.1097/ccm.0000000000001525,SCCM,llm,aspiration prevention strategies,Nutrition
+87e9cf5765b27fac,10.1097/ccm.0000000000001525,SCCM,llm,protein intake in burns,Nutrition
+8a0e171e74e2f734,10.1097/ccm.0000000000001525,SCCM,llm,parenteral nutrition initiation,Nutrition
+8d0f6820b427b8c0,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+8e3cfa0eda3fb430,10.1097/ccm.0000000000001525,SCCM,llm,energy-dense enteral formulations,Nutrition
+94e6ed4acda96f1e,10.1097/ccm.0000000000001525,SCCM,llm,acute pancreatitis parenteral nutrition,Nutrition
+9799e1e72a94ee10,10.1097/ccm.0000000000001525,SCCM,llm,parenteral nutrition content,Nutrition
+989d935785632360,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+98c0d2fd03196064,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition and motility,Nutrition
+99c73372a47ee47c,10.1097/ccm.0000000000001525,SCCM,llm,parenteral nutrition protocols,Nutrition
+9abcd825f45a322a,10.1097/ccm.0000000000001525,SCCM,llm,parenteral nutrition timing,Nutrition
+9fc0015d710245f8,10.1097/ccm.0000000000001525,SCCM,llm,acute pancreatitis enteral formula,Nutrition
+a2a8febc26b0a1de,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition and diarrhea,Nutrition
+a7f4e24ddc978821,10.1097/ccm.0000000000001525,SCCM,llm,thiamine supplementation in bariatric surgery,Nutrition
+a8aa532c3eb5eb00,10.1097/ccm.0000000000001525,SCCM,llm,gastric residual volume monitoring,Nutrition
+abb1b8b66685e8a8,10.1097/ccm.0000000000001525,SCCM,llm,trophic feeding in sepsis,Nutrition
+ae139d6d2c796f12,10.1097/ccm.0000000000001525,SCCM,llm,phosphate monitoring and replacement,Nutrition
+b1f53beeec1088c4,10.1097/ccm.0000000000001525,SCCM,llm,probiotics use,Nutrition
+b6d1398ab6e17811,10.1097/ccm.0000000000001525,SCCM,llm,parenteral nutrition timing,Nutrition
+bc4e793de03cf233,10.1097/ccm.0000000000001525,SCCM,llm,nutrition assessment in obesity,Nutrition
+bd00db9505691417,10.1097/ccm.0000000000001525,SCCM,llm,aspiration risk assessment,Nutrition
+c0249300bd552ab3,10.1097/ccm.0000000000001525,SCCM,llm,gastric residual volume monitoring,Nutrition
+c587885255ef9581,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+c872d2d7adddc013,10.1097/ccm.0000000000001525,SCCM,llm,end-of-life care,"Family, communication and end of life"
+c9e2ca5bd7375d2d,10.1097/ccm.0000000000001525,SCCM,llm,acute pancreatitis nutrition therapy,Nutrition
+ccbb812a7978fcf0,10.1097/ccm.0000000000001525,SCCM,llm,enteral formula selection,Nutrition
+cf816e9df673ba9f,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+d0bdc2140fd6d9b9,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+d14c8cfbdfafeeae,10.1097/ccm.0000000000001525,SCCM,llm,nutrition risk assessment,Nutrition
+d56069c0ee1f2ef7,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+d8a9f79e6c8047e4,10.1097/ccm.0000000000001525,SCCM,llm,nutrition assessment methods,Nutrition
+d9ec9ac69c769e90,10.1097/ccm.0000000000001525,SCCM,llm,high-protein hypocaloric feeding,Nutrition
+db583d0d801081b9,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition content,Nutrition
+dbff5e3f4bad0616,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+e125d52ba8d07d82,10.1097/ccm.0000000000001525,SCCM,llm,protein intake in renal failure,Nutrition
+e5b6974d466315bc,10.1097/ccm.0000000000001525,SCCM,llm,fiber supplementation,Nutrition
+e65d113acce90f12,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition timing,Nutrition
+ea561c27df344e7e,10.1097/ccm.0000000000001525,SCCM,llm,parenteral nutrition dosing,Nutrition
+eb9475d1ecaa50cb,10.1097/ccm.0000000000001525,SCCM,llm,enteral formula composition,Nutrition
+ef44c16b813fa5b5,10.1097/ccm.0000000000001525,SCCM,llm,protein requirements,Nutrition
+f49b3eb9cb1a92e6,10.1097/ccm.0000000000001525,SCCM,llm,parenteral nutrition use in sepsis,Nutrition
+f58aa2afe1885fc0,10.1097/ccm.0000000000001525,SCCM,llm,high-fat/low-carbohydrate formulations,Nutrition
+f6fc64c31284eba2,10.1097/ccm.0000000000001525,SCCM,llm,enteral nutrition delivery method,Nutrition
+fc3ca510e6eaf859,10.1097/ccm.0000000000001525,SCCM,llm,acute pancreatitis nutrition assessment,Nutrition
+03775d05c76f9ae8,10.1097/ccm.0000000000001847,SCCM,llm,pulmonary arterial pressure measurement,Airway and procedures
+094849f6571c621c,10.1097/ccm.0000000000001847,SCCM,llm,pediatric bcu for congenital heart disease,Airway and procedures
+09af8d28232b4ce7,10.1097/ccm.0000000000001847,SCCM,llm,bedside tte for aortic injury,Airway and procedures
+0b3a0e3157412f8a,10.1097/ccm.0000000000001847,SCCM,llm,pe evaluation,Airway and procedures
+181d1040cb9b1eb3,10.1097/ccm.0000000000001847,SCCM,llm,acs/ami diagnosis,Airway and procedures
+19a6cd948ff0ff0f,10.1097/ccm.0000000000001847,SCCM,llm,irreversible cardiac activity diagnosis,Airway and procedures
+1a135e2b09911238,10.1097/ccm.0000000000001847,SCCM,llm,hemodynamic instability causes,Shock and hemodynamics
+1abbc2d8c1e56c46,10.1097/ccm.0000000000001847,SCCM,llm,rv infarction diagnosis,Other
+1f5596df2c7b2ba8,10.1097/ccm.0000000000001847,SCCM,llm,pediatric bcu for pda diagnosis,Airway and procedures
+20baac2bb2116744,10.1097/ccm.0000000000001847,SCCM,llm,mechanical valve dysfunction evaluation,Other
+20e42e84cf705425,10.1097/ccm.0000000000001847,SCCM,llm,cardiac tamponade diagnosis,Airway and procedures
+3b5230c31e1cb808,10.1097/ccm.0000000000001847,SCCM,llm,lv diastolic function assessment,Shock and hemodynamics
+3d530c0219a375ee,10.1097/ccm.0000000000001847,SCCM,llm,bcu for lv dysfunction in sepsis,Shock and hemodynamics
+3d65ab302543ab39,10.1097/ccm.0000000000001847,SCCM,llm,prosthetic valve endocarditis evaluation,Airway and procedures
+3dfa97110dd13256,10.1097/ccm.0000000000001847,SCCM,llm,pediatric bcu for cardiogenic shock,Shock and hemodynamics
+40c18399f7ad4789,10.1097/ccm.0000000000001847,SCCM,llm,blunt cardiac injury diagnosis,Other
+4e1558fc2afae9ce,10.1097/ccm.0000000000001847,SCCM,llm,intrapulmonary shunting diagnosis,Other
+5c31fec3bf1625bd,10.1097/ccm.0000000000001847,SCCM,llm,preload responsiveness with tee,Airway and procedures
+69010fef75fa9e36,10.1097/ccm.0000000000001847,SCCM,llm,tee during cpr,Airway and procedures
+6cb1be6acbc09921,10.1097/ccm.0000000000001847,SCCM,llm,penetrating chest trauma evaluation,Other
+76966ab68e392064,10.1097/ccm.0000000000001847,SCCM,llm,cad detection post-rosc,Other
+7d37bf2792eb1bdb,10.1097/ccm.0000000000001847,SCCM,llm,pediatric bcu for valvular heart disease,Airway and procedures
+7da6bb8280fd10f5,10.1097/ccm.0000000000001847,SCCM,llm,cardiac tamponade diagnosis,Airway and procedures
+80c83f029a7c1a5a,10.1097/ccm.0000000000001847,SCCM,llm,bcu for endocarditis screening,Infection and antimicrobials
+82259d06b9eded57,10.1097/ccm.0000000000001847,SCCM,llm,acute rv failure evaluation,Other
+823786a481da645f,10.1097/ccm.0000000000001847,SCCM,llm,bedside tte for pericardial effusion,Airway and procedures
+82dc9b53aaaa57de,10.1097/ccm.0000000000001847,SCCM,llm,bcu during asystole,Airway and procedures
+975e40f4a7612f4c,10.1097/ccm.0000000000001847,SCCM,llm,bcu for pea diagnosis,Airway and procedures
+a178688af6b3a919,10.1097/ccm.0000000000001847,SCCM,llm,tee for poor tte visualization,Other
+b2ba7ea941b3460b,10.1097/ccm.0000000000001847,SCCM,llm,pericardial effusion diagnosis,Airway and procedures
+bf9866914705212a,10.1097/ccm.0000000000001847,SCCM,llm,bcu for rv dysfunction in sepsis,Shock and hemodynamics
+bfc72ce7a2180639,10.1097/ccm.0000000000001847,SCCM,llm,new murmur evaluation,Other
+ce1a616426ed33e9,10.1097/ccm.0000000000001847,SCCM,llm,cardiac arrest causes exclusion,Other
+d196a1df9ecfe8d6,10.1097/ccm.0000000000001847,SCCM,llm,fluid resuscitation,Fluids
+de77b4f87c027b06,10.1097/ccm.0000000000001847,SCCM,llm,preload responsiveness in hypovolemic shock,Shock and hemodynamics
+e88d3174b237aacd,10.1097/ccm.0000000000001847,SCCM,llm,lv ultrasound contrast use,Airway and procedures
+ec8b8ccae0ed72d6,10.1097/ccm.0000000000001847,SCCM,llm,rv contrast for paradoxical emboli,Airway and procedures
+f4b00e63cef58306,10.1097/ccm.0000000000001847,SCCM,llm,sepsis fluid responsiveness,Shock and hemodynamics
+faef4cf03e67f35d,10.1097/ccm.0000000000001847,SCCM,llm,lv systolic function assessment,Shock and hemodynamics
+0b63e289140c8900,10.1097/ccm.0000000000001856,SCCM,llm,scoring systems for icu care,Other
+0d351ed0bce75db7,10.1097/ccm.0000000000001856,SCCM,llm,icu consult teams,ICU organisation and safety
+13c0192b97ec45cd,10.1097/ccm.0000000000001856,SCCM,llm,rapid response systems,ICU organisation and safety
+1da265e898d46e9c,10.1097/ccm.0000000000001856,SCCM,llm,overtriage vs undertriage,ICU organisation and safety
+2775ea45372c2d4e,10.1097/ccm.0000000000001856,SCCM,llm,icu nursing resources,ICU organisation and safety
+2d336906ce98d057,10.1097/ccm.0000000000001856,SCCM,llm,icu admission prioritization,ICU organisation and safety
+3d43df8a8bc6c7ca,10.1097/ccm.0000000000001856,SCCM,llm,patient transfer timing,ICU organisation and safety
+42f353794938c4e2,10.1097/ccm.0000000000001856,SCCM,llm,patient transfer timing,ICU organisation and safety
+474e6f3f814b672d,10.1097/ccm.0000000000001856,SCCM,llm,prognosis,Other
+5176a280511cefdc,10.1097/ccm.0000000000001856,SCCM,llm,patient discharge planning,ICU organisation and safety
+52de43b319b4faab,10.1097/ccm.0000000000001856,SCCM,llm,bed allocation tools,ICU organisation and safety
+5aeb7fb07918b1f4,10.1097/ccm.0000000000001856,SCCM,llm,icu policy development,ICU organisation and safety
+6e80fa7b82dd5db2,10.1097/ccm.0000000000001856,SCCM,llm,24/7 intensivist model,ICU organisation and safety
+75760b97b154ee69,10.1097/ccm.0000000000001856,SCCM,llm,patient transfer to icu,ICU organisation and safety
+78051eac6c7cf424,10.1097/ccm.0000000000001856,SCCM,llm,icu boarding avoidance,ICU organisation and safety
+7b1883ee046dc7ae,10.1097/ccm.0000000000001856,SCCM,llm,rapid response systems,ICU organisation and safety
+9336f2e7f4f4a2b8,10.1097/ccm.0000000000001856,SCCM,llm,icu admission criteria,ICU organisation and safety
+93d333eb25944df2,10.1097/ccm.0000000000001856,SCCM,llm,icu admission prioritization,ICU organisation and safety
+94e8475829c0efee,10.1097/ccm.0000000000001856,SCCM,llm,icu admission prioritization,ICU organisation and safety
+a32e6b5b1dce6331,10.1097/ccm.0000000000001856,SCCM,llm,icu treatment criteria,"Family, communication and end of life"
+a48da4aa14f7fc40,10.1097/ccm.0000000000001856,SCCM,llm,severity-of-illness scores,Other
+a4fa0560ef9c904a,10.1097/ccm.0000000000001856,SCCM,llm,prognostic communication,"Family, communication and end of life"
+a5264b98bfaffbe3,10.1097/ccm.0000000000001856,SCCM,llm,icu admission criteria,ICU organisation and safety
+a6766eadb90f9a99,10.1097/ccm.0000000000001856,SCCM,llm,icu triage and monitoring,ICU organisation and safety
+addece70e1c3d62b,10.1097/ccm.0000000000001856,SCCM,llm,icu treatment criteria,ICU organisation and safety
+b03ee0014a0f1f72,10.1097/ccm.0000000000001856,SCCM,llm,nonbeneficial treatment terminology,"Family, communication and end of life"
+c3705633ca75a5d9,10.1097/ccm.0000000000001856,SCCM,llm,icu policy development,ICU organisation and safety
+d0ac232c63195fc7,10.1097/ccm.0000000000001856,SCCM,llm,patient discharge planning,ICU organisation and safety
+dbe40a7be64359d7,10.1097/ccm.0000000000001856,SCCM,llm,nonbeneficial treatment definitions,Other
+dcc56c06972d0a30,10.1097/ccm.0000000000001856,SCCM,llm,icu discharge after hours,ICU organisation and safety
+ea51b8a3d657b8b6,10.1097/ccm.0000000000001856,SCCM,llm,icu discharge after hours,ICU organisation and safety
+ec161b0f054ae138,10.1097/ccm.0000000000001856,SCCM,llm,neuro-icu admission,Neurocritical care
+f6c3fe5c62c61f93,10.1097/ccm.0000000000001856,SCCM,llm,high-intensity icu model,ICU organisation and safety
+f7a52e4f13873d4b,10.1097/ccm.0000000000001856,SCCM,llm,ethicist involvement,"Family, communication and end of life"
+fc9ee73b79e0d984,10.1097/ccm.0000000000001856,SCCM,llm,patient transfer to icu,ICU organisation and safety
+fd33e2da6997d90b,10.1097/ccm.0000000000001856,SCCM,llm,24/7 intensivist model,ICU organisation and safety
+07ec263c6f8b9273,10.1097/ccm.0000000000002027,SCCM,llm,eye care for patients,Other
+0ea9ffdf67ff74bd,10.1097/ccm.0000000000002027,SCCM,llm,nmba dosing in obese patients,"Sedation, analgesia and neuromuscular blockade"
+115848bc4083284e,10.1097/ccm.0000000000002027,SCCM,llm,nutritional requirements with neuromuscular-blocking agents,Nutrition
+1245ff73705a0105,10.1097/ccm.0000000000002027,SCCM,llm,glucose control with nmbas,Glucose control
+138e2d1258ab06cf,10.1097/ccm.0000000000002027,SCCM,llm,nmba use in status asthmaticus,"Sedation, analgesia and neuromuscular blockade"
+18410dad2ff920c2,10.1097/ccm.0000000000002027,SCCM,llm,physiotherapy with continuous nmba infusion,"Delirium, sleep and mobility"
+1c1003e62110b24d,10.1097/ccm.0000000000002027,SCCM,llm,nmba use in status asthmaticus,"Sedation, analgesia and neuromuscular blockade"
+261ec56283174ae8,10.1097/ccm.0000000000002027,SCCM,llm,analgesia and sedation with neuromuscular blockade,"Sedation, analgesia and neuromuscular blockade"
+2dd68feaffb477a9,10.1097/ccm.0000000000002027,SCCM,llm,peripheral nerve stimulation monitoring,"Sedation, analgesia and neuromuscular blockade"
+3c24a2c84578d800,10.1097/ccm.0000000000002027,SCCM,llm,pns with tof for neuromuscular blockade monitoring,"Sedation, analgesia and neuromuscular blockade"
+46a210a45b70c05c,10.1097/ccm.0000000000002027,SCCM,llm,nmba discontinuation at end of life,"Family, communication and end of life"
+5507d5ee99d293ae,10.1097/ccm.0000000000002027,SCCM,llm,physiotherapy with continuous nmba infusion,"Delirium, sleep and mobility"
+6ff5b94ed7c29584,10.1097/ccm.0000000000002027,SCCM,llm,nmba discontinuation at end of life,"Family, communication and end of life"
+732cfd053f6d1c36,10.1097/ccm.0000000000002027,SCCM,llm,prevention of upper extremity complications with nmbas,"Sedation, analgesia and neuromuscular blockade"
+7e3d76d9721439c7,10.1097/ccm.0000000000002027,SCCM,llm,nmba use in life-threatening respiratory failure,"Sedation, analgesia and neuromuscular blockade"
+846e0359dab1aa51,10.1097/ccm.0000000000002027,SCCM,llm,neuromuscular blockade monitoring,"Sedation, analgesia and neuromuscular blockade"
+9f2533573b9f579e,10.1097/ccm.0000000000002027,SCCM,llm,neuromuscular blockade monitoring,"Sedation, analgesia and neuromuscular blockade"
+c788dee5036a35e2,10.1097/ccm.0000000000002027,SCCM,llm,glucose control with nmbas,Glucose control
+cc89d172e54e22e7,10.1097/ccm.0000000000002027,SCCM,llm,nmba use in acute respiratory distress syndrome,Respiratory support
+d2f6033b47d71505,10.1097/ccm.0000000000002027,SCCM,llm,nmba use for shivering in therapeutic hypothermia,"Sedation, analgesia and neuromuscular blockade"
+d81c95f176db5ab3,10.1097/ccm.0000000000002027,SCCM,llm,nmba use in life-threatening respiratory failure,"Sedation, analgesia and neuromuscular blockade"
+d826819615471ce4,10.1097/ccm.0000000000002027,SCCM,llm,nmba use in acute respiratory distress syndrome,"Sedation, analgesia and neuromuscular blockade"
+dc2ab114a29ad9b3,10.1097/ccm.0000000000002027,SCCM,llm,nmba use for shivering in therapeutic hypothermia,"Sedation, analgesia and neuromuscular blockade"
+de7a4473df784aa9,10.1097/ccm.0000000000002027,SCCM,llm,pns with tof for neuromuscular blockade monitoring,"Sedation, analgesia and neuromuscular blockade"
+e05e4da934b93261,10.1097/ccm.0000000000002027,SCCM,llm,peripheral nerve stimulation with clinical assessment,"Sedation, analgesia and neuromuscular blockade"
+e8b772590758b14b,10.1097/ccm.0000000000002027,SCCM,llm,nmba dosing in obese patients,"Sedation, analgesia and neuromuscular blockade"
+f715a6001a6e7ef3,10.1097/ccm.0000000000002027,SCCM,llm,nmba administration protocol in therapeutic hypothermia,"Sedation, analgesia and neuromuscular blockade"
+0a8a42b5791c3c67,10.1097/ccm.0000000000002425,SCCM,llm,septic shock resuscitation,Shock and hemodynamics
+1b63f6c463c971ee,10.1097/ccm.0000000000002425,SCCM,llm,septic shock performance,ICU organisation and safety
+2c5eaff1d39aa50c,10.1097/ccm.0000000000002425,SCCM,llm,septic shock recognition,Infection and antimicrobials
+05549dc5265750ed,10.1097/ccm.0000000000002533,SCCM,llm,ade causality assessment,ICU organisation and safety
+249f0e541279449c,10.1097/ccm.0000000000002533,SCCM,llm,double checks for high-risk meds,ICU organisation and safety
+27500c11601c5e02,10.1097/ccm.0000000000002533,SCCM,llm,smart iv infusion pumps,ICU organisation and safety
+37be1698caf0985e,10.1097/ccm.0000000000002533,SCCM,llm,safety climate and culture,ICU organisation and safety
+411002c1d2fb7a08,10.1097/ccm.0000000000002533,SCCM,llm,icu medication education,ICU organisation and safety
+46f4c25afb270434,10.1097/ccm.0000000000002533,SCCM,llm,icu protocols/bundles,ICU organisation and safety
+5f7e4621da55af15,10.1097/ccm.0000000000002533,SCCM,llm,icu-specific ade surveillance,ICU organisation and safety
+60fe2ba5788719a8,10.1097/ccm.0000000000002533,SCCM,llm,safety culture reporting,ICU organisation and safety
+649eeed5ad9dd189,10.1097/ccm.0000000000002533,SCCM,llm,laboratory ordering alerts,ICU organisation and safety
+778dcce53276f7e1,10.1097/ccm.0000000000002533,SCCM,llm,cdss implementation,ICU organisation and safety
+88ae54acfb7ae0d8,10.1097/ccm.0000000000002533,SCCM,llm,safe medication concentration practices,ICU organisation and safety
+9439f53a056a28fa,10.1097/ccm.0000000000002533,SCCM,llm,ade chart reviews,ICU organisation and safety
+9e80d021534355f7,10.1097/ccm.0000000000002533,SCCM,llm,bcma use in icu,ICU organisation and safety
+af498aa4a3769a90,10.1097/ccm.0000000000002533,SCCM,llm,cpoe implementation,ICU organisation and safety
+b535deb36f30c439,10.1097/ccm.0000000000002533,SCCM,llm,heparin dosing protocols,ICU organisation and safety
+ce40f04ca927f623,10.1097/ccm.0000000000002533,SCCM,llm,medication titration,ICU organisation and safety
+d3c9846f32ea185b,10.1097/ccm.0000000000002533,SCCM,llm,trigger-initiated chart reviews,ICU organisation and safety
+d4be89cdf0978698,10.1097/ccm.0000000000002533,SCCM,llm,patient/family outcome interviews,"Family, communication and end of life"
+da41eb81717fd36c,10.1097/ccm.0000000000002533,SCCM,llm,robotic dispensing systems,ICU organisation and safety
+e10a3754862b4be1,10.1097/ccm.0000000000002533,SCCM,llm,insulin dosing software,ICU organisation and safety
+e712d64bd795980b,10.1097/ccm.0000000000002533,SCCM,llm,medication labeling practices,ICU organisation and safety
+ec47034fa6b29455,10.1097/ccm.0000000000002533,SCCM,llm,medication surveillance methods,ICU organisation and safety
+ed589032120a58e5,10.1097/ccm.0000000000002533,SCCM,llm,medication dispensing automation,ICU organisation and safety
+eede5fb35a7bdd7d,10.1097/ccm.0000000000002533,SCCM,llm,broselow tape use,ICU organisation and safety
+1927a848acbed840,10.1097/ccm.0000000000002737,SCCM,llm,circi,Other
+1e8e0e6d5e53cd0a,10.1097/ccm.0000000000002737,SCCM,llm,corticosteroids in sepsis without shock,Corticosteroids
+22cce9ec32a961db,10.1097/ccm.0000000000002737,SCCM,llm,corticosteroids in ards,Respiratory support
+32e7f50e05ff8d3c,10.1097/ccm.0000000000002737,SCCM,llm,corticosteroids in septic shock,Corticosteroids
+45706edaaf13071a,10.1097/ccm.0000000000002737,SCCM,llm,corticosteroids in sepsis without shock,Corticosteroids
+4a8f3e740a59044c,10.1097/ccm.0000000000002737,SCCM,llm,cortisol measurement for circi,Corticosteroids
+6c7e4bcd532d4714,10.1097/ccm.0000000000002737,SCCM,llm,corticosteroids in trauma,Corticosteroids
+6e1962225345c4c6,10.1097/ccm.0000000000002737,SCCM,llm,corticosteroids in septic shock,Corticosteroids
+81ce42bf8a393741,10.1097/ccm.0000000000002737,SCCM,llm,circi diagnosis,Other
+8be81ec61416509a,10.1097/ccm.0000000000002737,SCCM,llm,corticosteroids in septic shock,Corticosteroids
+a10870ded5efb3ad,10.1097/ccm.0000000000002737,SCCM,llm,circi diagnosis,Corticosteroids
+cd9eea65d683c9ea,10.1097/ccm.0000000000002737,SCCM,llm,corticotropin for circi diagnosis,Corticosteroids
+ec7054e70d5f20c6,10.1097/ccm.0000000000002737,SCCM,llm,corticosteroids in ards,Respiratory support
+f15a661cfed2caca,10.1097/ccm.0000000000002737,SCCM,llm,corticosteroids in trauma,Corticosteroids
+f95697743e43b8e1,10.1097/ccm.0000000000002737,SCCM,llm,cortisol vs. corticotropin for circi,Other
+193fb0a44a295b5f,10.1097/ccm.0000000000002840,SCCM,llm,corticosteroid use,Corticosteroids
+34c2eabb9fe8c33c,10.1097/ccm.0000000000002840,SCCM,llm,corticosteroid use,Corticosteroids
+838a4d24e2e9fd94,10.1097/ccm.0000000000002840,SCCM,llm,corticosteroids in cardiac arrest,Corticosteroids
+a09e1cd9326d6649,10.1097/ccm.0000000000002840,SCCM,llm,corticosteroids in surgery,Corticosteroids
+d6e96223ba6983d3,10.1097/ccm.0000000000002840,SCCM,llm,corticosteroid use,Corticosteroids
+06e854ba0b5ee979,10.1097/ccm.0000000000003299,SCCM,llm,antipsychotics for subsyndromal delirium,"Delirium, sleep and mobility"
+0781beab58d4f4b7,10.1097/ccm.0000000000003299,SCCM,llm,sedation agents,"Sedation, analgesia and neuromuscular blockade"
+11c641c4e9224c5d,10.1097/ccm.0000000000003299,SCCM,llm,iv lidocaine for pain,"Sedation, analgesia and neuromuscular blockade"
+17b53636a0fa7d61,10.1097/ccm.0000000000003299,SCCM,llm,non-invasive ventilation equipment,Respiratory support
+219ee13fe76364ec,10.1097/ccm.0000000000003299,SCCM,llm,sleep promotion,"Delirium, sleep and mobility"
+2848fb5d35fe3565,10.1097/ccm.0000000000003299,SCCM,llm,massage for pain,"Sedation, analgesia and neuromuscular blockade"
+2a45caee157c2d7f,10.1097/ccm.0000000000003299,SCCM,llm,pain management,"Sedation, analgesia and neuromuscular blockade"
+4bcc76c72be82aa8,10.1097/ccm.0000000000003299,SCCM,llm,sleep promotion,"Delirium, sleep and mobility"
+5bb951210e7cdad6,10.1097/ccm.0000000000003299,SCCM,llm,delirium prevention intervention,"Delirium, sleep and mobility"
+61e578799bea52a3,10.1097/ccm.0000000000003299,SCCM,llm,delirium management,"Delirium, sleep and mobility"
+64ae61b821bd59b8,10.1097/ccm.0000000000003299,SCCM,llm,cox-1 nsaid for pain,"Sedation, analgesia and neuromuscular blockade"
+6b4f92ee450f13a9,10.1097/ccm.0000000000003299,SCCM,llm,acetaminophen with opioids,"Sedation, analgesia and neuromuscular blockade"
+7b7a4739c2ae3bc2,10.1097/ccm.0000000000003299,SCCM,llm,nsaid gel for procedural pain,"Sedation, analgesia and neuromuscular blockade"
+82d1d9d071b43e7f,10.1097/ccm.0000000000003299,SCCM,llm,local analgesia for ctr,"Sedation, analgesia and neuromuscular blockade"
+920f97de70d6fcaf,10.1097/ccm.0000000000003299,SCCM,llm,delirium treatment with antipsychotics,"Delirium, sleep and mobility"
+9390a7974b5a5176,10.1097/ccm.0000000000003299,SCCM,llm,cybertherapy for pain,"Sedation, analgesia and neuromuscular blockade"
+93dd978844342b92,10.1097/ccm.0000000000003299,SCCM,llm,rehabilitation in icu,"Delirium, sleep and mobility"
+997fe81fcfdcf400,10.1097/ccm.0000000000003299,SCCM,llm,aromatherapy for sleep,"Delirium, sleep and mobility"
+a1332f02ed26cacb,10.1097/ccm.0000000000003299,SCCM,llm,neuropathic pain medication with opioids,"Sedation, analgesia and neuromuscular blockade"
+a96f88241d300897,10.1097/ccm.0000000000003299,SCCM,llm,sedation agents,"Sedation, analgesia and neuromuscular blockade"
+ac80caafeb380c0e,10.1097/ccm.0000000000003299,SCCM,llm,propofol for sleep,"Delirium, sleep and mobility"
+b0ad39737f8b8012,10.1097/ccm.0000000000003299,SCCM,llm,relaxation techniques for pain,"Sedation, analgesia and neuromuscular blockade"
+b3701b6d5dc847c6,10.1097/ccm.0000000000003299,SCCM,llm,pain sedation management protocol,"Sedation, analgesia and neuromuscular blockade"
+ba65d483953af7f8,10.1097/ccm.0000000000003299,SCCM,llm,neuropathic pain medication with opioids,"Sedation, analgesia and neuromuscular blockade"
+d459e35900b424eb,10.1097/ccm.0000000000003299,SCCM,llm,delirium prevention with drugs,"Delirium, sleep and mobility"
+d4dcc357ee2ef437,10.1097/ccm.0000000000003299,SCCM,llm,sedation depth,"Sedation, analgesia and neuromuscular blockade"
+da7b7f2aeeab966c,10.1097/ccm.0000000000003299,SCCM,llm,music therapy for pain,"Sedation, analgesia and neuromuscular blockade"
+ddba4f355d2b7200,10.1097/ccm.0000000000003299,SCCM,llm,volatile anesthetics for pain,"Sedation, analgesia and neuromuscular blockade"
+e2c6da45222e4ec3,10.1097/ccm.0000000000003299,SCCM,llm,opioid reduction,"Sedation, analgesia and neuromuscular blockade"
+e2ffd6e1bbf13ea0,10.1097/ccm.0000000000003299,SCCM,llm,opioid reduction,"Sedation, analgesia and neuromuscular blockade"
+e50faa17a090e321,10.1097/ccm.0000000000003299,SCCM,llm,bright light for delirium,"Delirium, sleep and mobility"
+f1b5a1cb07aa329f,10.1097/ccm.0000000000003299,SCCM,llm,pain management,"Sedation, analgesia and neuromuscular blockade"
+f21d9865061c2c9e,10.1097/ccm.0000000000003299,SCCM,llm,ventilation mode for sleep,"Delirium, sleep and mobility"
+fb8119bc1af72d24,10.1097/ccm.0000000000003299,SCCM,llm,sleep monitoring in icu,"Delirium, sleep and mobility"
+feec2a8b446f463b,10.1097/ccm.0000000000003299,SCCM,llm,cold therapy for pain,"Sedation, analgesia and neuromuscular blockade"
+0240b705caa0ea7f,10.1097/ccm.0000000000004192,SCCM,llm,transfusion threshold,"Transfusion, coagulation and VTE"
+14713038ffe8eaaf,10.1097/ccm.0000000000004192,SCCM,llm,albumin resuscitation,Fluids
+174ece71c4f08073,10.1097/ccm.0000000000004192,SCCM,llm,anticoagulation for thrombosis,"Transfusion, coagulation and VTE"
+27e1a1b4bc42b53f,10.1097/ccm.0000000000004192,SCCM,llm,renal replacement therapy in aki,Kidney
+2ad8422e99ab26d4,10.1097/ccm.0000000000004192,SCCM,llm,mean arterial pressure targeting,Shock and hemodynamics
+4aad8ea782587e23,10.1097/ccm.0000000000004192,SCCM,llm,enteral nutrition timing,Nutrition
+4caf34aed303fec3,10.1097/ccm.0000000000004192,SCCM,llm,stress-dose glucocorticoids in septic shock,Corticosteroids
+641c7ef9ef42ed9e,10.1097/ccm.0000000000004192,SCCM,llm,arterial catheter placement,Airway and procedures
+6750ca373a7cc436,10.1097/ccm.0000000000004192,SCCM,llm,venous thromboembolism prophylaxis,"Transfusion, coagulation and VTE"
+68ce19bef4ad2c5c,10.1097/ccm.0000000000004192,SCCM,llm,medication dosing in liver failure,Liver failure
+6b48190bd331e969,10.1097/ccm.0000000000004192,SCCM,llm,glucose control,Glucose control
+6fb074406ded155c,10.1097/ccm.0000000000004192,SCCM,llm,coagulation testing,"Transfusion, coagulation and VTE"
+707c65e71d533558,10.1097/ccm.0000000000004192,SCCM,llm,protein intake,Nutrition
+7279dc98c004ab02,10.1097/ccm.0000000000004192,SCCM,llm,liver transplantation,Liver failure
+7c3de8c44f7af06c,10.1097/ccm.0000000000004192,SCCM,llm,invasive hemodynamic monitoring,Shock and hemodynamics
+847e895a44bd21f8,10.1097/ccm.0000000000004192,SCCM,llm,drug-induced liver failure,Liver failure
+91da3fad98242e08,10.1097/ccm.0000000000004192,SCCM,llm,peep in ards,Respiratory support
+9dcac6bf82f770b0,10.1097/ccm.0000000000004192,SCCM,llm,viscoelastic testing in coagulation management,"Transfusion, coagulation and VTE"
+a5f89c64bb7a39f3,10.1097/ccm.0000000000004192,SCCM,llm,blood pressure monitoring,Shock and hemodynamics
+b8b8a35773205e60,10.1097/ccm.0000000000004192,SCCM,llm,branched-chain amino acids,Nutrition
+ba3db8392608901d,10.1097/ccm.0000000000004192,SCCM,llm,tidal volume strategy in ards,Respiratory support
+c3bfffb6a9147376,10.1097/ccm.0000000000004192,SCCM,llm,treatment intent,Other
+d549b1276316a3d6,10.1097/ccm.0000000000004192,SCCM,llm,high-flow nasal cannula vs noninvasive ventilation,Respiratory support
+db1c0b60f14ae6a9,10.1097/ccm.0000000000004192,SCCM,llm,vasopressor combination,Shock and hemodynamics
+e6335be0dade9687,10.1097/ccm.0000000000004192,SCCM,llm,medication use in liver failure,Liver failure
+ea6191a789eab5c6,10.1097/ccm.0000000000004192,SCCM,llm,vasopressor use,Shock and hemodynamics
+f068d734b55d8ad1,10.1097/ccm.0000000000004192,SCCM,llm,vasopressor use,Shock and hemodynamics
+f9fab2063a4a1fb9,10.1097/ccm.0000000000004192,SCCM,llm,fluid resuscitation,Fluids
+00f1b50abc48daa0,10.1097/ccm.0000000000004899,SCCM,llm,dopamine use in shock,Shock and hemodynamics
+03abf4673eb5c5ab,10.1097/ccm.0000000000004899,SCCM,llm,hydroxyethyl starch use,Fluids
+07ed78b64963d065,10.1097/ccm.0000000000004899,SCCM,llm,fluid strategy,Fluids
+1113848a9bfe4ed5,10.1097/ccm.0000000000004899,SCCM,llm,norepinephrine as first-line vasoactive agent,Shock and hemodynamics
+19b2facb81172ad7,10.1097/ccm.0000000000004899,SCCM,llm,vte prophylaxis,"Transfusion, coagulation and VTE"
+234ad0ad1b46ef8e,10.1097/ccm.0000000000004899,SCCM,llm,dextran use,Fluids
+274d75bb9f65a1fc,10.1097/ccm.0000000000004899,SCCM,llm,vte prophylaxis,"Transfusion, coagulation and VTE"
+2b72f30e617568f5,10.1097/ccm.0000000000004899,SCCM,llm,sedation management,"Sedation, analgesia and neuromuscular blockade"
+2c3fb10bdb1febc9,10.1097/ccm.0000000000004899,SCCM,llm,fluid resuscitation,Shock and hemodynamics
+2d0d6832b2f7528d,10.1097/ccm.0000000000004899,SCCM,llm,anticoagulation therapy,"Transfusion, coagulation and VTE"
+37b9028be3fafa2d,10.1097/ccm.0000000000004899,SCCM,llm,respiratory sample type,Infection and antimicrobials
+37da504c80eb915d,10.1097/ccm.0000000000004899,SCCM,llm,mechanical ventilation,Respiratory support
+3ddfc5943da4db83,10.1097/ccm.0000000000004899,SCCM,llm,fluid type for resuscitation,Fluids
+4694f63091b65c8a,10.1097/ccm.0000000000004899,SCCM,llm,corticosteroid use,Corticosteroids
+507c4ce397e9b8c3,10.1097/ccm.0000000000004899,SCCM,llm,convalescent plasma use,Infection and antimicrobials
+53c5606d7e2e83ab,10.1097/ccm.0000000000004899,SCCM,llm,ppe for non-aerosol-generating procedures,Infection and antimicrobials
+55281c015c64442e,10.1097/ccm.0000000000004899,SCCM,llm,immunoglobulin use,Other
+5d0a56b996bf3da4,10.1097/ccm.0000000000004899,SCCM,llm,albumin use,Fluids
+5d49672f82dc4334,10.1097/ccm.0000000000004899,SCCM,llm,fever management,Other
+5df9e776498ae472,10.1097/ccm.0000000000004899,SCCM,llm,dobutamine in shock with cardiac dysfunction,Shock and hemodynamics
+5e34bdd4cba32dd6,10.1097/ccm.0000000000004899,SCCM,llm,vasoactive agents in shock,Shock and hemodynamics
+686155b3c158fa00,10.1097/ccm.0000000000004899,SCCM,llm,recruitment maneuvers,Respiratory support
+6a09705314895737,10.1097/ccm.0000000000004899,SCCM,llm,ecmo use,Respiratory support
+6a6aee1f5e86c177,10.1097/ccm.0000000000004899,SCCM,llm,vte prophylaxis,"Transfusion, coagulation and VTE"
+721cea04470a1d02,10.1097/ccm.0000000000004899,SCCM,llm,fluid resuscitation,Fluids
+86893d567884c71d,10.1097/ccm.0000000000004899,SCCM,llm,oxygen therapy,Respiratory support
+86bde87726633a37,10.1097/ccm.0000000000004899,SCCM,llm,ppe for aerosol-generating procedures,Infection and antimicrobials
+8ec9ff11e3397b91,10.1097/ccm.0000000000004899,SCCM,llm,high-flow nasal cannula in hypoxemic respiratory failure,Respiratory support
+8febc2bf70447699,10.1097/ccm.0000000000004899,SCCM,llm,respiratory sample type,Infection and antimicrobials
+91c5576adfeb5277,10.1097/ccm.0000000000004899,SCCM,llm,mechanical ventilation,Respiratory support
+92a4d1a94e3c51d6,10.1097/ccm.0000000000004899,SCCM,llm,remdesivir in severe covid-19,Infection and antimicrobials
+932b018a769aaa5f,10.1097/ccm.0000000000004899,SCCM,llm,recruitment maneuvers,Respiratory support
+95300c7599df0674,10.1097/ccm.0000000000004899,SCCM,llm,remdesivir in covid-19,Infection and antimicrobials
+96c20487e2434093,10.1097/ccm.0000000000004899,SCCM,llm,prone ventilation,Respiratory support
+96e7466264b851db,10.1097/ccm.0000000000004899,SCCM,llm,noninvasive ventilation,Respiratory support
+a2d8b99bfcbbbd99,10.1097/ccm.0000000000004899,SCCM,llm,vasopressin as second-line agent,Shock and hemodynamics
+a7c0e8ca15dea2d0,10.1097/ccm.0000000000004899,SCCM,llm,peep strategy,Respiratory support
+a8f9666c877d6906,10.1097/ccm.0000000000004899,SCCM,llm,ppe for nonventilated patients,Infection and antimicrobials
+a9cf9aadc1b9bd86,10.1097/ccm.0000000000004899,SCCM,llm,therapeutic anticoagulation in covid-19,"Transfusion, coagulation and VTE"
+b8c28ccf28d37a05,10.1097/ccm.0000000000004899,SCCM,llm,nmba administration,"Sedation, analgesia and neuromuscular blockade"
+cbba5bfd25e3abf2,10.1097/ccm.0000000000004899,SCCM,llm,gelatin use,Fluids
+d0c71a6f3f9cffce,10.1097/ccm.0000000000004899,SCCM,llm,infection control,Infection and antimicrobials
+d2b25557308f78e4,10.1097/ccm.0000000000004899,SCCM,llm,fluid resuscitation,Fluids
+d68e00a88bc9ed3d,10.1097/ccm.0000000000004899,SCCM,llm,noninvasive ventilation,Respiratory support
+da60b1aa77d4ec07,10.1097/ccm.0000000000004899,SCCM,llm,mechanical ventilation,Respiratory support
+ee22db99839c4524,10.1097/ccm.0000000000004899,SCCM,llm,oxygen saturation,Respiratory support
+f0bcc6494cf61f0d,10.1097/ccm.0000000000004899,SCCM,llm,map targeting in shock,Shock and hemodynamics
+f7a53264d82c5ca5,10.1097/ccm.0000000000004899,SCCM,llm,intubation technique,Airway and procedures
+f9a7a453d0d7be88,10.1097/ccm.0000000000004899,SCCM,llm,intubation technique,Airway and procedures
+fa578702e65b23eb,10.1097/ccm.0000000000004899,SCCM,llm,hydroxychloroquine use,Infection and antimicrobials
+fc8359eef41160c2,10.1097/ccm.0000000000004899,SCCM,llm,ventilator pressure management,Respiratory support
+ff40b2a0b26466c9,10.1097/ccm.0000000000004899,SCCM,llm,corticosteroid choice,Corticosteroids
+1627a7823069ed01,10.1097/ccm.0000000000005824,SCCM,llm,lola use in hepatic encephalopathy,Liver failure
+26b921109c7f3c2c,10.1097/ccm.0000000000005824,SCCM,llm,antibiotic use in septic shock,Infection and antimicrobials
+297fcc949dcf7a61,10.1097/ccm.0000000000005824,SCCM,llm,albumin use in sbp,Liver failure
+382342fe16878de3,10.1097/ccm.0000000000005824,SCCM,llm,peg use in hepatic encephalopathy,Liver failure
+4629bf54ef4e81a5,10.1097/ccm.0000000000005824,SCCM,llm,avoiding hypothermia in alf,Liver failure
+4e7cfb82ae0f71fc,10.1097/ccm.0000000000005824,SCCM,llm,ppi use in portal hypertensive bleeding,Liver failure
+53de0c166bf335fd,10.1097/ccm.0000000000005824,SCCM,llm,plasma exchange in hyperammonemia,Liver failure
+5935652de1045bba,10.1097/ccm.0000000000005824,SCCM,llm,avoiding sbd in transplant recipients,Other
+5c528e033cc786f2,10.1097/ccm.0000000000005824,SCCM,llm,tips for variceal bleeding,Liver failure
+68628bdf7e825032,10.1097/ccm.0000000000005824,SCCM,llm,avoiding lvp in sbp,Liver failure
+71cee2f42ad040f3,10.1097/ccm.0000000000005824,SCCM,llm,hepatic encephalopathy treatment,Liver failure
+73aec9ff0aebf542,10.1097/ccm.0000000000005824,SCCM,llm,tips for variceal bleeding,Liver failure
+78381d7c30a5f5c3,10.1097/ccm.0000000000005824,SCCM,llm,hypertonic saline in intracranial hypertension,Neurocritical care
+7a8f108820395b74,10.1097/ccm.0000000000005824,SCCM,llm,endoscopy in aclf patients,Liver failure
+7cb6e3c3196b73bf,10.1097/ccm.0000000000005824,SCCM,llm,peg use in hepatic encephalopathy,Liver failure
+974316e40172db0f,10.1097/ccm.0000000000005824,SCCM,llm,balanced crystalloid use in liver transplant,Fluids
+a6be30bc01b2e40c,10.1097/ccm.0000000000005824,SCCM,llm,nonabsorbable disaccharides in hepatic encephalopathy,Liver failure
+be233f9550e18d8f,10.1097/ccm.0000000000005824,SCCM,llm,albumin use in liver transplantation,Fluids
+bee93ab5c9a94d22,10.1097/ccm.0000000000005824,SCCM,llm,avoiding midodrine/terlipressin in sbp,Infection and antimicrobials
+c0489573f1bc1f1c,10.1097/ccm.0000000000005824,SCCM,llm,antibiotic therapy for sbp,Infection and antimicrobials
+c0a84316da2b1078,10.1097/ccm.0000000000005824,SCCM,llm,avoiding icp monitoring in alf,Liver failure
+c3d752f9c858d89d,10.1097/ccm.0000000000005824,SCCM,llm,extracorporeal liver support in alf/aclf,Other
+d1be0cfac2630543,10.1097/ccm.0000000000005824,SCCM,llm,fungal prophylaxis in transplant recipients,Infection and antimicrobials
+d31c5f17ad64ab78,10.1097/ccm.0000000000005824,SCCM,llm,antibiotic prophylaxis in ugib,Infection and antimicrobials
+d747f9ffd6bbfc5b,10.1097/ccm.0000000000005824,SCCM,llm,avoiding lvp in sbp,Liver failure
+e3046417ed4de06d,10.1097/ccm.0000000000005824,SCCM,llm,avoiding adjunctive therapies in hepatic encephalopathy,Liver failure
+eae1688a615ceef7,10.1097/ccm.0000000000005824,SCCM,llm,avoiding antifungal prophylaxis in low-risk transplant recipients,Infection and antimicrobials
+ecb3165669d4097c,10.1097/ccm.0000000000005824,SCCM,llm,intra-abdominal pressure measurement,Liver failure
+ee74827b1b7493ea,10.1097/ccm.0000000000005824,SCCM,llm,goal-directed fluid management in organ donors,Fluids
+f06966e161390852,10.1097/ccm.0000000000005824,SCCM,llm,albumin use in liver transplantation,Fluids
+f1b80b6bd3c83140,10.1097/ccm.0000000000005824,SCCM,llm,corticosteroids in liver graft donors,Corticosteroids
+f78fc781d36a510b,10.1097/ccm.0000000000005824,SCCM,llm,octreotide for portal hypertensive bleeding,Liver failure
+075e5f4dcd558eb3,10.1097/ccm.0000000000006000,SCCM,llm,preoxygenation with hfno,Respiratory support
+1f97ec84b203d2ce,10.1097/ccm.0000000000006000,SCCM,llm,medication-assisted preoxygenation,Respiratory support
+44bb98a3985f6ffc,10.1097/ccm.0000000000006000,SCCM,llm,positioning during rsi,Respiratory support
+536cb89131fdea7e,10.1097/ccm.0000000000006000,SCCM,llm,etomidate vs other induction agents,"Sedation, analgesia and neuromuscular blockade"
+91ddd9227e70469e,10.1097/ccm.0000000000006000,SCCM,llm,preoxygenation with nippv,Respiratory support
+ae225e29496695ed,10.1097/ccm.0000000000006000,SCCM,llm,nmba use during intubation,"Sedation, analgesia and neuromuscular blockade"
+e4f99a3a4e36b15a,10.1097/ccm.0000000000006000,SCCM,llm,corticosteroids after etomidate use,"Sedation, analgesia and neuromuscular blockade"
+eb8f209bf5a24b8a,10.1097/ccm.0000000000006000,SCCM,llm,neuromuscular blocker selection for rsi,"Sedation, analgesia and neuromuscular blockade"
+227722a8ccc02176,10.1097/ccm.0000000000006022,SCCM,llm,infection diagnosis,Infection and antimicrobials
+276c376e3170aaa1,10.1097/ccm.0000000000006022,SCCM,llm,pet/ct for fever etiology,Other
+3061070c0a440d5c,10.1097/ccm.0000000000006022,SCCM,llm,antipyretic use for comfort,Other
+4ffb55c53607f7aa,10.1097/ccm.0000000000006022,SCCM,llm,viral testing in suspected pneumonia,Infection and antimicrobials
+55548e57cebbe918,10.1097/ccm.0000000000006022,SCCM,llm,pet/ct for fever etiology,Other
+7452d8a69703857a,10.1097/ccm.0000000000006022,SCCM,llm,infection diagnosis,Infection and antimicrobials
+755de56c084d773f,10.1097/ccm.0000000000006022,SCCM,llm,abdominal ultrasound,Other
+8997ca9017aff77e,10.1097/ccm.0000000000006022,SCCM,llm,fever workup,Other
+8f73ac228b01b64c,10.1097/ccm.0000000000006022,SCCM,llm,infection diagnosis,Infection and antimicrobials
+93c2732f8b82db90,10.1097/ccm.0000000000006022,SCCM,llm,infection diagnosis,Infection and antimicrobials
+953e16bfeaa23c2a,10.1097/ccm.0000000000006022,SCCM,llm,abdominal ultrasound in fever,Other
+98b48f585edce416,10.1097/ccm.0000000000006022,SCCM,llm,thoracic ultrasound in fever,Other
+9e731cfa012f4c2a,10.1097/ccm.0000000000006022,SCCM,llm,molecular testing with blood cultures,Infection and antimicrobials
+ac43073b5faca8c7,10.1097/ccm.0000000000006022,SCCM,llm,infection diagnosis,Infection and antimicrobials
+b0f32eac3d0f8b7d,10.1097/ccm.0000000000006022,SCCM,llm,antipyretic use in fever,Other
+bbda40cf9ccfcf33,10.1097/ccm.0000000000006022,SCCM,llm,temperature monitoring methods,Other
+bf59fd620e89501f,10.1097/ccm.0000000000006022,SCCM,llm,sars-cov-2 testing in fever,Infection and antimicrobials
+ce05b1fa0af3ad87,10.1097/ccm.0000000000006022,SCCM,llm,fever workup,Infection and antimicrobials
+e91cef8ac8cc456b,10.1097/ccm.0000000000006022,SCCM,llm,viral testing in suspected pneumonia,Infection and antimicrobials
+ff436c31093e375a,10.1097/ccm.0000000000006022,SCCM,llm,infection diagnosis,Infection and antimicrobials
+42601382bb9de6ee,10.1097/ccm.0000000000006072,SCCM,llm,rapid response systems,ICU organisation and safety
+6b03bb85875c9921,10.1097/ccm.0000000000006072,SCCM,llm,rapid response systems,ICU organisation and safety
+88a3662715d1f03b,10.1097/ccm.0000000000006072,SCCM,llm,early deterioration recognition,ICU organisation and safety
+a027af4fbe228677,10.1097/ccm.0000000000006072,SCCM,llm,early warning systems,ICU organisation and safety
+c2f278b2c2d6f799,10.1097/ccm.0000000000006072,SCCM,llm,goals of care,"Family, communication and end of life"
+87030657cea35209,10.1097/ccm.0000000000006172,SCCM,llm,corticosteroid use in septic shock,Corticosteroids
+c19682aedb9ebb1f,10.1097/ccm.0000000000006172,SCCM,llm,corticosteroid use in ards,Corticosteroids
+ce9a29cbce05f047,10.1097/ccm.0000000000006172,SCCM,llm,corticosteroid use in pneumonia,Corticosteroids
+d06aba9f19d171e9,10.1097/ccm.0000000000006172,SCCM,llm,corticosteroid dosing in septic shock,Corticosteroids
+e4284ea5b234fbfe,10.1097/ccm.0000000000006172,SCCM,llm,corticosteroid use in pneumonia,Corticosteroids
+e925edb53dec9787,10.1097/ccm.0000000000006172,SCCM,llm,corticosteroid use in ards,Corticosteroids
+0a3813321c6831e3,10.1097/ccm.0000000000006174,SCCM,llm,glucose control,Glucose control
+19caf96ec7f8eb88,10.1097/ccm.0000000000006174,SCCM,llm,glucose control targets,Glucose control
+20381527c7ba48e2,10.1097/ccm.0000000000006174,SCCM,llm,glucose control targets,Glucose control
+52e2b3dbbbb92f6b,10.1097/ccm.0000000000006174,SCCM,llm,glucose control targets,Glucose control
+62bb4a902bb0f7c7,10.1097/ccm.0000000000006174,SCCM,llm,glucose monitoring frequency,Glucose control
+80db0e7f5653da42,10.1097/ccm.0000000000006174,SCCM,llm,glucose control,Glucose control
+b528e31b8d53c663,10.1097/ccm.0000000000006174,SCCM,llm,glucose management protocols,Glucose control
+131fea7504cd9d61,10.1097/ccm.0000000000006330,SCCM,llm,enteral nutrition timing,Nutrition
+25cddb391f5b079c,10.1097/ccm.0000000000006330,SCCM,llm,stress ulcer prophylaxis,GI prophylaxis
+2ead57e00c285daf,10.1097/ccm.0000000000006330,SCCM,llm,stress ulcer prophylaxis,GI prophylaxis
+310dfa14c2c645d5,10.1097/ccm.0000000000006330,SCCM,llm,stress ulcer prophylaxis,GI prophylaxis
+3c4d97f4d457cdec,10.1097/ccm.0000000000006330,SCCM,llm,stress ulcer prophylaxis,GI prophylaxis
+4dc240c5e69bf5c7,10.1097/ccm.0000000000006330,SCCM,llm,stress ulcer prophylaxis,GI prophylaxis
+69100793a2f0f655,10.1097/ccm.0000000000006330,SCCM,llm,stress ulcer prophylaxis,GI prophylaxis
+b8009b200009a32d,10.1097/ccm.0000000000006330,SCCM,llm,stress ulcer prophylaxis,GI prophylaxis
+b8493cd730276e63,10.1097/ccm.0000000000006330,SCCM,llm,enteral nutrition timing,Nutrition
+e5e2a1bc78dcdd87,10.1097/ccm.0000000000006330,SCCM,llm,stress ulcer prophylaxis,GI prophylaxis
+374aa1825241c4c4,10.1097/ccm.0000000000006530,SCCM,llm,cardiogenic shock management,Other
+9ccae9568a960602,10.1097/ccm.0000000000006530,SCCM,llm,cardiac arrest management,Other
+a7ad7db02e2fd972,10.1097/ccm.0000000000006530,SCCM,llm,acute dyspnea management,Other
+d58d0d3a4f3cdf65,10.1097/ccm.0000000000006530,SCCM,llm,volume management,Other
+f9bd0bc4c5ff296a,10.1097/ccm.0000000000006530,SCCM,llm,septic shock management,Other
+0abbc2aee6bee88b,10.1097/ccm.0000000000006549,SCCM,llm,communication training,"Family, communication and end of life"
+0e46c40dd7a62b71,10.1097/ccm.0000000000006549,SCCM,llm,family mental health support,"Family, communication and end of life"
+133332e656527ef3,10.1097/ccm.0000000000006549,SCCM,llm,family education in icu,"Family, communication and end of life"
+153410b1602d9cfa,10.1097/ccm.0000000000006549,SCCM,llm,family-centered icu care,"Family, communication and end of life"
+1f5ea31ffd6c29fb,10.1097/ccm.0000000000006549,SCCM,llm,family presence on icu rounds,"Family, communication and end of life"
+27f1ad55dd6ee0f9,10.1097/ccm.0000000000006549,SCCM,llm,family-centered icu care,"Family, communication and end of life"
+2a7ae1448423a243,10.1097/ccm.0000000000006549,SCCM,llm,family participation in care,"Family, communication and end of life"
+341a8692f5b79113,10.1097/ccm.0000000000006549,SCCM,llm,family communication in icu,"Family, communication and end of life"
+3523fa594c4e77da,10.1097/ccm.0000000000006549,SCCM,llm,family presence during resuscitation,"Family, communication and end of life"
+38fe4f7f776c29b9,10.1097/ccm.0000000000006549,SCCM,llm,family spiritual needs support,"Family, communication and end of life"
+3f0f4a12793650ad,10.1097/ccm.0000000000006549,SCCM,llm,communication training,"Family, communication and end of life"
+556baed267c12412,10.1097/ccm.0000000000006549,SCCM,llm,clinician training for family-centered care,"Family, communication and end of life"
+7e029a97033e543b,10.1097/ccm.0000000000006549,SCCM,llm,communication training,"Family, communication and end of life"
+82681bd57515a893,10.1097/ccm.0000000000006549,SCCM,llm,family presence during resuscitation,"Family, communication and end of life"
+8a6e4b810b8cddac,10.1097/ccm.0000000000006549,SCCM,llm,bereavement support for families,"Family, communication and end of life"
+963115f579cbb33b,10.1097/ccm.0000000000006549,SCCM,llm,icu diaries for families,"Family, communication and end of life"
+9ba654e4e4dc594f,10.1097/ccm.0000000000006549,SCCM,llm,bereavement support for families,"Family, communication and end of life"
+9e4542863c078037,10.1097/ccm.0000000000006549,SCCM,llm,family spiritual needs support,"Family, communication and end of life"
+b39cd9b2c61e2697,10.1097/ccm.0000000000006549,SCCM,llm,family mental health support,"Family, communication and end of life"
+b964cfdaf4f0aa18,10.1097/ccm.0000000000006549,SCCM,llm,clinician training for family-centered care,"Family, communication and end of life"
+c9fe63de31e6373e,10.1097/ccm.0000000000006549,SCCM,llm,family-centered icu care,"Family, communication and end of life"
+d1aa177960f82720,10.1097/ccm.0000000000006549,SCCM,llm,family-centered icu care,"Family, communication and end of life"
+dc01c003d9e065e2,10.1097/ccm.0000000000006549,SCCM,llm,family-centered icu care,"Family, communication and end of life"
+eebc100103d29d3b,10.1097/ccm.0000000000006549,SCCM,llm,family communication in icu,"Family, communication and end of life"
+ce19e25c15b450f6,10.1097/ccm.0000000000006551,SCCM,llm,dantrolene use in heat stroke,Other
+fc9cee9eb865780a,10.1097/ccm.0000000000006551,SCCM,llm,cooling methods in heat stroke,Other
+1d8484443fc5321b,10.1097/ccm.0000000000006572,SCCM,llm,noise reduction,ICU organisation and safety
+25e3094262387f4d,10.1097/ccm.0000000000006572,SCCM,llm,natural lighting in icu rooms,ICU organisation and safety
+2733991ab1c40ed7,10.1097/ccm.0000000000006572,SCCM,llm,staff wellbeing,ICU organisation and safety
+4cb862adb6727b07,10.1097/ccm.0000000000006572,SCCM,llm,tele-critical care implementation,ICU organisation and safety
+4deebffce72c3f65,10.1097/ccm.0000000000006572,SCCM,llm,ergonomic design,ICU organisation and safety
+61efafa6babbcba6,10.1097/ccm.0000000000006572,SCCM,llm,icu monitoring device access,ICU organisation and safety
+940d5e154d11e6bc,10.1097/ccm.0000000000006572,SCCM,llm,nonwall-based icu equipment access,ICU organisation and safety
+a102730775c75a36,10.1097/ccm.0000000000006572,SCCM,llm,tele-icu capacity in icu design,ICU organisation and safety
+e8e961c8e41a8d46,10.1097/ccm.0000000000006572,SCCM,llm,icu design for patient visibility,ICU organisation and safety
+f49d33378da4ac8b,10.1097/ccm.0000000000006572,SCCM,llm,single-patient icu rooms,ICU organisation and safety
+97170692607c8eed,10.1097/ccm.0000000000006574,SCCM,llm,sedation choice,"Sedation, analgesia and neuromuscular blockade"
+a6c9ba00cbe02c94,10.1097/ccm.0000000000006574,SCCM,llm,melatonin use,"Delirium, sleep and mobility"
+f04d0a7309e94e65,10.1097/ccm.0000000000006574,SCCM,llm,delirium treatment,"Delirium, sleep and mobility"
+ffb794c2dc511968,10.1097/ccm.0000000000006574,SCCM,llm,mobilization/rehabilitation,"Delirium, sleep and mobility"
+040fd1c2dece576f,10.1097/ccm.0000000000006856,SCCM,llm,conflict resolution policies,ICU organisation and safety
+11a50647d211f791,10.1097/ccm.0000000000006856,SCCM,llm,patient/family education,"Family, communication and end of life"
+51a4763d52986850,10.1097/ccm.0000000000006856,SCCM,llm,patient/family education,"Family, communication and end of life"
+537c97220edbdc1b,10.1097/ccm.0000000000006856,SCCM,llm,spiritual care support,"Family, communication and end of life"
+681b090ef99b0edb,10.1097/ccm.0000000000006856,SCCM,llm,ethics/palliative consultation,"Family, communication and end of life"
+965007f83373a1eb,10.1097/ccm.0000000000006856,SCCM,llm,goals of care consultation,"Family, communication and end of life"
+a05c807a49f06ef0,10.1097/ccm.0000000000006856,SCCM,llm,conflict resolution policies,ICU organisation and safety
+c62910607ef6ce3a,10.1097/ccm.0000000000006856,SCCM,llm,shared decision-making,"Family, communication and end of life"
+cb88f7fade143d2c,10.1097/ccm.0000000000006856,SCCM,llm,palliative care training,"Family, communication and end of life"
+d743fa624f89c59d,10.1097/ccm.0000000000006856,SCCM,llm,education of decision-makers,"Family, communication and end of life"
+da9b2fc77c0090de,10.1097/ccm.0000000000006856,SCCM,llm,palliative care training,"Family, communication and end of life"
+e30241d6c0a07d0c,10.1097/ccm.0000000000006856,SCCM,llm,spiritual care support,"Family, communication and end of life"
+e3c6192efd9fe521,10.1097/ccm.0000000000006856,SCCM,llm,withdrawal of treatments,"Family, communication and end of life"
+fe5e80f0a6f0e782,10.1097/ccm.0000000000006856,SCCM,llm,goals of care consultation,"Family, communication and end of life"
+1dafb55cd4c0135b,10.1097/ccm.0000000000006998,SCCM,llm,palliative care involvement,"Family, communication and end of life"
+02e83c7f6718aa78,10.1097/ccm.0000000000007002,SCCM,llm,sedation depth evaluation,"Sedation, analgesia and neuromuscular blockade"
+26917553d7ccbc3d,10.1097/ccm.0000000000007002,SCCM,llm,analgesia/sedation monitoring,"Sedation, analgesia and neuromuscular blockade"
+a11efe2ff79de424,10.1097/ccm.0000000000007002,SCCM,llm,neuromuscular blockade use,"Sedation, analgesia and neuromuscular blockade"
+c5adc8c10fcb2b79,10.1097/ccm.0000000000007002,SCCM,llm,neuromuscular blockade strategy,"Sedation, analgesia and neuromuscular blockade"
+c682a687dc70daf2,10.1097/ccm.0000000000007002,SCCM,llm,neuromuscular blockade,"Sedation, analgesia and neuromuscular blockade"
+01d0a8b949a6f90c,10.1097/ccm.0000000000007075,SCCM,llm,blood purification techniques,Other
+041454c56dd4f5cc,10.1097/ccm.0000000000007075,SCCM,llm,sodium bicarbonate use,Shock and hemodynamics
+06c0bdb080eab84f,10.1097/ccm.0000000000007075,SCCM,llm,sepsis screening tools,Infection and antimicrobials
+07d2e596fb1e009e,10.1097/ccm.0000000000007075,SCCM,llm,vasopressin use,Shock and hemodynamics
+07e9c1d20bf7f0d4,10.1097/ccm.0000000000007075,SCCM,llm,antimicrobial tdm,Infection and antimicrobials
+0a7e1cc19f151eef,10.1097/ccm.0000000000007075,SCCM,llm,goals of care discussion,"Family, communication and end of life"
+0b07f2d63ef09cb5,10.1097/ccm.0000000000007075,SCCM,llm,hfnc vs noninvasive ventilation,Respiratory support
+146b4a7f76aeff37,10.1097/ccm.0000000000007075,SCCM,llm,tidal volume ventilation,Respiratory support
+17559135c32c18cb,10.1097/ccm.0000000000007075,SCCM,llm,empirical antimicrobial therapy,Infection and antimicrobials
+1842377ce08d9a72,10.1097/ccm.0000000000007075,SCCM,llm,candida biomarkers for antifungal therapy,Infection and antimicrobials
+1c4e17635b020af7,10.1097/ccm.0000000000007075,SCCM,llm,beta-blocker use,Shock and hemodynamics
+1ce907ee76646828,10.1097/ccm.0000000000007075,SCCM,llm,fluid removal,Fluids
+1d035805fbcf3cd7,10.1097/ccm.0000000000007075,SCCM,llm,antipyretic therapy,Other
+1ff904a2742a25de,10.1097/ccm.0000000000007075,SCCM,llm,blood culture collection,Infection and antimicrobials
+2ab421033e92dac0,10.1097/ccm.0000000000007075,SCCM,llm,antimicrobial de-escalation,Infection and antimicrobials
+2e8707b0f5e29490,10.1097/ccm.0000000000007075,SCCM,llm,vasopressor selection,Shock and hemodynamics
+2ee2ea6f92ca97d9,10.1097/ccm.0000000000007075,SCCM,llm,fluid resuscitation,Fluids
+337113580be43447,10.1097/ccm.0000000000007075,SCCM,llm,empirical antimicrobial therapy,Infection and antimicrobials
+349f9f5c8814e13b,10.1097/ccm.0000000000007075,SCCM,llm,renal replacement therapy type,Kidney
+3e7847b456a4a9b9,10.1097/ccm.0000000000007075,SCCM,llm,sepsis education,"Family, communication and end of life"
+4172c52a209d9017,10.1097/ccm.0000000000007075,SCCM,llm,empirical antimicrobial therapy,Infection and antimicrobials
+4e0186c7a2d215bb,10.1097/ccm.0000000000007075,SCCM,llm,map target,Shock and hemodynamics
+52dc6941121c4b57,10.1097/ccm.0000000000007075,SCCM,llm,terlipressin use,Shock and hemodynamics
+538c859e580216ec,10.1097/ccm.0000000000007075,SCCM,llm,inotrope use,Shock and hemodynamics
+5469b9c704e2e413,10.1097/ccm.0000000000007075,SCCM,llm,stress ulcer prophylaxis,GI prophylaxis
+55abb5768a724a76,10.1097/ccm.0000000000007075,SCCM,llm,plateau pressure limits,Respiratory support
+5621da708d1e82fc,10.1097/ccm.0000000000007075,SCCM,llm,oxygenation monitoring,Other
+5907500a3980373c,10.1097/ccm.0000000000007075,SCCM,llm,mental health support,Other
+590f2c9cc40c6b6a,10.1097/ccm.0000000000007075,SCCM,llm,vte prophylaxis,"Transfusion, coagulation and VTE"
+5f052335581ca828,10.1097/ccm.0000000000007075,SCCM,llm,fluid resuscitation strategy,Fluids
+5f2e5dc3452af670,10.1097/ccm.0000000000007075,SCCM,llm,epinephrine use,Shock and hemodynamics
+5f8d26de323508cd,10.1097/ccm.0000000000007075,SCCM,llm,vasopressor initiation,Shock and hemodynamics
+62d42958afbe63d8,10.1097/ccm.0000000000007075,SCCM,llm,beta-lactam administration,Infection and antimicrobials
+651ae1e674bc85cd,10.1097/ccm.0000000000007075,SCCM,llm,empirical antimicrobial therapy,Infection and antimicrobials
+67a20d95ec4506f3,10.1097/ccm.0000000000007075,SCCM,llm,map target,Shock and hemodynamics
+69e6fa783fe9264a,10.1097/ccm.0000000000007075,SCCM,llm,corticosteroid use,Corticosteroids
+7169af9f44eaad07,10.1097/ccm.0000000000007075,SCCM,llm,oxygen titration,Respiratory support
+72a03c8e7a414d94,10.1097/ccm.0000000000007075,SCCM,llm,antimicrobial duration,Infection and antimicrobials
+73107e7a37b01275,10.1097/ccm.0000000000007075,SCCM,llm,starch use,Fluids
+7466ffc53b2f4bbd,10.1097/ccm.0000000000007075,SCCM,llm,levosimendan use,Shock and hemodynamics
+74e5314a98e81925,10.1097/ccm.0000000000007075,SCCM,llm,iv immunoglobulins,Other
+75c341d866c3708d,10.1097/ccm.0000000000007075,SCCM,llm,time-limited investigation,Infection and antimicrobials
+7874d0e28a36e767,10.1097/ccm.0000000000007075,SCCM,llm,discharge information,Other
+78a2786a9e25eb42,10.1097/ccm.0000000000007075,SCCM,llm,rapid diagnostic tests,Infection and antimicrobials
+7a9aea6470ebb2fc,10.1097/ccm.0000000000007075,SCCM,llm,post-illness follow-up,Other
+7ac64357d3303056,10.1097/ccm.0000000000007075,SCCM,llm,transition out of hospital,"Family, communication and end of life"
+7ad07bec5e7d2cfc,10.1097/ccm.0000000000007075,SCCM,llm,sepsis follow-up,Other
+7cfb04816a45fa3a,10.1097/ccm.0000000000007075,SCCM,llm,vasopressor selection,Shock and hemodynamics
+7d265300c9940d87,10.1097/ccm.0000000000007075,SCCM,llm,empirical antimicrobial therapy,Infection and antimicrobials
+7dad5553d2581656,10.1097/ccm.0000000000007075,SCCM,llm,iv vitamin c,Other
+7df4d76632f87861,10.1097/ccm.0000000000007075,SCCM,llm,xuebijing injection,Other
+7faf10cc42adab5b,10.1097/ccm.0000000000007075,SCCM,llm,nmba administration,"Sedation, analgesia and neuromuscular blockade"
+89e194b315d15853,10.1097/ccm.0000000000007075,SCCM,llm,selective digestive tract decontamination,Infection and antimicrobials
+8b2abed284e60dc4,10.1097/ccm.0000000000007075,SCCM,llm,hfnc vs alternating ventilation,Respiratory support
+8fbd9291a253b26a,10.1097/ccm.0000000000007075,SCCM,llm,inotrope use,Shock and hemodynamics
+92184790a722b053,10.1097/ccm.0000000000007075,SCCM,llm,ecmo use,Respiratory support
+9307bcccdd8ef4f5,10.1097/ccm.0000000000007075,SCCM,llm,candida biomarkers for antifungal therapy,Infection and antimicrobials
+9593f56b4257efe3,10.1097/ccm.0000000000007075,SCCM,llm,transfusion strategy,"Transfusion, coagulation and VTE"
+95a6bb4fe6d6306a,10.1097/ccm.0000000000007075,SCCM,llm,fluid resuscitation,Fluids
+9b6e5e6b6ff85925,10.1097/ccm.0000000000007075,SCCM,llm,renal replacement therapy use,Kidney
+9d0a7c65528724c8,10.1097/ccm.0000000000007075,SCCM,llm,vasopressor selection,Shock and hemodynamics
+9ed976117d0d8658,10.1097/ccm.0000000000007075,SCCM,llm,blood lactate measurement,Shock and hemodynamics
+9f359993eeb90c01,10.1097/ccm.0000000000007075,SCCM,llm,pre-hospital antimicrobial therapy,Infection and antimicrobials
+9fc020266ba0d50c,10.1097/ccm.0000000000007075,SCCM,llm,vte prophylaxis,"Transfusion, coagulation and VTE"
+a26ed838567a6deb,10.1097/ccm.0000000000007075,SCCM,llm,vitamin d therapy,Other
+a51e168b5a4c7d1c,10.1097/ccm.0000000000007075,SCCM,llm,peep titration strategy,Respiratory support
+a66547b0326c61af,10.1097/ccm.0000000000007075,SCCM,llm,antimicrobial initiation criteria,Infection and antimicrobials
+a69adb46f1454927,10.1097/ccm.0000000000007075,SCCM,llm,peep levels,Respiratory support
+a777dd3a5d5594ad,10.1097/ccm.0000000000007075,SCCM,llm,insulin glucose control,Glucose control
+a841911560ba50ee,10.1097/ccm.0000000000007075,SCCM,llm,antimicrobial deferral,Infection and antimicrobials
+ad4c121c0c290817,10.1097/ccm.0000000000007075,SCCM,llm,gelatin use,Fluids
+adb0ec1a07e8ec8c,10.1097/ccm.0000000000007075,SCCM,llm,medication reconciliation,ICU organisation and safety
+b0816c58c01e1ed6,10.1097/ccm.0000000000007075,SCCM,llm,sepsis survivor support,"Family, communication and end of life"
+b6461b7eafc3ca3e,10.1097/ccm.0000000000007075,SCCM,llm,polymyxin b hemoperfusion,Other
+b8538d7b91fd688d,10.1097/ccm.0000000000007075,SCCM,llm,physical rehabilitation,Other
+c99811fdee1fc311,10.1097/ccm.0000000000007075,SCCM,llm,etiology assessment,Infection and antimicrobials
+ca65df8489f2d54b,10.1097/ccm.0000000000007075,SCCM,llm,probiotics,Other
+d19d3e4c7997c5b8,10.1097/ccm.0000000000007075,SCCM,llm,enteral nutrition timing,Nutrition
+d6f1bde10381f877,10.1097/ccm.0000000000007075,SCCM,llm,antimicrobial discontinuation,Infection and antimicrobials
+d8160b85bc1535e4,10.1097/ccm.0000000000007075,SCCM,llm,empirical antimicrobial therapy,Infection and antimicrobials
+d8ad9511438b90ee,10.1097/ccm.0000000000007075,SCCM,llm,sepsis screening in transport,Infection and antimicrobials
+d96fc8b126dd093b,10.1097/ccm.0000000000007075,SCCM,llm,methylene blue use,Shock and hemodynamics
+dcde2039c6bfcd1b,10.1097/ccm.0000000000007075,SCCM,llm,empirical antifungal therapy,Infection and antimicrobials
+dd9a186c18c70dd1,10.1097/ccm.0000000000007075,SCCM,llm,icu admission timing,ICU organisation and safety
+e0f4150d0a242aa8,10.1097/ccm.0000000000007075,SCCM,llm,palliative care consultation,"Family, communication and end of life"
+e2401c86f40da7ee,10.1097/ccm.0000000000007075,SCCM,llm,source control timing,Infection and antimicrobials
+e3f4c3ac95775830,10.1097/ccm.0000000000007075,SCCM,llm,capillary refill time,Shock and hemodynamics
+e642b0b95d3db8e5,10.1097/ccm.0000000000007075,SCCM,llm,lactate monitoring,Shock and hemodynamics
+e66634f5ce019800,10.1097/ccm.0000000000007075,SCCM,llm,fluid resuscitation volume,Fluids
+e7096e4bb356149b,10.1097/ccm.0000000000007075,SCCM,llm,mental health support,"Family, communication and end of life"
+e8ecfdbb84d8efcc,10.1097/ccm.0000000000007075,SCCM,llm,blood pressure monitoring,Shock and hemodynamics
+ecfc06e1a89e749a,10.1097/ccm.0000000000007075,SCCM,llm,sepsis quality improvement,ICU organisation and safety
+ee680236b095016f,10.1097/ccm.0000000000007075,SCCM,llm,awake proning,Respiratory support
+f1ef1cd0d222bcb8,10.1097/ccm.0000000000007075,SCCM,llm,tidal volume,Respiratory support
+f38f3a646dc2c168,10.1097/ccm.0000000000007075,SCCM,llm,vte prophylaxis,"Transfusion, coagulation and VTE"
+f3e523a3c747fedd,10.1097/ccm.0000000000007075,SCCM,llm,prone ventilation duration,Respiratory support
+f55e123367c90370,10.1097/ccm.0000000000007075,SCCM,llm,hfnc vs conventional oxygen,Respiratory support
+f5b2766b3de070fa,10.1097/ccm.0000000000007075,SCCM,llm,fluid resuscitation,Fluids
+f5b69dc3d6fcc33e,10.1097/ccm.0000000000007075,SCCM,llm,sepsis huddle protocol,ICU organisation and safety
+f5f9fa1a6ba801b2,10.1097/ccm.0000000000007075,SCCM,llm,fluid bolus and vasopressors,Shock and hemodynamics
+f88c5634496f0617,10.1097/ccm.0000000000007075,SCCM,llm,handoff process,ICU organisation and safety
+fafb8c0da8fad5d6,10.1097/ccm.0000000000007075,SCCM,llm,antimicrobial de-escalation,Infection and antimicrobials
+fafedc7e99cdb1ef,10.1097/ccm.0000000000007075,SCCM,llm,crystalloid type,Fluids
+fb47cb41c3868c09,10.1097/ccm.0000000000007075,SCCM,llm,transition programs,ICU organisation and safety
+fcb2dcfaa396681e,10.1097/ccm.0000000000007075,SCCM,llm,sodium bicarbonate use,Kidney
+fe040a7a517bdcdc,10.1097/ccm.0000000000007075,SCCM,llm,empirical antimicrobial therapy,Infection and antimicrobials
+053dc4220fc2670b,10.1097/ccm.0000000000007085,SCCM,llm,geriatric icu care,Other
+0b330f3a9f0b4993,10.1097/ccm.0000000000007085,SCCM,llm,antipsychotic prevention of delirium,Other
+1604bf0e30a1d92b,10.1097/ccm.0000000000007085,SCCM,llm,map targeting in shock,Shock and hemodynamics
+6297d158eb12686d,10.1097/ccm.0000000000007085,SCCM,llm,post-icu follow-up,Other
+8ea61956aae31d0e,10.1097/ccm.0000000000007085,SCCM,llm,antipsychotic use for delirium,Other
+00f846b9e351fc0e,10.1097/pcc.0000000000001134,SCCM,llm,enteral nutrition advancement,Nutrition
+039cf49fd30abdf7,10.1097/pcc.0000000000001134,SCCM,llm,enteral nutrition initiation,Nutrition
+07321d0439f292d4,10.1097/pcc.0000000000001134,SCCM,llm,enteral nutrition delivery,Nutrition
+0a205a73dcbab3b3,10.1097/pcc.0000000000001134,SCCM,llm,enteral nutrition site,Nutrition
+1033a381700dc712,10.1097/pcc.0000000000001134,SCCM,llm,enteral nutrition timing,Nutrition
+1eec7301db730199,10.1097/pcc.0000000000001134,SCCM,llm,enteral nutrition site,Nutrition
+27f2634cc59ba313,10.1097/pcc.0000000000001134,SCCM,llm,protein provision,Nutrition
+2e903db9b540c47f,10.1097/pcc.0000000000001134,SCCM,llm,parenteral nutrition timing,Nutrition
+31a51faa152c892d,10.1097/pcc.0000000000001134,SCCM,llm,enteral nutrition prioritization,Nutrition
+3a756ffd6cc3bc26,10.1097/pcc.0000000000001134,SCCM,llm,nutritional screening,Nutrition
+3d7ce2fbee6620b6,10.1097/pcc.0000000000001134,SCCM,llm,energy delivery in critical care,Nutrition
+3dfb2a756fce4c13,10.1097/pcc.0000000000001134,SCCM,llm,parenteral nutrition timing,Nutrition
+48ef3ad7aa738045,10.1097/pcc.0000000000001134,SCCM,llm,protein prescription,Nutrition
+4af166c42bb362cf,10.1097/pcc.0000000000001134,SCCM,llm,protein prescription,Nutrition
+4ebc1ebd7daa2482,10.1097/pcc.0000000000001134,SCCM,llm,energy requirement determination,Nutrition
+63926d01ee85a4c9,10.1097/pcc.0000000000001134,SCCM,llm,enteral nutrition timing,Nutrition
+6f9558b37d5940a6,10.1097/pcc.0000000000001134,SCCM,llm,energy delivery in critical care,Nutrition
+945b1106edae1dd1,10.1097/pcc.0000000000001134,SCCM,llm,nutritional assessment,Nutrition
+9b141d50915dc98b,10.1097/pcc.0000000000001134,SCCM,llm,parenteral nutrition in children,Nutrition
+a12a50f9340f431d,10.1097/pcc.0000000000001134,SCCM,llm,energy delivery targets,Nutrition
+a69e0276f2f55880,10.1097/pcc.0000000000001134,SCCM,llm,immunonutrition in children,Nutrition
+bc06e4a63ed6236f,10.1097/pcc.0000000000001134,SCCM,llm,nutritional re-evaluation,Nutrition
+bff9f1fdc0e4db6d,10.1097/pcc.0000000000001134,SCCM,llm,enteral nutrition timing in children,Nutrition
+d4dcff34db1fb82e,10.1097/pcc.0000000000001134,SCCM,llm,nutrition support team,Nutrition
+d6015d978ee3724d,10.1097/pcc.0000000000001134,SCCM,llm,enteral nutrition prioritization,Nutrition
+d68a2f83285e5a28,10.1097/pcc.0000000000001134,SCCM,llm,energy requirement determination,Nutrition
+efc9465d4aad0e4e,10.1097/pcc.0000000000001134,SCCM,llm,nutritional screening,Nutrition
+f413a41b0d857418,10.1097/pcc.0000000000001134,SCCM,llm,protein intake,Nutrition
+f924c26952bd794d,10.1097/pcc.0000000000001134,SCCM,llm,energy balance management,Nutrition
+f94df62680a6b67b,10.1097/pcc.0000000000001134,SCCM,llm,energy expenditure estimation,Nutrition
+fe1da3165e2038df,10.1097/pcc.0000000000001134,SCCM,llm,energy expenditure estimation,Nutrition
+025ac0ad2ea9814b,10.1097/pcc.0000000000002873,SCCM,llm,sedation scale use,"Sedation, analgesia and neuromuscular blockade"
+066bf0c4d757b664,10.1097/pcc.0000000000002873,SCCM,llm,delirium prevention,"Delirium, sleep and mobility"
+0871c16970a70798,10.1097/pcc.0000000000002873,SCCM,llm,nsaid adjunct analgesia,"Sedation, analgesia and neuromuscular blockade"
+08f39c85c0afe4ef,10.1097/pcc.0000000000002873,SCCM,llm,neuromuscular blockade monitoring,"Sedation, analgesia and neuromuscular blockade"
+0a887086176bba66,10.1097/pcc.0000000000002873,SCCM,llm,delirium management,"Delirium, sleep and mobility"
+0e42cf630832dbed,10.1097/pcc.0000000000002873,SCCM,llm,dexmedetomidine use in cardiac surgery,"Sedation, analgesia and neuromuscular blockade"
+1639ddb3ce4fe82b,10.1097/pcc.0000000000002873,SCCM,llm,opioid induced withdrawal syndrome,"Sedation, analgesia and neuromuscular blockade"
+23f83eb33b20fce1,10.1097/pcc.0000000000002873,SCCM,llm,withdrawal management,"Sedation, analgesia and neuromuscular blockade"
+246050cf07085eb6,10.1097/pcc.0000000000002873,SCCM,llm,sedation level assessment,"Sedation, analgesia and neuromuscular blockade"
+2bb00ad114f68ce8,10.1097/pcc.0000000000002873,SCCM,llm,electrolyte monitoring,Other
+2d4fa9d63d2e3c22,10.1097/pcc.0000000000002873,SCCM,llm,early mobility protocol,"Delirium, sleep and mobility"
+3254a15261a27ccd,10.1097/pcc.0000000000002873,SCCM,llm,sedation management,"Sedation, analgesia and neuromuscular blockade"
+32dfca9ed9633e8d,10.1097/pcc.0000000000002873,SCCM,llm,sedation with dexmedetomidine,"Sedation, analgesia and neuromuscular blockade"
+378aa06cb0bb03e1,10.1097/pcc.0000000000002873,SCCM,llm,neuromuscular blocker dosing,"Sedation, analgesia and neuromuscular blockade"
+397d47566f03a7ac,10.1097/pcc.0000000000002873,SCCM,llm,pain assessment tools,"Sedation, analgesia and neuromuscular blockade"
+3c8180646a28ad41,10.1097/pcc.0000000000002873,SCCM,llm,alpha2-agonist sedation,"Sedation, analgesia and neuromuscular blockade"
+406a1d1e2906ebed,10.1097/pcc.0000000000002873,SCCM,llm,sedation weaning protocol,"Sedation, analgesia and neuromuscular blockade"
+409a05791145ed6c,10.1097/pcc.0000000000002873,SCCM,llm,environmental noise reduction,"Delirium, sleep and mobility"
+44138a285e613144,10.1097/pcc.0000000000002873,SCCM,llm,withdrawal assessment tools,"Sedation, analgesia and neuromuscular blockade"
+4ab800d4e8f02fbc,10.1097/pcc.0000000000002873,SCCM,llm,early mobility,"Delirium, sleep and mobility"
+4c0354f7f0bc6799,10.1097/pcc.0000000000002873,SCCM,llm,delirium monitoring tools,"Delirium, sleep and mobility"
+547ca685d8a17e19,10.1097/pcc.0000000000002873,SCCM,llm,adjunct sedation with ketamine,"Sedation, analgesia and neuromuscular blockade"
+5a52721dd59e9c72,10.1097/pcc.0000000000002873,SCCM,llm,sedation scale use,"Sedation, analgesia and neuromuscular blockade"
+5f8a890877309001,10.1097/pcc.0000000000002873,SCCM,llm,sedation management,"Sedation, analgesia and neuromuscular blockade"
+637396ae9d1b96f3,10.1097/pcc.0000000000002873,SCCM,llm,pain assessment tools,"Sedation, analgesia and neuromuscular blockade"
+643adc9d84b1c893,10.1097/pcc.0000000000002873,SCCM,llm,neuromuscular blocker dosing,"Sedation, analgesia and neuromuscular blockade"
+71334cc6b669ec11,10.1097/pcc.0000000000002873,SCCM,llm,postoperative analgesia,"Sedation, analgesia and neuromuscular blockade"
+719cb89a02e99ed3,10.1097/pcc.0000000000002873,SCCM,llm,noise reduction strategies,"Delirium, sleep and mobility"
+775836d344b80ba4,10.1097/pcc.0000000000002873,SCCM,llm,postoperative pain assessment,"Sedation, analgesia and neuromuscular blockade"
+7998df445b21d856,10.1097/pcc.0000000000002873,SCCM,llm,corneal abrasion prevention,"Sedation, analgesia and neuromuscular blockade"
+7b0007a96922731c,10.1097/pcc.0000000000002873,SCCM,llm,early mobility,"Delirium, sleep and mobility"
+81e8512656015a80,10.1097/pcc.0000000000002873,SCCM,llm,opioid induced withdrawal syndrome,"Sedation, analgesia and neuromuscular blockade"
+820357c1196c743e,10.1097/pcc.0000000000002873,SCCM,llm,sedation and neuromuscular blockade,"Sedation, analgesia and neuromuscular blockade"
+83a4acfdf47b4110,10.1097/pcc.0000000000002873,SCCM,llm,nsaid adjunct analgesia,"Sedation, analgesia and neuromuscular blockade"
+8855fcd7cc4ac71c,10.1097/pcc.0000000000002873,SCCM,llm,benzodiazepine sedation,"Sedation, analgesia and neuromuscular blockade"
+88837f736723f850,10.1097/pcc.0000000000002873,SCCM,llm,music therapy for analgesia,"Sedation, analgesia and neuromuscular blockade"
+8943faeb2a865fef,10.1097/pcc.0000000000002873,SCCM,llm,withdrawal management,"Sedation, analgesia and neuromuscular blockade"
+89a353982c1bbb46,10.1097/pcc.0000000000002873,SCCM,llm,opioid requirement reduction,"Sedation, analgesia and neuromuscular blockade"
+8e44ff39bb6666c9,10.1097/pcc.0000000000002873,SCCM,llm,sedation management,"Sedation, analgesia and neuromuscular blockade"
+904e660d7746b3c6,10.1097/pcc.0000000000002873,SCCM,llm,opioid requirement reduction,"Sedation, analgesia and neuromuscular blockade"
+9827991f8040d75e,10.1097/pcc.0000000000002873,SCCM,llm,withdrawal assessment tools,"Sedation, analgesia and neuromuscular blockade"
+9d851e9e8efb6dd1,10.1097/pcc.0000000000002873,SCCM,llm,benzodiazepine sedation,"Sedation, analgesia and neuromuscular blockade"
+a5108603b365db23,10.1097/pcc.0000000000002873,SCCM,llm,pain relief in neonates,"Sedation, analgesia and neuromuscular blockade"
+a8c84ac4fbd8a1a7,10.1097/pcc.0000000000002873,SCCM,llm,parental presence in picu,"Family, communication and end of life"
+a8d7ba85dfa921e7,10.1097/pcc.0000000000002873,SCCM,llm,sedation depth assessment,"Sedation, analgesia and neuromuscular blockade"
+a96c92e2a957aeb6,10.1097/pcc.0000000000002873,SCCM,llm,opioid requirement reduction,"Sedation, analgesia and neuromuscular blockade"
+adebd8e839067cc4,10.1097/pcc.0000000000002873,SCCM,llm,sedation and delirium,"Sedation, analgesia and neuromuscular blockade"
+b72ca83c766f12d5,10.1097/pcc.0000000000002873,SCCM,llm,pain assessment tools,"Sedation, analgesia and neuromuscular blockade"
+b899028c28b554ea,10.1097/pcc.0000000000002873,SCCM,llm,delirium monitoring tools,"Delirium, sleep and mobility"
+cbe9c74e04cefa6d,10.1097/pcc.0000000000002873,SCCM,llm,sedation level assessment,"Sedation, analgesia and neuromuscular blockade"
+cf1af3755c8594a6,10.1097/pcc.0000000000002873,SCCM,llm,opioid analgesia,"Sedation, analgesia and neuromuscular blockade"
+d416840dd2b8992d,10.1097/pcc.0000000000002873,SCCM,llm,protocolized sedation,"Sedation, analgesia and neuromuscular blockade"
+dc1877dfa89a8880,10.1097/pcc.0000000000002873,SCCM,llm,sedation management,"Sedation, analgesia and neuromuscular blockade"
+e9469776b9c6e84c,10.1097/pcc.0000000000002873,SCCM,llm,propofol sedation safety,"Sedation, analgesia and neuromuscular blockade"
+ef2642a374be867f,10.1097/pcc.0000000000002873,SCCM,llm,pain assessment in pediatric patients,"Sedation, analgesia and neuromuscular blockade"
+f6baa08a861b95d2,10.1097/pcc.0000000000002873,SCCM,llm,delirium prevention,"Delirium, sleep and mobility"
+f719017f03b2fe4d,10.1097/pcc.0000000000002873,SCCM,llm,icu delirium screening,"Delirium, sleep and mobility"
+1457fc692bcc6614,10.1097/pcc.0000000000003914,SCCM,llm,bereavement care for children,"Family, communication and end of life"
+1c46bfce1b951e7b,10.1097/pcc.0000000000003914,SCCM,llm,palliative care education,"Family, communication and end of life"
+437a8e6994a840a4,10.1097/pcc.0000000000003914,SCCM,llm,advance care planning for pediatrics,"Family, communication and end of life"
+758e931659a455d2,10.1097/pcc.0000000000003914,SCCM,llm,advance care planning for pediatrics,"Family, communication and end of life"
+822cb0f75cc4a456,10.1097/pcc.0000000000003914,SCCM,llm,symptom management approach,"Family, communication and end of life"
+f3095cda3f159444,10.1097/pcc.0000000000003914,SCCM,llm,pediatric palliative care consultation,"Family, communication and end of life"
+0566a69f0bd66bc4,10.1097/pcc.0000000000003927,SCCM,llm,crystalloid use in septic shock,Fluids
+05a1347bf33a1744,10.1097/pcc.0000000000003927,SCCM,llm,gastric residual volume measurement,Nutrition
+06b5bb739a5e381a,10.1097/pcc.0000000000003927,SCCM,llm,lipid emulsion supplementation,Nutrition
+07faa3b4b302fcfd,10.1097/pcc.0000000000003927,SCCM,llm,performance improvement programs,ICU organisation and safety
+08e4f37d9ce8ba6e,10.1097/pcc.0000000000003927,SCCM,llm,prokinetic agents for feeding intolerance,Nutrition
+0965cc6c8074bd58,10.1097/pcc.0000000000003927,SCCM,llm,antimicrobial de-escalation,Infection and antimicrobials
+0c0b02dffed3e1aa,10.1097/pcc.0000000000003927,SCCM,llm,plasma exchange use,Other
+0cfa0f6ef25708fb,10.1097/pcc.0000000000003927,SCCM,llm,glucose control,Glucose control
+14c1f06c9eb4d3c6,10.1097/pcc.0000000000003927,SCCM,llm,post-hospital follow-up,Other
+1577b3344a43330b,10.1097/pcc.0000000000003927,SCCM,llm,lactate trends in septic shock,Shock and hemodynamics
+1e6771ea6427a92e,10.1097/pcc.0000000000003927,SCCM,llm,septic shock recognition screening,ICU organisation and safety
+1faf2bc0cc7221f1,10.1097/pcc.0000000000003927,SCCM,llm,high peep in pards,Respiratory support
+21a1f7e2ec9f206a,10.1097/pcc.0000000000003927,SCCM,llm,fluid bolus therapy in low-resource settings,Fluids
+240edaa2612b4daa,10.1097/pcc.0000000000003927,SCCM,llm,ivig use in sepsis,Other
+2421fba4b5f88a3a,10.1097/pcc.0000000000003927,SCCM,llm,enteral nutrition route,Nutrition
+27266050faebbb78,10.1097/pcc.0000000000003927,SCCM,llm,levothyroxine use in sick euthyroid state,Other
+28df6d7ca9f3c2d2,10.1097/pcc.0000000000003927,SCCM,llm,pocus use in resuscitation,Airway and procedures
+2a39a3ad70298a60,10.1097/pcc.0000000000003927,SCCM,llm,antimicrobial de-escalation,Infection and antimicrobials
+32f8707541492698,10.1097/pcc.0000000000003927,SCCM,llm,hemofiltration volume,Kidney
+365863f5e538b1e8,10.1097/pcc.0000000000003927,SCCM,llm,empirical antimicrobial therapy timing,Infection and antimicrobials
+3808c904c0d0fb6d,10.1097/pcc.0000000000003927,SCCM,llm,empirical antimicrobial therapy,Infection and antimicrobials
+389801fbba82a424,10.1097/pcc.0000000000003927,SCCM,llm,hemodynamic monitoring,Shock and hemodynamics
+39cbb059f252fd63,10.1097/pcc.0000000000003927,SCCM,llm,procalcitonin use in antimicrobial stewardship,Infection and antimicrobials
+3a9bc03c08f25c20,10.1097/pcc.0000000000003927,SCCM,llm,vitamin d repletion in sepsis,Other
+3be4d1496dcdac5f,10.1097/pcc.0000000000003927,SCCM,llm,iv immunoglobulin use in sepsis,Other
+3c7b9ddef8607dcc,10.1097/pcc.0000000000003927,SCCM,llm,hydrocortisone use in septic shock,Corticosteroids
+3f514bddc9f0bff9,10.1097/pcc.0000000000003927,SCCM,llm,prone positioning,Respiratory support
+4312a21f8e298b1f,10.1097/pcc.0000000000003927,SCCM,llm,classification of septic shock,Shock and hemodynamics
+45435767273f784e,10.1097/pcc.0000000000003927,SCCM,llm,etomidate use for intubation,Airway and procedures
+465d8f4cdef84d95,10.1097/pcc.0000000000003927,SCCM,llm,levothyroxine use in sepsis,Other
+465e885acb675892,10.1097/pcc.0000000000003927,SCCM,llm,empirical multidrug therapy,Infection and antimicrobials
+48f3375c3e3bc811,10.1097/pcc.0000000000003927,SCCM,llm,glutamine supplementation,Nutrition
+4dd65d03305d4e39,10.1097/pcc.0000000000003927,SCCM,llm,withholding enteral feeding,Nutrition
+4e4ac7ccef5e9131,10.1097/pcc.0000000000003927,SCCM,llm,central venous oxygen saturation targeting,Shock and hemodynamics
+4ec83b7f103b6c46,10.1097/pcc.0000000000003927,SCCM,llm,neuromuscular blockade in severe pards,"Sedation, analgesia and neuromuscular blockade"
+4f5169ea3227cec0,10.1097/pcc.0000000000003927,SCCM,llm,source control intervention,Infection and antimicrobials
+4feac68ce2814292,10.1097/pcc.0000000000003927,SCCM,llm,peripheral vasoactive medication administration,Shock and hemodynamics
+51a2351ed513210c,10.1097/pcc.0000000000003927,SCCM,llm,ascorbic acid (vitamin c) use,Nutrition
+589e70b6ab41f59f,10.1097/pcc.0000000000003927,SCCM,llm,arginine supplementation,Nutrition
+5eb342423f4e19a5,10.1097/pcc.0000000000003927,SCCM,llm,stress ulcer prophylaxis,GI prophylaxis
+655c80e400bc393b,10.1097/pcc.0000000000003927,SCCM,llm,fluid resuscitation,Fluids
+6700402221f97df0,10.1097/pcc.0000000000003927,SCCM,llm,renal replacement therapy in septic shock,Kidney
+6bc24cd2c6e4bd44,10.1097/pcc.0000000000003927,SCCM,llm,dvt prophylaxis in sepsis,"Transfusion, coagulation and VTE"
+6f2d083355b80708,10.1097/pcc.0000000000003927,SCCM,llm,antimicrobial duration,Infection and antimicrobials
+708237f0960361bc,10.1097/pcc.0000000000003927,SCCM,llm,antimicrobial therapy timing,Infection and antimicrobials
+71b79cc87bb8951a,10.1097/pcc.0000000000003927,SCCM,llm,selenium supplementation,Nutrition
+75ac7d83335755b3,10.1097/pcc.0000000000003927,SCCM,llm,fever management,Other
+78a4df92f2873ea1,10.1097/pcc.0000000000003927,SCCM,llm,noninvasive mechanical ventilation,Respiratory support
+7a2e729f9058471f,10.1097/pcc.0000000000003927,SCCM,llm,enteral nutrition timing,Nutrition
+7abbc556888180f7,10.1097/pcc.0000000000003927,SCCM,llm,fluid resuscitation in low-resource settings,Fluids
+7ae5934209bdd85f,10.1097/pcc.0000000000003927,SCCM,llm,oxygen saturation targeting,Respiratory support
+7d0b783615b804ad,10.1097/pcc.0000000000003927,SCCM,llm,gelatin use in resuscitation,Fluids
+8662d0cd69e6a71e,10.1097/pcc.0000000000003927,SCCM,llm,ino use in sepsis-induced pards,Respiratory support
+8e0a59939e12fba8,10.1097/pcc.0000000000003927,SCCM,llm,hemofiltration volume,Kidney
+9216dcb68a38b696,10.1097/pcc.0000000000003927,SCCM,llm,fluid resuscitation in septic shock,Fluids
+9244626c590e25f9,10.1097/pcc.0000000000003927,SCCM,llm,vitamin d repletion,Nutrition
+947fdc3f7d09c437,10.1097/pcc.0000000000003927,SCCM,llm,vasopressin use in catecholamine-resistant shock,Shock and hemodynamics
+97b469cc423998ea,10.1097/pcc.0000000000003927,SCCM,llm,blood culture before antibiotics,Infection and antimicrobials
+97ccf0ff2f18f089,10.1097/pcc.0000000000003927,SCCM,llm,norepinephrine in septic shock,Shock and hemodynamics
+a29b6ad539de417f,10.1097/pcc.0000000000003927,SCCM,llm,antimicrobial therapy timing,Infection and antimicrobials
+a690df7069017a92,10.1097/pcc.0000000000003927,SCCM,llm,vasopressor choice,Shock and hemodynamics
+a972da1d78a00000,10.1097/pcc.0000000000003927,SCCM,llm,iv hydrocortisone use,Corticosteroids
+abbb9c43c2d24a59,10.1097/pcc.0000000000003927,SCCM,llm,central venous oxygen saturation targeting,Shock and hemodynamics
+abe5ad542b3ae849,10.1097/pcc.0000000000003927,SCCM,llm,rbc transfusion thresholds,"Transfusion, coagulation and VTE"
+ac39b945aedc18bb,10.1097/pcc.0000000000003927,SCCM,llm,removal of intravascular devices,Infection and antimicrobials
+ae810b9e60ba50c9,10.1097/pcc.0000000000003927,SCCM,llm,infectious diseases consultation,Infection and antimicrobials
+aea52e40498d6e0c,10.1097/pcc.0000000000003927,SCCM,llm,source control intervention,Infection and antimicrobials
+affd70ba88d41781,10.1097/pcc.0000000000003927,SCCM,llm,platelet transfusion prophylaxis,"Transfusion, coagulation and VTE"
+b0d84a0920cab84d,10.1097/pcc.0000000000003927,SCCM,llm,zinc supplementation,Nutrition
+b40ae8ed8d76d93f,10.1097/pcc.0000000000003927,SCCM,llm,empirical antimicrobial therapy timing,Infection and antimicrobials
+c17b46d967bdc01d,10.1097/pcc.0000000000003927,SCCM,llm,veno-arterial ecmo use,Shock and hemodynamics
+cf80b9b7045b3569,10.1097/pcc.0000000000003927,SCCM,llm,thiamine use in sepsis,Other
+d0611e44972173e1,10.1097/pcc.0000000000003927,SCCM,llm,venovenous ecmo use,Respiratory support
+d2939bd4e31602e3,10.1097/pcc.0000000000003927,SCCM,llm,thiamine use,Nutrition
+d7056dd812126d51,10.1097/pcc.0000000000003927,SCCM,llm,etomidate use in intubation,Airway and procedures
+d84e00d3666de24e,10.1097/pcc.0000000000003927,SCCM,llm,ino in sepsis-induced pards,Respiratory support
+dc1fc6712982d081,10.1097/pcc.0000000000003927,SCCM,llm,hydrocortisone use,Corticosteroids
+e5214447f89ecbea,10.1097/pcc.0000000000003927,SCCM,llm,empirical antimicrobial therapy timing,Infection and antimicrobials
+e8095b26959cffab,10.1097/pcc.0000000000003927,SCCM,llm,early rehabilitation bundle,"Delirium, sleep and mobility"
+ec07c90d74ccc92e,10.1097/pcc.0000000000003927,SCCM,llm,antimicrobial de-escalation,Infection and antimicrobials
+f270ed8cbb3ccced,10.1097/pcc.0000000000003927,SCCM,llm,plasma transfusion prophylaxis,"Transfusion, coagulation and VTE"
+f2d322700b94e1fa,10.1097/pcc.0000000000003927,SCCM,llm,supplemental oxygen targeting,Respiratory support
+f3ec1b4c0d9562f8,10.1097/pcc.0000000000003927,SCCM,llm,post-sepsis morbidity management,Other
+f482d510c6abb803,10.1097/pcc.0000000000003927,SCCM,llm,blood lactate measurement,Shock and hemodynamics
+f5a54f8454c716b8,10.1097/pcc.0000000000003927,SCCM,llm,fluid resuscitation type,Fluids
+fed58f5b1684fff3,10.1097/pcc.0000000000003927,SCCM,llm,vitamin c use in sepsis,Infection and antimicrobials
+0d48269cb5c02ea2,10.1164/rccm.201703-0548st,ESICM,llm,prone positioning in severe ards,Respiratory support
+473df26a74b7edc8,10.1164/rccm.201703-0548st,ESICM,llm,positive end-expiratory pressure in ards,Respiratory support
+548ef71cb7d605ec,10.1164/rccm.201703-0548st,ESICM,llm,mechanical ventilation in ards,Respiratory support
+5a7cbace451ac310,10.1164/rccm.201703-0548st,ESICM,llm,positive end-expiratory pressure in ards,Respiratory support
+5f41588d4327ca4e,10.1164/rccm.201703-0548st,ESICM,llm,high-frequency oscillatory ventilation in ards,Respiratory support
+66a45fbfa5be7500,10.1164/rccm.201703-0548st,ESICM,llm,mechanical ventilation in ards,Respiratory support
+a723c3a1f12fb348,10.1164/rccm.201703-0548st,ESICM,llm,high-frequency oscillatory ventilation in ards,Respiratory support
+baa3d1b7dd943421,10.1164/rccm.201703-0548st,ESICM,llm,prone positioning in severe ards,Respiratory support
+be8a5695c89a6634,10.1164/rccm.201703-0548st,ESICM,llm,recruitment maneuvers in ards,Respiratory support
+c1377626a6a52da7,10.1164/rccm.201703-0548st,ESICM,llm,prone positioning in severe ards,Respiratory support
+e154ca6e8cd83894,10.1164/rccm.201703-0548st,ESICM,llm,positive end-expiratory pressure in ards,Respiratory support
+e33022514a09230a,10.1164/rccm.201703-0548st,ESICM,llm,recruitment maneuvers in ards,Respiratory support
+f0058efdfec62015,10.1164/rccm.201703-0548st,ESICM,llm,high-frequency oscillatory ventilation in ards,Respiratory support
+fb6388114cff741f,10.1164/rccm.201703-0548st,ESICM,llm,mechanical ventilation in ards,Respiratory support
+fc14fd037732af55,10.1164/rccm.201703-0548st,ESICM,llm,recruitment maneuvers in ards,Respiratory support
+27db10124f5afda0,10.1183/13993003.00582-2017,ESICM,llm,antibiotic use,Infection and antimicrobials
+4f2f76e9fb3da7b6,10.1183/13993003.00582-2017,ESICM,llm,empirical antimicrobial therapy in hap/vap,Infection and antimicrobials
+50e7b0a43e8fc066,10.1183/13993003.00582-2017,ESICM,llm,antibiotic therapy,Infection and antimicrobials
+6cc2d2424b1118b0,10.1183/13993003.00582-2017,ESICM,llm,antibiotic selection,Infection and antimicrobials
+7463aaf44e646be9,10.1183/13993003.00582-2017,ESICM,llm,procalcitonin monitoring in vap/hap,Infection and antimicrobials
+8050d9af9f604177,10.1183/13993003.00582-2017,ESICM,llm,antibiotic de-escalation in hap/vap,Infection and antimicrobials
+86c5c5eabab30f9d,10.1183/13993003.00582-2017,ESICM,llm,empirical antimicrobial therapy in hap/vap,Infection and antimicrobials
+9586fd7fdd3d4f3b,10.1183/13993003.00582-2017,ESICM,llm,antibiotic duration,Infection and antimicrobials
+c4d9ff68c75da4e8,10.1183/13993003.00582-2017,ESICM,llm,antibiotic therapy,Infection and antimicrobials
+c9274244b06f2d42,10.1183/13993003.00582-2017,ESICM,llm,biomarker testing in vap/hap,Infection and antimicrobials
+eb80845283d7edfb,10.1183/13993003.00582-2017,ESICM,llm,antibiotic therapy,Infection and antimicrobials
+3eb5116d684884f3,10.7326/annals-24-01052,ACP,topic,,Migraine
+4e26569b81f920eb,10.7326/annals-24-01052,ACP,topic,,Migraine
+964b9c45c8bf48a4,10.7326/annals-24-01052,ACP,topic,,Migraine
+ca0f800ab5234b60,10.7326/annals-24-01052,ACP,topic,,Migraine
+e9082ddbb26e32da,10.7326/annals-24-01052,ACP,topic,,Migraine
+42e5affe0fd95611,10.7326/annals-24-03095,ACP,topic,,Migraine
+4fbf95a92156aa61,10.7326/annals-24-03095,ACP,topic,,Migraine
+ff2ec5bd9ad18a86,10.7326/annals-24-03095,ACP,topic,,Migraine
+00bf64f89e5ba7e7,10.7326/annals-25-02714,ACP,topic,,Obesity
+078ddcfd753ddfc9,10.7326/annals-25-02714,ACP,topic,,Obesity
+51172d2d2866e6c6,10.7326/annals-25-02714,ACP,topic,,Obesity
+8d699a2fdba20ac7,10.7326/annals-25-02714,ACP,topic,,Obesity
+98d2f08f1c318eb6,10.7326/annals-25-02714,ACP,topic,,Obesity
+bc127d175e8a8c18,10.7326/annals-25-02714,ACP,topic,,Obesity
+cc1d0243007ce244,10.7326/annals-25-02714,ACP,topic,,Obesity
+eff6871193185f5c,10.7326/annals-25-02714,ACP,topic,,Obesity
+486ed99475e21bf5,10.7326/m15-2175,ACP,topic,,Insomnia
+b4a406e1c5a8ce82,10.7326/m15-2175,ACP,topic,,Insomnia
+6fc928154187b6a2,10.7326/m16-0569,ACP,topic,,Gout
+2c44bebf6d9bb0d5,10.7326/m16-0570,ACP,topic,,Gout
+3f4e28309a9dde62,10.7326/m16-0570,ACP,topic,,Gout
+8953a2841542b3b8,10.7326/m16-0570,ACP,topic,,Gout
+f47f2dc1bbb69965,10.7326/m16-0570,ACP,topic,,Gout
+65bdcc8d6ec23c33,10.7326/m16-1785,ACP,topic,,Hypertension
+796d70967d1e40fb,10.7326/m16-1785,ACP,topic,,Hypertension
+da815ea7b4420e15,10.7326/m16-1785,ACP,topic,,Hypertension
+f02ecb0e76b409fb,10.7326/m16-1785,ACP,topic,,Hypertension
+32b80350f3190f89,10.7326/m16-1860,ACP,topic,,Type 2 diabetes
+f36c945589c591c3,10.7326/m16-1860,ACP,topic,,Type 2 diabetes
+0977d21bd75ddbc2,10.7326/m16-2367,ACP,topic,,Low back pain
+132fb3a6fd6e6d14,10.7326/m16-2367,ACP,topic,,Low back pain
+5f807d8c03fe73f3,10.7326/m16-2367,ACP,topic,,Low back pain
+92b9004694cd44fa,10.7326/m19-0882,ACP,topic,,Testosterone treatment
+b547761d6567a2c4,10.7326/m19-0882,ACP,topic,,Testosterone treatment
+c2b885a28e717287,10.7326/m19-0882,ACP,topic,,Testosterone treatment
+3519876c40031a99,10.7326/m19-3602,ACP,topic,,Acute musculoskeletal pain
+5d5c84403c579c09,10.7326/m19-3602,ACP,topic,,Acute musculoskeletal pain
+e86a3cfb5921b6f7,10.7326/m19-3602,ACP,topic,,Acute musculoskeletal pain
+e9676bbd1494e201,10.7326/m19-3602,ACP,topic,,Acute musculoskeletal pain
+eb30c6673e6941ea,10.7326/m19-3602,ACP,topic,,Acute musculoskeletal pain
+4bb3ee5f259953a1,10.7326/m20-7533,ACP,topic,,Acute respiratory failure and dyspnea
+f2d915ed987367bb,10.7326/m20-7533,ACP,topic,,Acute respiratory failure and dyspnea
+7c486e23cd79f87e,10.7326/m20-7844,ACP,topic,,Acute respiratory failure and dyspnea
+0d9ea9a206e54606,10.7326/m21-2710,ACP,topic,,Diverticulitis
+36579c48a8a813c6,10.7326/m21-2710,ACP,topic,,Diverticulitis
+e1e5b243ec1dae18,10.7326/m21-2710,ACP,topic,,Diverticulitis
+2294fee8ad372ea5,10.7326/m21-2711,ACP,topic,,Diverticulitis
+d0abfa0c1442221e,10.7326/m21-2711,ACP,topic,,Diverticulitis
+f24408450a2d8c27,10.7326/m21-2711,ACP,topic,,Diverticulitis
+0191016b25c87097,10.7326/m22-1034,ACP,topic,,Osteoporosis
+29252e9c7ac2758d,10.7326/m22-1034,ACP,topic,,Osteoporosis
+4bf40c4e95a0409e,10.7326/m22-1034,ACP,topic,,Osteoporosis
+8ebdd66c1ff18a29,10.7326/m22-1034,ACP,topic,,Osteoporosis
+b1d28756950787bd,10.7326/m22-1034,ACP,topic,,Osteoporosis
+f1fc07a9bcb708aa,10.7326/m22-1034,ACP,topic,,Osteoporosis
+7295d96e7ed25076,10.7326/m22-2056,ACP,topic,,Depression
+7908aaf42f34bc31,10.7326/m22-2056,ACP,topic,,Depression
+9592766c385528db,10.7326/m22-2056,ACP,topic,,Depression
+b6a2fa23803a2ed0,10.7326/m22-2056,ACP,topic,,Depression
+d7b3e1cbeb0d26f6,10.7326/m22-2056,ACP,topic,,Depression
+64a1ca5c96a161b3,10.7326/m23-2788,ACP,topic,,Type 2 diabetes
+761279b1fad472eb,10.7326/m23-2788,ACP,topic,,Type 2 diabetes
+9c1d81106df1e2f9,10.7326/m23-2788,ACP,topic,,Type 2 diabetes
+b6c1ad7223691226,10.7326/m23-2788,ACP,topic,,Type 2 diabetes

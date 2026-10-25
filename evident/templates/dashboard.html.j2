@@ -7,12 +7,12 @@
 <style>
   :root {
     --bg: #ffffff; --fg: #1d1d1f; --muted: #6e6e73; --line: #d9d9de; --panel: #f5f5f7;
-    --warn-bg: #fff4e5; --warn-fg: #7a4100; --accent: #1f5fa8;
+    --accent: #1f5fa8;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #161618; --fg: #ececf0; --muted: #a1a1a6; --line: #3a3a3e; --panel: #222226;
-      --warn-bg: #3d2a10; --warn-fg: #ffd59a; --accent: #7fb2ff;
+      --accent: #7fb2ff;
     }
     .figure img { background: #ffffff; border-radius: 4px; }
   }
@@ -25,8 +25,6 @@
   .muted { color: var(--muted); font-size: 0.9rem; }
   .provenance { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 12px 0; font-size: 0.9rem; }
   .provenance b { font-weight: 600; }
-  .banner { background: var(--warn-bg); color: var(--warn-fg); padding: 10px 14px; border-radius: 6px;
-            margin: 8px 0; font-size: 0.92rem; }
   .scroll { overflow-x: auto; }
   table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
   th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -43,6 +41,10 @@
   .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
   a { color: var(--accent); }
   .superseded { color: var(--muted); }
+  td.society { white-space: nowrap; }
+  tr.all td { font-weight: 600; }
+  .figure.wide { grid-column: 1 / -1; }
+  .validation td:first-child { white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -51,37 +53,21 @@
   <div class="muted">Recommendations, strength and certainty from {{ facts.societies | join(", ") }} guidelines,
     extracted by a local LLM.</div>
 
-  <div class="provenance">
-    <span><b>Snapshot</b> {{ snapshot_id }}</span>
-    <span><b>Version</b> {{ version }}</span>
-    <span><b>Model</b> {{ model }}</span>
-    <span><b>Code</b> {{ code_sha }}</span>
-    {% if validation %}
-    <span><b>Validation</b> ({{ validation.n }} labelled guidelines, gate {{ validation.gate }}):
-      F1 {{ validation.f1 }} {{ validation.f1_ci }}, P {{ validation.precision }}, R {{ validation.recall }},
-      grade accuracy {{ validation.combined }} {{ validation.combined_ci }}</span>
-    {% else %}
-    <span><b>Validation</b> none</span>
-    {% endif %}
-  </div>
-  {% for society in unvalidated %}
-  <div class="banner">{{ society }}: extraction accuracy unvalidated (no labelled {{ society }} guideline).</div>
-  {% endfor %}
 
   <h2>Headline (current editions)</h2>
   <div class="scroll">
   <table>
     <thead><tr>
       <th>Society</th><th class="num">Guidelines</th><th class="num">Recs</th><th class="num">Graded</th>
-      <th class="num">Ungraded %</th><th class="num">Strong %</th><th class="num">Against %</th>
+      <th class="num">Strong %</th><th class="num">Against %</th>
       <th class="num">High/moderate %</th><th class="num">Unmapped (strength / certainty)</th>
     </tr></thead>
     <tbody>
     {% for r in headline %}
-      <tr>
-        <td><span class="dot" style="background: {{ society_colours.get(r.society, '#9467bd') }}"></span>{{ r.society }}</td>
+      <tr{% if r.society == all_label %} class="all"{% endif %}>
+        <td class="society"><span class="dot" style="background: {{ society_colours.get(r.society, '#9467bd') }}"></span>{{ r.society }}</td>
         <td class="num">{{ r.n_guidelines }}</td><td class="num">{{ r.n_recs }}</td><td class="num">{{ r.n_graded }}</td>
-        <td class="num">{{ r.ungraded_share }}</td><td class="num">{{ r.pct_strong }}</td>
+        <td class="num">{{ r.pct_strong }}</td>
         <td class="num">{{ r.pct_against }}</td><td class="num">{{ r.pct_high_moderate }}</td>
         <td class="num">{{ r.n_strength_unmapped }} / {{ r.n_certainty_unmapped }}</td>
       </tr>
@@ -94,7 +80,7 @@
   <h2>Figures</h2>
   <div class="figures">
   {% for f in figures %}
-    <figure class="figure" style="margin: 0">
+    <figure class="figure{% if f.wide %} wide{% endif %}" style="margin: 0">
       <h3>Figure {{ loop.index }}. {{ f.title }}</h3>
       <img src="{{ f.src }}" alt="{{ f.title }}">
       <p>{{ f.caption }}</p>
@@ -107,7 +93,7 @@
   <table id="guidelines">
     <thead><tr>
       <th>Society</th><th class="num">Year</th><th>Title</th><th>Edition</th><th class="num">Recs</th>
-      <th class="num">Ungraded %</th><th class="num">Strong %</th><th class="num">High/mod %</th><th>Note</th>
+      <th class="num">Strong %</th><th class="num">High/mod %</th><th>Note</th>
     </tr></thead>
     <tbody></tbody>
   </table>
@@ -134,6 +120,34 @@
     <tbody></tbody>
   </table>
   </div>
+  <h2>Validation and provenance</h2>
+  <div class="scroll">
+  <table class="validation">
+    <thead><tr><th>Set</th><th>Result</th></tr></thead>
+    <tbody>
+    {% if validation %}
+      <tr><td>Development, {{ validation.n }} labelled guidelines (in-sample)</td>
+        <td>F1 {{ validation.f1 }} {{ validation.f1_ci }}, P {{ validation.precision }}, R {{ validation.recall }},
+          grade accuracy {{ validation.combined }} {{ validation.combined_ci }}</td></tr>
+    {% else %}
+      <tr><td>Development</td><td>not validated</td></tr>
+    {% endif %}
+    {% if heldout %}
+      <tr><td>Held-out {{ heldout.societies }}, {{ heldout.n }} guidelines</td>
+        <td>P {{ heldout.precision }} {{ heldout.precision_ci }}, R {{ heldout.recall }} {{ heldout.recall_ci }},
+          F1 {{ heldout.f1 }}, grade accuracy {{ heldout.combined }} {{ heldout.combined_ci }}
+          <span class="muted">({{ heldout.note }})</span></td></tr>
+    {% endif %}
+    </tbody>
+  </table>
+  </div>
+  <div class="provenance">
+    <span><b>Snapshot</b> {{ snapshot_id }}</span>
+    <span><b>Version</b> {{ version }}</span>
+    <span><b>Model</b> {{ model }}</span>
+    <span><b>Code</b> {{ code_sha }}</span>
+  </div>
+  {% if joint_note %}<p class="muted">{{ joint_note }}</p>{% endif %}
 </main>
 
 <script type="application/json" id="data">{{ data_json | safe }}</script>
@@ -167,7 +181,6 @@
     td.appendChild(a);
     cell(tr, g.edition);
     cell(tr, g.n_recs, "num");
-    cell(tr, g.ungraded_share, "num");
     cell(tr, g.pct_strong, "num");
     cell(tr, g.pct_high_moderate, "num");
     var notes = [];

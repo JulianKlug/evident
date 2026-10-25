@@ -6,11 +6,11 @@ Task IDs (T1–T11) refer to that doc. Deferred items: `TODOS.md`.
 ## Overview
 
 ```
- M0 Foundations ──▶ M1 Pipeline ──▶ M2 Extractor v1 ──▶ M3 MVP snapshot ──▶ M4 Paper 1
+ M0 Foundations ──▶ M1 Pipeline ──▶ M2 Extractor v1 ──▶ M3 MVP snapshot ──▶ M4 PoP draft
    (T1 T2 T3 T6)     (T4 T7 T11)     (T5 T9 T10)          (T8, corpus)        (ICU+ACP)
                                                                  │
                                                                  ▼
-                                   M5 Maintenance mode ──▶ M6 Specialty expansion ──▶ M7 Paper 2
+                                   M5 Maintenance mode ──▶ M6 Specialty expansion ──▶ M7 Paper
                                      (add one guideline)     (non-surgical)            (cross-specialty)
 ```
 
@@ -96,7 +96,9 @@ Spec: `docs/specs/m1-pipeline.md`.
 
 **Status:** DONE 2026-10-12. Snapshot 8 published: 73 guidelines (17 ESICM, 36 SCCM, 20 ACP), ExtractorVersion v2 (design Decision 8), labelled F1 0.939; spot check on 10 unlabelled guidelines F1 0.881 (P 0.803, R 0.977). Design review deferred to M4. Evidence: `docs/progress.md`, `docs/specs/m3-mvp-snapshot.md` §16.
 
-## M4 — Paper 1 (ICU + ACP)
+## M4 — Proof-of-principle draft (ICU + ACP)
+Not for publication: tests the method end to end. The paper to publish (M7) covers all specialties.
+
 - Fanaroff-style tables:
   - % by certainty;
   - % strong;
@@ -161,7 +163,7 @@ Revisit the validation decision at 6a, as logged: the ceiling is ICU accuracy re
 
 **Exit (per specialty):** mapping tested, snapshot published, and validation reported or flagged.
 
-## M7 — Paper 2 (cross-specialty)
+## M7 — Paper (all specialties, for publication)
 - Evidence quality across non-surgical medicine; comparison with Fanaroff 2008–2018 cardiology.
 - Discordance map: strong recommendations on low certainty, by specialty.
 - The living dashboard is cited as the maintained resource.
