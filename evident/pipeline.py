@@ -49,6 +49,7 @@ from evident.corpus import (
     sync_to_store,
 )
 from evident.dedup import (
+    JUDGE_PROMPT,
     MODEL_SEPARATOR,
     SCREEN_BIOLORD,
     SPLIT_REASON,
@@ -84,6 +85,7 @@ from evident.extraction import (
     ExtractorConfig,
     PdfMissingError,
     check_artifacts,
+    prompt_template,
     version_for,
 )
 from evident.harmonization import harmonize
@@ -530,6 +532,7 @@ def publish_package(deps: PipelineDeps, snapshot_id: int, inputs: PackageInputs)
         duplicates=removed_rows(all_rows, dedup),
         draft_template=inputs.draft_template,
         table1_without_dedup=table1(all_rows, cfg.bootstrap_n, cfg.bootstrap_seed),  # bounds verdict errors
+        **_model_specification(deps.store, snap, version),
     )
 
     # Captions and dashboard show the development scores the package reports, after duplicate removal
@@ -953,6 +956,21 @@ def _deduplicate(rows: list[HarmonizedRow], similarity,
     return result, facts
 
 
+def _model_specification(store: Store, snap: Snapshot, version: ExtractorVersion) -> dict:
+    """Supplement: the extraction prompt, each distinct few-shot set with the guidelines it served, the judge prompt.
+
+    The prompt is shown with the first set; runs drew their examples per guideline (target excluded).
+    """
+    by_set: dict[str, list[str]] = {}
+    for g, run in _active_runs_by_guideline(store, snap.id):
+        by_set.setdefault(run.few_shot_json or "[]", []).append(g.doi)
+    sets = [{"examples": json.loads(k), "dois": dois} for k, dois in sorted(by_set.items())]
+
+    cfg = ExtractorConfig.from_json(version.config_json)
+    examples = sets[0]["examples"] if sets else []
+    return {"extraction_prompt": prompt_template(cfg, examples), "few_shot_sets": sets, "judge_prompt": JUDGE_PROMPT}
+
+
 def _human_check(rows: list[HarmonizedRow], result: DedupResult, cfg: AnalysisConfig) -> Optional[dict]:
     """The reviewer's labelled pairs scored against the final clusters; None when no check is configured."""
     if cfg.dedup_human_sample_path is None:
@@ -1021,6 +1039,11 @@ def _audit_package(store: Store, snapshot_id: int, manifest_path: str, entries: 
                                   ("human check key", cfg.dedup_human_key_path, cfg.dedup_human_key_sha256)):
         if path is not None and _sha_or_none(path) != expected:
             problems.append(f"{label} {path} SHA-256 {_sha_or_none(path)} differs from {expected}")
+
+    card_digest = (cfg.model_card or {}).get("model_digest")
+    version_digest = store.get_extractor_version(snap.extractor_version_id).model_digest
+    if cfg.model_card is not None and card_digest != version_digest:
+        problems.append(f"model card describes digest {card_digest}, the runs used {version_digest}")
 
     if inputs.draft_template is not None and not os.path.isfile(inputs.draft_template):
         problems.append(f"draft template {inputs.draft_template} missing")

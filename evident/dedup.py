@@ -47,6 +47,36 @@ UNJUDGED_REASON = "no verdict yet; both copies kept"  # live publish: a pair scr
 _HUMAN_SAME, _HUMAN_DIFFERENT = "same", "different"  # labels in the human check sample
 _CI_LEVEL = 0.95
 
+# Each judge's prompt (scripts/paper1_dedup_adjudicate.py); the package exports it for the supplement
+JUDGE_SCHEMA = {
+    "type": "object",
+    "properties": {"duplicate": {"type": "boolean"}, "reason": {"type": "string"}},
+    "required": ["duplicate", "reason"],
+}
+
+JUDGE_PROMPT = """Two statements were extracted from the same clinical practice guideline: {title}
+Decide whether they are the SAME recommendation written twice (for example once in a summary list and
+once in the body or a table), or two DIFFERENT recommendations.
+
+SAME recommendation, even when:
+- one omits population words that only restate the guideline's scope (e.g. "in critically ill adults")
+  or a list header the other spells out;
+- abbreviations differ (e.g. NMBA = neuromuscular-blocking agent, CRRT = continuous renal replacement therapy);
+- one is cut off mid-sentence, has OCR or line-break noise, or lacks "We suggest" / "We recommend";
+- one appends remarks, rationale, examples, evidence-gap text or the grade, without a further recommendation;
+- the strength wording differs (recommend vs suggest).
+
+DIFFERENT recommendations when they differ in patient subgroup (e.g. sepsis vs kidney injury, ARDS vs
+acute hypoxemic respiratory failure, adults vs children), intervention, comparator, purpose or outcome
+(e.g. "to reduce opioid use" vs "to improve analgesia"), direction (for vs against), setting or timing,
+or when one covers only part of the other.
+
+Statement A: {a}
+Statement B: {b}
+
+Answer in JSON: {{"duplicate": true or false, "reason": "at most 12 words"}}"""
+
+
 
 class Verdict(str, Enum):
     DUPLICATE = "duplicate"  # same population, intervention, comparator and direction, restated

@@ -75,6 +75,7 @@ class AnalysisConfig:
     dedup_human_sample_sha256: Optional[str] = None
     dedup_human_key_path: Optional[str] = None     # pair and stratum of each labelled id
     dedup_human_key_sha256: Optional[str] = None
+    model_card: Optional[dict] = None  # base model, size, quantization… as `ollama show` reports; model_digest checked
 
     @classmethod
     def from_json(cls, text: str) -> "AnalysisConfig":
@@ -225,6 +226,9 @@ class PaperPackage:
     duplicates: list[RemovedRow] = field(default_factory=list)  # within-guideline copies removed
     draft_template: Optional[str] = None  # manuscript template (private); None → no draft.md
     table1_without_dedup: list[Table1Row] = field(default_factory=list)  # sensitivity: copies kept
+    extraction_prompt: str = ""        # per-page prompt, page text as a placeholder
+    few_shot_sets: list[dict] = field(default_factory=list)  # [{examples, dois}]: each distinct set and its users
+    judge_prompt: str = ""             # duplicate judges' prompt
 
 
 # ── primary tables ──────────────────────────────────────────────
@@ -479,6 +483,7 @@ def methods_facts(config: AnalysisConfig, entries: Sequence[ManifestEntry], curr
             "embedding_revision": version.embedding_revision,
             "classifier_sha256": version.classifier_sha256,
             "config": json.loads(version.config_json),
+            "card": config.model_card,
         },
         "validation": {
             "n_development_guidelines": n_development,

@@ -32,7 +32,7 @@ from evident.pipeline import (
 from evident.publishing import DraftFieldError
 from evident.store import AccessMode, Store
 from evident.validation import HeldoutLabelError
-from tests.evident.pipeline_fakes import CONFIG, GUIDELINES, World, write_heldout_xlsx
+from tests.evident.pipeline_fakes import CONFIG, FEW_SHOT_EXAMPLE, GUIDELINES, World, write_heldout_xlsx
 from tests.legacy_golden import FakeEncoder
 
 _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -43,7 +43,8 @@ _SPOT = "10.1000/b"
 _QUERIES = (("ACP", "pubmed", "q1"), ("ESICM", "pubmed", "q2"), ("SCCM", "pubmed", "q3"))
 
 _EXPECTED = [
-    "analysis_manifest.json", "captions.md", "corpus_flow.csv", "draft.md", "duplicates.csv", "excluded_guidelines.csv",
+    "analysis_manifest.json", "captions.md", "corpus_flow.csv", "dedup_judge_prompt.md", "draft.md", "duplicates.csv",
+    "excluded_guidelines.csv", "extraction_prompt.md", "few_shot_examples.json",
     "figure_data.csv", "methods_facts.json", "raw_harmonized_mapping.csv", "spotcheck_bias.csv",
     "table1_society.csv", "table2_certainty_strength.csv", "table_s1_guideline_mean.csv", "table_s2_without_dedup.csv",
     "validation_development.json", "validation_sccm_heldout.json",
@@ -250,6 +251,26 @@ def test_package_figures_carry_cis_and_heldout_row(frozen):
     assert "Whiskers: 95% guideline-cluster bootstrap interval." in captions
     html = _read(os.path.join(frozen.world.publish_dir, "dashboard", "index.html"))
     assert "Held-out SCCM, 1 guidelines" in html
+
+
+def test_model_specification_exported(frozen):
+    frozen.write_config(model_card={"base_model": "qwen3:14b", "quantization": "Q4_K_M", "model_digest": "digest"})
+    frozen.run()
+
+    facts = json.loads(_read(os.path.join(frozen.package, "methods_facts.json")))
+    assert facts["extractor"]["card"]["base_model"] == "qwen3:14b"
+    prompt = _read(os.path.join(frozen.package, "extraction_prompt.md"))
+    assert "Extract all clinical recommendations" in prompt
+    assert "We suggest early mobilisation | Weak For | Low" in prompt
+    sets = json.loads(_read(os.path.join(frozen.package, "few_shot_examples.json")))
+    assert sets == [{"examples": [FEW_SHOT_EXAMPLE], "dois": list(_DOIS)}]
+    assert "SAME recommendation" in _read(os.path.join(frozen.package, "dedup_judge_prompt.md"))
+
+
+def test_audit_refuses_a_model_card_of_another_model(frozen):
+    frozen.write_config(model_card={"base_model": "other", "model_digest": "0" * 64})
+    with pytest.raises(PackageAuditError, match="model card"):
+        frozen.run()
 
 
 def test_corpus_flow_and_spotcheck(frozen):

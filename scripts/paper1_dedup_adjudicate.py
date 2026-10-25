@@ -22,7 +22,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from evident.corpus import load_manifest  # noqa: E402
-from evident.dedup import Verdict, write_adjudications  # noqa: E402
+from evident.dedup import JUDGE_PROMPT, JUDGE_SCHEMA, Verdict, write_adjudications  # noqa: E402
 from evident.extraction import load_similarity_model  # noqa: E402
 from evident.pipeline import duplicate_candidates  # noqa: E402
 from evident.store import AccessMode, Store  # noqa: E402
@@ -36,33 +36,6 @@ _MODEL = "qwen38-64k:latest"
 _SEED = 0
 _NUM_CTX = 4096
 
-_SCHEMA = {
-    "type": "object",
-    "properties": {"duplicate": {"type": "boolean"}, "reason": {"type": "string"}},
-    "required": ["duplicate", "reason"],
-}
-
-_PROMPT = """Two statements were extracted from the same clinical practice guideline: {title}
-Decide whether they are the SAME recommendation written twice (for example once in a summary list and
-once in the body or a table), or two DIFFERENT recommendations.
-
-SAME recommendation, even when:
-- one omits population words that only restate the guideline's scope (e.g. "in critically ill adults")
-  or a list header the other spells out;
-- abbreviations differ (e.g. NMBA = neuromuscular-blocking agent, CRRT = continuous renal replacement therapy);
-- one is cut off mid-sentence, has OCR or line-break noise, or lacks "We suggest" / "We recommend";
-- one appends remarks, rationale, examples, evidence-gap text or the grade, without a further recommendation;
-- the strength wording differs (recommend vs suggest).
-
-DIFFERENT recommendations when they differ in patient subgroup (e.g. sepsis vs kidney injury, ARDS vs
-acute hypoxemic respiratory failure, adults vs children), intervention, comparator, purpose or outcome
-(e.g. "to reduce opioid use" vs "to improve analgesia"), direction (for vs against), setting or timing,
-or when one covers only part of the other.
-
-Statement A: {a}
-Statement B: {b}
-
-Answer in JSON: {{"duplicate": true or false, "reason": "at most 12 words"}}"""
 
 
 def main() -> None:
@@ -107,7 +80,7 @@ def _pair_keys(path: str) -> set[tuple[str, int, int]]:
 
 def _ask(client: OllamaClient, title: str, a: str, b: str) -> tuple[bool, str]:
     """(duplicate, reason); an unparseable answer is distinct, so nothing is removed on a model failure."""
-    response = client.generate_json(_PROMPT.format(title=title, a=a, b=b), _SCHEMA, num_ctx=_NUM_CTX, seed=_SEED,
+    response = client.generate_json(JUDGE_PROMPT.format(title=title, a=a, b=b), JUDGE_SCHEMA, num_ctx=_NUM_CTX, seed=_SEED,
                                     think=ThinkMode.OFF)
     try:
         answer = json.loads(response.raw_text)

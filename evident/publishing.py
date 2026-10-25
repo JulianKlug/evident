@@ -71,6 +71,10 @@ _PACKAGE_STAGING_PREFIX = ".package-"
 _NA = "NA"  # an empty denominator, never 0
 _MANIFEST_FILE = "analysis_manifest.json"
 _DRAFT_FILE = "draft.md"
+_EXTRACTION_PROMPT_HEADER = ("# Extraction prompt\n\nSent once per page; the few-shot block shows the first set in "
+                             "few_shot_examples.json (each guideline's examples excluded its own).\n\n```\n")
+_FENCE_END = "\n```\n"
+_JUDGE_PROMPT_HEADER = "# Duplicate judge prompt\n\nSent once per screened pair to each judge.\n\n```\n"
 _HELDOUT_NOTE = "n={n} guidelines: imprecise; reported separately, not part of the development gate"
 _OPTIONAL_NESTED = {(BiasRow, "correct"): Proportion}  # Optional dataclass fields, for stable CSV columns
 _DEVELOPMENT_NOTE = ("the labelled guidelines also informed extractor development and tuning: "
@@ -698,6 +702,11 @@ def _write_package(bundle: PublishBundle, directory: str) -> None:
     _write_package_csv(p.spotcheck_bias, os.path.join(directory, "spotcheck_bias.csv"))
     _write_package_csv(p.duplicates, os.path.join(directory, "duplicates.csv"))
 
+    # Supplement: model specification (eAppendix 5) and the duplicate judges' prompt (eAppendix 2)
+    _write_text(_EXTRACTION_PROMPT_HEADER + p.extraction_prompt + _FENCE_END, os.path.join(directory, "extraction_prompt.md"))
+    _write_json(p.few_shot_sets, os.path.join(directory, "few_shot_examples.json"))
+    _write_text(_JUDGE_PROMPT_HEADER + p.judge_prompt + _FENCE_END, os.path.join(directory, "dedup_judge_prompt.md"))
+
     exports = _package_json(bundle)
     for name, data in exports.items():
         _write_json(data, os.path.join(directory, name + ".json"))
@@ -795,6 +804,7 @@ def _draft_context(bundle: PublishBundle, exports: dict[str, dict]) -> dict:
         "table2_certainty_strength": t2,
         "table_s1_guideline_mean": s1,
         "table_s2_without_dedup": {r.society: _flat(r) for r in p.table1_without_dedup},
+        "few_shot_examples": p.few_shot_sets,
         "corpus_flow": flow,
         "excluded_guidelines": [_flat(r) for r in p.excluded],
         "raw_harmonized_mapping": [_flat(r) for r in p.raw_mapping],
@@ -828,6 +838,11 @@ def _write_package_captions(bundle: PublishBundle, path: str) -> None:
     ]
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
+
+
+def _write_text(text: str, path: str) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text)
 
 
 def _write_json(data, path: str) -> None:

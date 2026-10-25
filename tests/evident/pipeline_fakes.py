@@ -22,6 +22,7 @@ from utils.doi import doi_to_filename
 CONFIG = ExtractorConfig(mode=ExtractionMode.SINGLE_PASS, model="qwen3:14b", thinking=ThinkingMode.OFF,
                          prompt_version="v0", few_shot=FewShotMode.FEW_SHOT)
 WORSE_CONFIG = replace(CONFIG, model="qwen3:8b")  # FakeRunner returns fewer recs for it
+FEW_SHOT_EXAMPLE = {"recommendation": "We suggest early mobilisation", "class": "Weak For", "LOE": "Low"}
 
 _HEADER = "doi,society,year,title,topic_id,supersedes_doi,grading_family,pdf_filename\n"
 
@@ -73,7 +74,7 @@ class FakeRunner:
         recs = [RawRecommendation(i, text, s, c, Category.GRADED, page=1, chunk_id=0)
                 for i, (text, s, c) in enumerate(rows)]
         calls = [LlmCall(chunk_id=0, prompt_sha256="p", raw_text="r", eval_tokens=10)]
-        return ExtractionOutput(recs=recs, calls=calls, n_pages=1, few_shot=[{"recommendation": "x"}])
+        return ExtractionOutput(recs=recs, calls=calls, n_pages=1, few_shot=[FEW_SHOT_EXAMPLE])
 
 
 class FakeProbe:
