@@ -60,3 +60,7 @@ Guidelines found after the freeze (e.g. ACP menopause, 2026-10-06) belong to a l
 | Development F1 | 0.939 | 0.958 |
 
 Removed 177 statements (ACP 4, ESICM 52, SCCM 121; 130 graded in current editions) from 178 duplicate verdicts of 1256 screened pairs; 43 groups carried different grades.
+
+## M4 archive (2026-10-25)
+
+`<data root>/frozen/paper1_package_2026-10-25/` (read-only): the package from code `5457ccb`, `analysis_manifest.json` SHA-256 `a6e6baa4ac518e7a8b6ee532475ac874d56b3acaed06635c9d64deaf508caa98`, its build log and the full test log (734 passed). Adds the model specification (`extraction_prompt.md`, reproducing the stored prompt hashes; `few_shot_examples.json`; `dedup_judge_prompt.md`) and Table S2; tables unchanged since the human-check package. `draft.md` in it is the private draft.
