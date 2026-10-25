@@ -1,11 +1,15 @@
 # TODOS
 
-## Next: Paper 1 before submission
-- **Human audit of duplicate verdicts:** label `corpus/dedup/audit/blind_sample.csv` blind (a model reviewer agreed on 143/150); report agreement in eAppendix 2 and replace the "pending" line in Methods.
-- **Model specification:** base model, size, quantization, context length, prompt and few-shot examples for eAppendix 5.
-- **Article information:** authors, COI, funding.
-- **Optional sensitivity analyses** (reviewer requests): joint SCCM–ESICM guidelines, grade conflicts in duplicate groups.
-- **Live `publish`** does not apply duplicate verdicts; only `publish --package` does.
+## M4: finish Paper 1
+- **Article information:** authors, COI, funding (only the authors can fill these in).
+- **Dashboard URL:** the draft cites `[DASHBOARD URL]`; spec §10 keeps the dashboard local-only until hosting is approved (M5).
+
+## After M4
+- **Joint SCCM–ESICM sensitivity analysis:** only if a reviewer asks.
+
+## M5: living map
+- **Adjudicate new duplicate pairs on `add`:** `publish` keeps both copies of a screened pair without a verdict and warns; run both judges (`scripts/paper1_dedup_adjudicate.py`) on new runs and extend the verdict file.
+- **Host the dashboard publicly**, after approval (spec §10).
 
 ## Discordance analytics
 - **What:** queries for strong recommendations resting on low/very-low certainty, plus ESICM vs SCCM conflicts found via BioLORD recommendation matching.
