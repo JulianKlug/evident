@@ -558,14 +558,16 @@ def publish(deps: PipelineDeps, accept_regression: Optional[str] = None,
     if not republished and validation.gate == GateResult.FAIL and not accept_regression:
         raise GateFailedError(target.id, validation.report_json)
 
-    # Stage, transition, archive, swap in, then name the release: until the swap, out/ is untouched.
-    # A failure after the transition leaves the previous outputs and record; status blocks until published again.
+    # Stage, transition, archive, swap in, name the release, then drop the previous outputs.
+    # Any failure leaves the previous outputs and record; after the transition status blocks until published again.
     outputs = _live_outputs(deps, target, entries)
     staged = stage(outputs.bundle, deps.publish_dir)
     try:
         if not republished:
             deps.store.transition_snapshot(target.id, SnapshotState.PUBLISHED, accept_regression)
-        return _released(deps, deps.store.get_snapshot(target.id), entries, outputs, staged, republished)
+        report = _released(deps, deps.store.get_snapshot(target.id), entries, outputs, staged, republished)
+        staged.keep()
+        return report
     finally:
         staged.discard()
 
@@ -667,7 +669,7 @@ def add(deps: PipelineDeps, pdf_path: str, mode: IngestMode = IngestMode.NORMAL)
         raise PdfMissingError(pdf_path)
 
     # Curation first: an extraction for a guideline publish would refuse is wasted GPU time
-    problems = _candidate_problems(deps, entries)
+    problems = _candidate_problems(deps, entries) + _edition_problems(entries)
     if problems:
         raise PublishBlockedError(problems)
 
@@ -1144,6 +1146,15 @@ def _candidate_problems(deps: PipelineDeps, entries: list[ManifestEntry]) -> lis
         return []
     try:
         check_candidates(load_candidates(deps.candidates_path), entries)
+    except ManifestError as e:
+        return e.problems
+    return []
+
+
+def _edition_problems(entries: list[ManifestEntry]) -> list[str]:
+    """Current editions undecidable, e.g. an older edition no row supersedes."""
+    try:
+        current_editions(entries)
     except ManifestError as e:
         return e.problems
     return []

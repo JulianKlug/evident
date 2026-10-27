@@ -152,15 +152,21 @@ def render(bundle: PublishBundle, out_dir: str) -> list[str]:
     """Write every output; returns the final paths. A failure leaves the previous outputs intact."""
     staged = stage(bundle, out_dir)
     staged.install()
+    staged.keep()
     return staged.paths
 
 
 class StagedOutputs:
-    """Rendered outputs not yet in place: checksum them, then install() or discard()."""
+    """Rendered outputs not yet in place: checksum them, install(), then keep(); discard() undoes the rest.
+
+        stage ──▶ install() (previous dirs kept as .old) ──▶ keep() (drop .old)
+                      └── discard() before keep(): previous dirs back, e.g. the release record write failed
+    """
 
     def __init__(self, staging: str, out_dir: str, paths: list[str]):
         self._staging = staging
         self._out_dir = out_dir
+        self._state = _InstallState.STAGED
         self.paths = paths  # final paths, e.g. <out_dir>/tables/headline.csv
 
     def checksums(self) -> dict[str, str]:
@@ -169,11 +175,24 @@ class StagedOutputs:
         return {rel: file_sha256(os.path.join(self._staging, rel)) for rel in relative}
 
     def install(self) -> None:
-        _swap_in(self._staging, self._out_dir)
+        _install(self._staging, self._out_dir)
+        self._state = _InstallState.INSTALLED
+
+    def keep(self) -> None:
+        _drop_previous(self._out_dir)
+        self._state = _InstallState.KEPT
 
     def discard(self) -> None:
-        """Drop the staging dir; a no-op after install()."""
+        """Drop the staging dir; after install() without keep(), put the previous outputs back."""
+        if self._state == _InstallState.INSTALLED:
+            _restore_previous(self._out_dir)
         shutil.rmtree(self._staging, ignore_errors=True)
+
+
+class _InstallState(Enum):
+    STAGED = "staged"
+    INSTALLED = "installed"
+    KEPT = "kept"
 
 
 def stage(bundle: PublishBundle, out_dir: str) -> StagedOutputs:
@@ -912,7 +931,13 @@ def _fmt_ci3(ci) -> str:
 # ── file swap ───────────────────────────────────────────────────
 
 def _swap_in(staging: str, out_dir: str) -> None:
-    """Replace each output subdir by its staged version, then drop the staging dir.
+    """Replace each output subdir by its staged version, then drop the previous ones."""
+    _install(staging, out_dir)
+    _drop_previous(out_dir)
+
+
+def _install(staging: str, out_dir: str) -> None:
+    """Move each staged subdir in, the previous one aside to <subdir>.old; drop the staging dir.
 
     All or nothing: a failed rename puts back every subdir already set aside, e.g. new tables
     beside old figures is never left behind.
@@ -929,10 +954,17 @@ def _swap_in(staging: str, out_dir: str) -> None:
             _put_back(final)
         shutil.rmtree(staging, ignore_errors=True)
         raise
-
-    for final in set_aside:
-        shutil.rmtree(final + _OLD_SUFFIX, ignore_errors=True)
     os.rmdir(staging)
+
+
+def _drop_previous(out_dir: str) -> None:
+    for sub in _SUBDIRS:
+        shutil.rmtree(os.path.join(out_dir, sub) + _OLD_SUFFIX, ignore_errors=True)
+
+
+def _restore_previous(out_dir: str) -> None:
+    for sub in reversed(_SUBDIRS):
+        _put_back(os.path.join(out_dir, sub))
 
 
 def _set_aside(final: str) -> None:

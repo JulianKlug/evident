@@ -991,3 +991,4 @@ Exit still open: one real guideline published after 2026-10-04, added with runbo
 - Every older edition must be superseded explicitly (`supersedes_doi` takes `a;b`). ERC-ESICM 2025 now names temperature control 2022 (was implicit); 75 current, 10 superseded unchanged. Manifest no longer matches `configs/paper1.json` (frozen copy at `paper1-freeze`).
 - Tests: 11 new, 816 pass. Live strict status: `changed since release 65bd85c85387: manifest` until republished.
 - Release `0c1c6f4868a4…` from code `e7125a1` (backup `artifacts/backups/evident-2026-10-27-1958.sqlite`): 75 current, 10 superseded, 140 duplicates removed; repeated → `unchanged`; `check: clean`.
+- Second review: a failed `out/release.json` write now restores the previous outputs; `add` refuses an unlinked older edition before extracting. 2 new tests.

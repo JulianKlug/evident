@@ -593,6 +593,27 @@ class TestAtomicPublish:
         assert (world.output_hashes(), _record(world)) == (outputs, record)
         assert sorted(os.listdir(world.publish_dir)) == entries  # no staging or .old leftovers
 
+    def test_failed_release_record_write_restores_outputs(self, world, monkeypatch):
+        import evident.release as release
+        world.add_guideline(_D)
+        add(world.live(), world.pdf(_D))
+        outputs, record = world.output_hashes(), _record(world)
+        entries = sorted(os.listdir(world.publish_dir))
+
+        replace = os.replace
+
+        def fake(src, dst):
+            if dst == os.path.join(world.publish_dir, RELEASE_FILE):
+                raise OSError("disk full")
+            replace(src, dst)
+        monkeypatch.setattr(release.os, "replace", fake)
+        with pytest.raises(OSError):
+            publish(world.live())
+        monkeypatch.undo()
+
+        assert (world.output_hashes(), _record(world)) == (outputs, record)
+        assert sorted(os.listdir(world.publish_dir)) == entries  # no .old dirs, no release.json.part
+
     def test_failed_candidate_publish_is_blocked_then_recovers(self, world):
         snapshot(world.live(), SnapshotStart.NEW, dataclasses.replace(CONFIG, seed=1))
         validate(world.live())
@@ -610,3 +631,14 @@ class TestAtomicPublish:
         assert any("predate" in b for b in _check(world))
         publish(world.live(), snapshot_id=2)
         assert _check(world) == []
+
+
+class TestEditionPreflight:
+    def test_add_refuses_an_unlinked_older_edition_before_extracting(self, world):
+        world.add_guideline(_F, topic="topic-c")  # same topic as c (2025), no supersedes_doi
+
+        runner = FakeRunner()
+
+        with pytest.raises(PublishBlockedError, match="no row supersedes"):
+            add(world.live(runner), world.pdf(_F))
+        assert runner.calls == []

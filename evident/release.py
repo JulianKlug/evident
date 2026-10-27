@@ -50,6 +50,8 @@ def write_release(content: dict, publish_dir: str, archive_dir: Optional[str], b
                   install: Callable[[], None]) -> tuple[str, ReleaseOutcome]:
     """Archive, install() the outputs, then record the release; backup(path) writes the DB copy.
 
+    The caller keeps the installed outputs only once this returns (StagedOutputs.keep/discard).
+
     The same release again re-installs the outputs (repairs a tampered out/) and keeps the record.
     """
     rid = release_id(content)
@@ -76,10 +78,15 @@ def write_release(content: dict, publish_dir: str, archive_dir: Optional[str], b
 def _write_json(path: str, data: dict) -> None:
     """Write <name>.part, then rename: a reader never sees half a record."""
     part = path + ".part"
-    with open(part, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, sort_keys=True, ensure_ascii=False)
-        f.write("\n")
-    os.replace(part, path)
+    try:
+        with open(part, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, sort_keys=True, ensure_ascii=False)
+            f.write("\n")
+        os.replace(part, path)
+    except BaseException:
+        if os.path.exists(part):
+            os.remove(part)
+        raise
 
 
 def _canonical(data: dict) -> str:
