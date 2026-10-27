@@ -1,6 +1,6 @@
 # Spec: M5 — Maintenance mode for the living evidence map
 
-**Status:** Code implemented 2026-10-26 (§9); exit demonstration pending  
+**Status:** Code implemented 2026-10-26 (§9); first live release 2026-10-27; exit demonstration pending  
 **Repository reviewed:** `JulianKlug/evident`, `main` at `a1ba3b85b8c04d168ee428e44e2b553270b7aec0`  
 **Sources of truth:** `docs/roadmap.md` (M5), `docs/designs/living-evidence-map.md` (Decisions 4, 5, 8–10), `docs/specs/m4-paper1.md`, `docs/paper1/freeze.md`, `docs/progress.md`, and `TODOS.md`.
 

@@ -973,5 +973,13 @@ Spec `docs/specs/m5-maintenance-spec.md`, runbook `docs/runbook.md`, design Deci
 - Tests: 71 new, 805 pass (pipeline, CLI, scripts, runbook procedures A–C on a scratch DB).
 - On a copy of the live DB: `status --published --check` → only blocker "no release record"; `publish --snapshot 8` → 75 current guidelines, 140 duplicates removed (as M4), release `f0e36aa13d5f…`; repeated → `unchanged`, outputs byte-identical. The live `out/` was not touched.
 
+## M5: first live release (2026-10-27)
+
+Code `375beae`; DB backup `artifacts/backups/evident-2026-10-27-0936.sqlite`.
+
+- `status --published --check` before: only blocker "no release record".
+- `publish --snapshot 8` (47 s): 75 current, 10 superseded, 1827 recommendations, 140 duplicates removed, 1687 kept. Release `65bd85c85387…` (`out/release.json`, archived in `artifacts/releases/`). Replaces the package-mode outputs in `out/`.
+- Repeated: `unchanged`. `status --published --check`: `check: clean`.
+
 Exit still open: one real guideline published after 2026-10-04, added with runbook A.
 

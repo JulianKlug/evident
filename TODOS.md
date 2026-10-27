@@ -12,7 +12,6 @@
 
 ## M5: living map
 - **M5 exit demonstration:** add one genuinely eligible guideline published after the 2026-10-04 cutoff (ACP menopause 2026 once screened) with `docs/runbook.md` procedure A; record it in `docs/progress.md`.
-- **First live release:** `publish --snapshot 8` writes `out/release.json` (status `--check` blocks until then); it replaces the package-mode outputs in `out/` (the M4 package is archived in the frozen dir).
 - **Host the dashboard publicly**, after approval (spec §10).
 
 ## Discordance analytics

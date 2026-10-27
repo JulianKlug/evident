@@ -133,7 +133,7 @@ Not for publication: tests the method end to end. The paper to publish (M7) cove
 
 **Exit:** a guideline published after the MVP snapshot is added in one command sequence. The dashboard updates, and `status` is clean.
 
-**Status:** code done 2026-10-26 (`docs/specs/m5-maintenance-spec.md`, `docs/runbook.md`); exit waits for a real post-cutoff guideline (spec §7).
+**Status:** code done 2026-10-26 (`docs/specs/m5-maintenance-spec.md`, `docs/runbook.md`); first live release 2026-10-27 (`65bd85c85387`); exit waits for a real post-cutoff guideline (spec §7).
 
 ## M6 — Expansion to non-surgical specialties
 Order by label availability and scheme difficulty:
