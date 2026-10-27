@@ -983,3 +983,10 @@ Code `375beae`; DB backup `artifacts/backups/evident-2026-10-27-0936.sqlite`.
 
 Exit still open: one real guideline published after 2026-10-04, added with runbook A.
 
+
+## M5: PR #4 review fixes (2026-10-27)
+
+- Strict status blocks on inputs changed since the release (manifest, candidates, search window, verdict ledger, themes, PDF of a released run); code commits alone do not.
+- `publish` archives before swapping outputs; the three output dirs swap all or none; `out/release.json` last.
+- Every older edition must be superseded explicitly (`supersedes_doi` takes `a;b`). ERC-ESICM 2025 now names temperature control 2022 (was implicit); 75 current, 10 superseded unchanged. Manifest no longer matches `configs/paper1.json` (frozen copy at `paper1-freeze`).
+- Tests: 11 new, 816 pass. Live strict status: `changed since release 65bd85c85387: manifest` until republished.

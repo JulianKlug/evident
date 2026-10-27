@@ -1,10 +1,11 @@
 """Render one published snapshot: CSV tables, figures, captions and a static dashboard.
 
     PublishBundle (aggregates from analytics and themes, built by the pipeline)
-        │ render(bundle, out_dir)
+        │ render(bundle, out_dir), or stage(bundle, out_dir) … StagedOutputs.install()
         ▼
     <out_dir>/.publish-XXXX/ ── tables/*.csv, figures/*.svg|png + captions.md, dashboard/index.html
         │ all written? swap each subdir in; else delete the staging dir (previous outputs stay)
+        │ a failed swap puts every previous subdir back (all three or none)
         ▼
     <out_dir>/tables  <out_dir>/figures  <out_dir>/dashboard
 
@@ -149,9 +150,36 @@ class _Figure:
 
 def render(bundle: PublishBundle, out_dir: str) -> list[str]:
     """Write every output; returns the final paths. A failure leaves the previous outputs intact."""
+    staged = stage(bundle, out_dir)
+    staged.install()
+    return staged.paths
+
+
+class StagedOutputs:
+    """Rendered outputs not yet in place: checksum them, then install() or discard()."""
+
+    def __init__(self, staging: str, out_dir: str, paths: list[str]):
+        self._staging = staging
+        self._out_dir = out_dir
+        self.paths = paths  # final paths, e.g. <out_dir>/tables/headline.csv
+
+    def checksums(self) -> dict[str, str]:
+        """{path relative to out_dir: SHA-256} of the staged files, i.e. of the outputs once installed."""
+        relative = [os.path.relpath(p, self._out_dir) for p in self.paths]
+        return {rel: file_sha256(os.path.join(self._staging, rel)) for rel in relative}
+
+    def install(self) -> None:
+        _swap_in(self._staging, self._out_dir)
+
+    def discard(self) -> None:
+        """Drop the staging dir; a no-op after install()."""
+        shutil.rmtree(self._staging, ignore_errors=True)
+
+
+def stage(bundle: PublishBundle, out_dir: str) -> StagedOutputs:
+    """Write every output to a staging dir; nothing in out_dir changes until install()."""
     staging, written = _stage_outputs(bundle, out_dir)
-    _swap_in(staging, out_dir)
-    return written
+    return StagedOutputs(staging, out_dir, written)
 
 
 def _stage_outputs(bundle: PublishBundle, out_dir: str) -> tuple[str, list[str]]:
@@ -884,10 +912,43 @@ def _fmt_ci3(ci) -> str:
 # ── file swap ───────────────────────────────────────────────────
 
 def _swap_in(staging: str, out_dir: str) -> None:
-    """Replace each output subdir by its staged version, then drop the staging dir."""
-    for sub in _SUBDIRS:
-        _swap_dir(os.path.join(staging, sub), os.path.join(out_dir, sub))
+    """Replace each output subdir by its staged version, then drop the staging dir.
+
+    All or nothing: a failed rename puts back every subdir already set aside, e.g. new tables
+    beside old figures is never left behind.
+    """
+    set_aside = []
+    try:
+        for sub in _SUBDIRS:
+            final = os.path.join(out_dir, sub)
+            _set_aside(final)
+            set_aside.append(final)
+            os.rename(os.path.join(staging, sub), final)
+    except BaseException:
+        for final in reversed(set_aside):
+            _put_back(final)
+        shutil.rmtree(staging, ignore_errors=True)
+        raise
+
+    for final in set_aside:
+        shutil.rmtree(final + _OLD_SUFFIX, ignore_errors=True)
     os.rmdir(staging)
+
+
+def _set_aside(final: str) -> None:
+    """Move the previous <final> to <final>.old (if there is one)."""
+    old = final + _OLD_SUFFIX
+    shutil.rmtree(old, ignore_errors=True)
+    if os.path.exists(final):
+        os.rename(final, old)
+
+
+def _put_back(final: str) -> None:
+    """Undo _set_aside: drop any new <final>, restore <final>.old."""
+    old = final + _OLD_SUFFIX
+    shutil.rmtree(final, ignore_errors=True)
+    if os.path.exists(old):
+        os.rename(old, final)
 
 
 def _swap_dir(staged: str, final: str) -> None:

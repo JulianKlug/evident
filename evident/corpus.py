@@ -80,7 +80,7 @@ class ManifestEntry:
     topic_id: str
     grading_family: GradingFamily
     pdf_filename: str
-    supersedes_doi: Optional[str] = None
+    supersedes: tuple[str, ...] = ()  # older editions it wholly replaces, e.g. ("10.1007/a", "10.1007/b")
     joint_with: tuple[str, ...] = ()  # other MVP societies co-leading it, e.g. ("ESICM",)
     line: int = 0  # source line, for error messages
 
@@ -217,7 +217,7 @@ def check_candidates(candidates: list[Candidate], entries: list[ManifestEntry]) 
 
 
 def current_editions(entries: list[ManifestEntry]) -> set[str]:
-    superseded = {e.supersedes_doi for e in entries if e.supersedes_doi}
+    superseded = {doi for e in entries for doi in e.supersedes}
 
     # Latest non-superseded edition per topic; a tie is ambiguous
     by_topic: dict[str, list[ManifestEntry]] = {}
@@ -235,6 +235,11 @@ def current_editions(entries: list[ManifestEntry]) -> set[str]:
             problems.append(f"lines {lines}: ambiguous current edition for topic '{topic}' ({latest_year})")
             continue
         current.add(latest[0].doi)
+
+        # An older edition leaves the map only through an explicit, reviewed link
+        problems += [f"line {e.line}: {e.doi} ({e.year}) is an older edition of topic '{topic}' but no row "
+                     f"supersedes it: add it to supersedes_doi of {latest[0].doi}, or give it its own topic_id"
+                     for e in candidates if e.year < latest_year]
 
     if problems:
         raise ManifestError(problems)
@@ -256,7 +261,7 @@ def sync_to_store(entries: list[ManifestEntry], store: Store, pdf_dir: str) -> S
 
         store.upsert_guideline(Guideline(
             doi=e.doi, society=e.society, year=e.year, title=e.title, topic_id=e.topic_id,
-            grading_family=e.grading_family, supersedes_doi=e.supersedes_doi,
+            grading_family=e.grading_family, supersedes_doi=_JOINT_SEPARATOR.join(e.supersedes) or None,
             pdf_path=pdf_path if pdf_present else None,
             pdf_sha256=sha,
         ))
@@ -307,10 +312,11 @@ def _parse_row(row: dict, line: int, problems: list[str]) -> Optional[ManifestEn
     if len(problems) > n_before:
         return None
 
-    supersedes = normalize_doi(value("supersedes_doi")) or None
+    supersedes = tuple(normalize_doi(d.strip()) for d in value("supersedes_doi").split(_JOINT_SEPARATOR)
+                       if d.strip())
     return ManifestEntry(
         doi=doi, society=society, year=year, title=title, topic_id=topic_id,
-        grading_family=family, supersedes_doi=supersedes, joint_with=joint_with, line=line,
+        grading_family=family, supersedes=supersedes, joint_with=joint_with, line=line,
         # Filename keeps the DOI's original case, matching existing PDF names
         pdf_filename=value("pdf_filename") or doi_to_filename(raw_doi),
     )
@@ -365,39 +371,40 @@ def _cross_row_problems(entries: list[ManifestEntry]) -> list[str]:
             continue
         by_doi[e.doi] = e
 
-    # supersedes_doi: in manifest, same topic, earlier year
+    # supersedes_doi: each in manifest, same topic, earlier year
     for e in entries:
-        if not e.supersedes_doi:
-            continue
-        old = by_doi.get(e.supersedes_doi)
-        if old is None:
-            problems.append(f"line {e.line}: supersedes unknown doi {e.supersedes_doi}")
-            continue
-        if old.topic_id != e.topic_id:
-            problems.append(f"line {e.line}: supersedes {old.doi} from another topic '{old.topic_id}'")
-        if old.year >= e.year:
-            problems.append(f"line {e.line}: supersedes {old.doi} which is not earlier ({old.year})")
+        for doi in e.supersedes:
+            old = by_doi.get(doi)
+            if old is None:
+                problems.append(f"line {e.line}: supersedes unknown doi {doi}")
+                continue
+            if old.topic_id != e.topic_id:
+                problems.append(f"line {e.line}: supersedes {old.doi} from another topic '{old.topic_id}'")
+            if old.year >= e.year:
+                problems.append(f"line {e.line}: supersedes {old.doi} which is not earlier ({old.year})")
 
     problems.extend(_cycle_problems(entries, by_doi))
     return problems
 
 
 def _cycle_problems(entries: list[ManifestEntry], by_doi: dict[str, ManifestEntry]) -> list[str]:
-    """Walk each supersession chain; revisiting a DOI means a cycle."""
+    """Walk every supersession path; reaching a DOI already on the path means a cycle."""
     problems = []
     reported: set[str] = set()
-    for start in entries:
-        seen = []
-        current: Optional[ManifestEntry] = start
-        while current and current.supersedes_doi:
-            if current.doi in seen:
-                cycle = frozenset(seen)
-                if not cycle & reported:
-                    problems.append(f"line {start.line}: supersession cycle {' -> '.join(seen)}")
-                    reported |= cycle
-                break
-            seen.append(current.doi)
-            current = by_doi.get(current.supersedes_doi)
+
+    def walk(start: ManifestEntry, current: ManifestEntry, path: list[str]) -> None:
+        for doi in current.supersedes:
+            if doi in path:
+                cycle = path[path.index(doi):]
+                if not set(cycle) & reported:
+                    problems.append(f"line {start.line}: supersession cycle {' -> '.join(cycle + [doi])}")
+                    reported.update(cycle)
+                continue
+            if doi in by_doi:
+                walk(start, by_doi[doi], path + [doi])
+
+    for e in entries:
+        walk(e, e, [e.doi])
     return problems
 
 

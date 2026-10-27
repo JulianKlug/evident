@@ -7,7 +7,7 @@
                                                                                    │
                                                           add <pdf> (same version) ┘
 
-    publish (live, M5): gates ─▶ duplicate ledger ─▶ staged render ─▶ [transition] ─▶ out/release.json
+    publish (live, M5): gates ─▶ duplicate ledger ─▶ staged render ─▶ [transition] ─▶ archive ─▶ swap ─▶ out/release.json
         gates: candidates = manifest, every guideline has an active run, PDFs as the runs read them,
                extractor artefacts unchanged, search window; any failure → nothing written
     rebind-pdf <pdf>: new bytes, same prompts (no model call) ─▶ the run now names the new bytes
@@ -116,8 +116,9 @@ from evident.paper import (
     table2,
     trend_points,
 )
-from evident.publishing import PublishBundle, ValidationSummary, package_target_problem, render, render_package
-from evident.release import ReleaseOutcome, current_release, output_checksums, write_release
+from evident.publishing import (PublishBundle, StagedOutputs, ValidationSummary, package_target_problem,
+                                render_package, stage)
+from evident.release import ReleaseOutcome, current_release, write_release
 from evident.store import DuplicatePdfError, Store
 from evident.themes import UNASSIGNED, rec_key, theme_certainty
 from evident.validation import (
@@ -139,6 +140,7 @@ _SLOW_FACTOR = 3.0           # a run slower than 3 × median is flagged
 _LOW_RECALL_FACTOR = 0.5     # fewer recs than half the society median is flagged
 _UNGRADED_SHARE_MARGIN = 0.25  # ungraded share above society median + 0.25 is flagged
 _DIGEST_PREFIX = 12  # same length as `ollama list` IDs
+_SHA_SUFFIX = "_sha256"  # release input keys, e.g. manifest_sha256 → "manifest"
 _BOOTSTRAP_UNIT = "guideline, resampled within society; ALL stratified by society"
 _WAL_SUFFIX = "-wal"  # SQLite write-ahead log beside the DB: readers see its frames, the DB hash does not
 _IGNORED_FILE_PREFIXES = ("~$", ".")  # editor lock files beside label files, e.g. .~lock.x.xlsx#
@@ -556,12 +558,16 @@ def publish(deps: PipelineDeps, accept_regression: Optional[str] = None,
     if not republished and validation.gate == GateResult.FAIL and not accept_regression:
         raise GateFailedError(target.id, validation.report_json)
 
-    # Render (staged) before the switch: a failed render leaves the published snapshot and its outputs
+    # Stage, transition, archive, swap in, then name the release: until the swap, out/ is untouched.
+    # A failure after the transition leaves the previous outputs and record; status blocks until published again.
     outputs = _live_outputs(deps, target, entries)
-    paths = render(outputs.bundle, deps.publish_dir)
-    if not republished:
-        deps.store.transition_snapshot(target.id, SnapshotState.PUBLISHED, accept_regression)
-    return _released(deps, deps.store.get_snapshot(target.id), entries, outputs, paths, republished)
+    staged = stage(outputs.bundle, deps.publish_dir)
+    try:
+        if not republished:
+            deps.store.transition_snapshot(target.id, SnapshotState.PUBLISHED, accept_regression)
+        return _released(deps, deps.store.get_snapshot(target.id), entries, outputs, staged, republished)
+    finally:
+        staged.discard()
 
 
 def reject(deps: PipelineDeps, snapshot_id: int, reason: str) -> RejectReport:
@@ -1035,22 +1041,23 @@ def _live_outputs(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntr
 
 
 def _released(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry], outputs: _LiveOutputs,
-              paths: list[str], republished: bool) -> PublishReport:
-    """Write the release record (unless identical to the one out) and report the publication."""
+              staged: StagedOutputs, republished: bool) -> PublishReport:
+    """Install the staged outputs, write the release record (unless identical to the one out), report."""
     rows = outputs.dedup.kept
     members = {m.guideline_id: m for m in deps.store.members(snap.id)}
     contributing = {r.doi for r in rows if r.edition == Edition.CURRENT}
     n_excluded = sum(1 for m in members.values() if m.excluded_reason)
     n_superseded = len({r.doi for r in rows if r.edition == Edition.SUPERSEDED})
 
-    content = _release_content(deps, snap, entries, outputs, paths, n_excluded)
-    release_id, outcome = write_release(content, deps.publish_dir, deps.release_archive_dir, deps.store.backup)
+    content = _release_content(deps, snap, entries, outputs, staged.checksums(), n_excluded)
+    release_id, outcome = write_release(content, deps.publish_dir, deps.release_archive_dir, deps.store.backup,
+                                        staged.install)
     return PublishReport(snap.id, republished, deps.publish_dir, len(contributing), n_excluded, n_superseded,
-                         outputs.bundle.model, paths, len(outputs.dedup.removed), release_id, outcome)
+                         outputs.bundle.model, staged.paths, len(outputs.dedup.removed), release_id, outcome)
 
 
 def _release_content(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry], outputs: _LiveOutputs,
-                     paths: list[str], n_excluded: int) -> dict:
+                     checksums: dict[str, str], n_excluded: int) -> dict:
     """Everything the release id hashes (M5 spec §5): source, versions, inputs, counts, output checksums."""
     version = deps.store.get_extractor_version(snap.extractor_version_id)
     runs = _active_runs_by_guideline(deps.store, snap.id)
@@ -1069,23 +1076,41 @@ def _release_content(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestE
         "edition_rule": EDITION_RULE,
         "validation": ({"gate": validation.gate.value, "baseline_snapshot_id": validation.baseline_snapshot_id}
                        if validation else None),
-        "inputs": {
-            "manifest_sha256": file_sha256(deps.manifest_path),
-            "candidates_sha256": _sha_or_none(deps.candidates_path),
-            "search_sha256": _sha_or_none(deps.search_path),
-            "dedup_verdicts_sha256": _sha_or_none(deps.dedup_verdicts_path),
-            "themes_sha256": _sha_or_none(deps.themes_path),
-            "pdfs": {g.doi: run.pdf_sha256 for g, run in runs},
-            "runs": {g.doi: run.id for g, run in runs},
-        },
+        "inputs": _release_inputs(deps, runs),
         "counts": {
             "guidelines": len(entries), "current": n_current, "superseded": len(entries) - n_current,
             "excluded": n_excluded, "recommendations": len(outputs.all_rows),
             "recommendations_kept": len(outputs.dedup.kept), "duplicates_removed": len(outputs.dedup.removed),
             "not_yet_assigned": _n_unassigned(deps, outputs.dedup.kept),
         },
-        "outputs": output_checksums(deps.publish_dir, paths),
+        "outputs": checksums,
     }
+
+
+def _release_inputs(deps: PipelineDeps, runs: list[tuple[Guideline, ExtractionRun]]) -> dict:
+    """Hashes of every curated input the outputs derive from; strict status compares them with the release."""
+    return {
+        "manifest_sha256": file_sha256(deps.manifest_path),
+        "candidates_sha256": _sha_or_none(deps.candidates_path),
+        "search_sha256": _sha_or_none(deps.search_path),
+        "dedup_verdicts_sha256": _sha_or_none(deps.dedup_verdicts_path),
+        "themes_sha256": _sha_or_none(deps.themes_path),
+        "pdfs": {g.doi: run.pdf_sha256 for g, run in runs},
+        "runs": {g.doi: run.id for g, run in runs},
+    }
+
+
+def _stale_inputs(deps: PipelineDeps, runs: list[tuple[Guideline, ExtractionRun]], release: dict) -> list[str]:
+    """Inputs changed since the release, e.g. ["search", "PDF of 10.1000/a"]; code commits do not count.
+
+    A PDF counts only while its run is the released one: a new run is reported as outputs predating the runs.
+    """
+    now, then = _release_inputs(deps, runs), release["inputs"]
+    stale = [key[:-len(_SHA_SUFFIX)] for key in sorted(now)
+             if key.endswith(_SHA_SUFFIX) and now[key] != then.get(key)]
+    stale += [f"PDF of {doi}" for doi, sha in sorted(now["pdfs"].items())
+              if then["runs"].get(doi) == now["runs"][doi] and then["pdfs"].get(doi) != sha]
+    return stale
 
 
 def _live_verdicts(rows: list[HarmonizedRow],
@@ -1145,7 +1170,12 @@ def _checked(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry], r
                                                     or release["inputs"]["runs"] != runs):
         blockers.append(f"public outputs predate the active runs: publish --snapshot {snap.id}")
     if release is not None:
-        # e.g. publish --package swapped the M4 outputs in, or a crash came between render and release
+        stale = _stale_inputs(deps, _active_runs_by_guideline(deps.store, snap.id), release)
+        if stale:
+            blockers.append(f"changed since release {release['release_id'][:_DIGEST_PREFIX]}: {', '.join(stale)}; "
+                            f"publish --snapshot {snap.id}")
+
+        # e.g. publish --package swapped the M4 outputs in, or a crash came between swap and release
         blockers += [f"{rel}: differs from release {release['release_id'][:_DIGEST_PREFIX]}; publish again"
                      for rel, sha in sorted(release["outputs"].items())
                      if _sha_or_none(os.path.join(deps.publish_dir, rel)) != sha]

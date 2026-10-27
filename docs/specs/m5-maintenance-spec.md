@@ -60,7 +60,7 @@ Keep the **graded-only** interpretation of headline results. Do not promote the 
 
 - For a genuine whole-guideline replacement, give the new edition the same `topic_id` and set `supersedes_doi` to the previous DOI. Preserve the old guideline, PDF, and run. The current cross-section counts the newest edition once; `trends.csv` and recommendation exports retain historical editions.
 - For a **focused or partial update**, do not silently supersede the entire earlier guideline. Follow the M4 convention of retaining both as current when only some questions are revised, documenting possible double counting. Recommendation-level replacement remains a separately scoped TODO.
-- Reject unknown supersession references, cycles, cross-topic links, year-order violations, or an ambiguous current edition. In the review record show the old/current counts and any deliberate focused-update exception.
+- Reject unknown supersession references, cycles, cross-topic links, year-order violations, an ambiguous current edition, or an older edition no row supersedes (§9). In the review record show the old/current counts and any deliberate focused-update exception.
 
 ### 4.5 Extractor upgrade
 
@@ -145,6 +145,10 @@ Where the code differs from, or settles, the text above:
 - **Strict status** also blocks when `out/release.json` is missing, names other active runs than the published snapshot's (e.g. after `add --no-publish`), or its output checksums no longer match `out/` (e.g. after `publish --package`, which renders the frozen M4 outputs there, or a crash between render and release write).
 - **`rebind-pdf` with the recorded bytes** (e.g. from a backup) copies them back over a drifted PDF dir copy (`restored`).
 - **Consensus** refuses two judge files whose texts differ for the same pair (a stale judge run after `add --force`).
+- **PR #4 review (2026-10-27):**
+  - Strict status also blocks when a release input changed since the release: manifest, candidates, search window, verdict ledger, themes, or the PDF hash of a released run (e.g. after `rebind-pdf`). Code commits alone do not count.
+  - `publish` stages outputs, archives the record and DB backup, swaps `tables/`, `figures/`, `dashboard/` in all or none, then writes `out/release.json`. A failure leaves the previous outputs and record. After a candidate's transition, a failure leaves it published in the DB with the old outputs; strict status blocks until `publish --snapshot <id>`.
+  - Every older edition in a topic must be named in a `supersedes_doi` (`;`-separated for several); a newer row no longer hides it implicitly. ERC-ESICM post-resuscitation 2025 now names temperature control 2022, which M4 folded in implicitly; counts unchanged (75 current, 10 superseded). The manifest SHA-256 no longer matches `configs/paper1.json`; the frozen manifest stays at tag `paper1-freeze`.
 - **Known limitation:** the analysis-code SHA is `git rev-parse HEAD`; uncommitted code changes that leave the outputs byte-identical keep the release id. Marking a dirty tree would change the id on every curation edit before its commit. Commit code before a release.
 - Live check on a copy of `out/evident.sqlite` (snapshot 8): 0 unresolved pairs with the seeded ledger (1256 screened, as in M4), 140 duplicates removed, release `f0e36aa1…`; a second publish was byte-identical and reported `unchanged`.
 

@@ -50,7 +50,7 @@ sqlite3 out/evident.sqlite ".backup artifacts/backups/evident-$(date +%F-%H%M).s
    ```
    Duplicate only when both judges agree; a split pair stays distinct; copies with different mapped grades never merge. Read `corpus/dedup/judges/disagreements.csv`. `add --no-publish` stages the run without publishing.
 6. **Themes (optional).** `uv run python scripts/assign_themes.py` assigns the new current statements in `corpus/themes/assignments.csv`, then `uv run python -m evident publish --snapshot 8`. Otherwise they show as **Not yet assigned** in the exploratory theme figure; `status --check` reports the count.
-7. **Check.** `uv run python -m evident status --published --check` must end `check: clean` (exit 0). Blockers: coverage gaps, changed or missing PDFs, candidate/manifest mismatch, artefact drift, missing search window, unresolved pairs, outputs older than the active runs. Slow runs, low-recall outliers and unassigned themes are warnings for review.
+7. **Check.** `uv run python -m evident status --published --check` must end `check: clean` (exit 0). Blockers: coverage gaps, changed or missing PDFs, candidate/manifest mismatch, artefact drift, missing search window, unresolved pairs, outputs older than the active runs, inputs changed since the release. Slow runs, low-recall outliers and unassigned themes are warnings for review.
 8. **Verify** `out/dashboard/index.html` (served locally: `python -m http.server -d out/dashboard`): the guideline is listed, the counts moved as expected, the provenance line shows snapshot, version, search cutoff and edition rule. Public hosting needs a separate decision (`TODOS.md`).
 9. **Record.** Run the same `add` again: `already_present`, `release <id> (unchanged)`. Commit the curated CSVs, `corpus/search.json` and `corpus/dedup/live_verdicts.csv`. Add a `docs/progress.md` entry: commands, run times, DOI, before/after counts, release id from `out/release.json`. The release is archived in `artifacts/releases/<id>/` (record + DB backup).
 
@@ -58,7 +58,7 @@ sqlite3 out/evident.sqlite ".backup artifacts/backups/evident-$(date +%F-%H%M).s
 
 A **whole replacement** (the new edition replaces every recommendation of the old one):
 
-1. Procedure A with the new row's `topic_id` equal to the old edition's and `supersedes_doi` = the old DOI. The manifest refuses unknown DOIs, cycles, another topic or a not-earlier year.
+1. Procedure A with the new row's `topic_id` equal to the old edition's and `supersedes_doi` = the old DOI (several: `a;b`). The manifest refuses unknown DOIs, cycles, another topic, a not-earlier year, or an older edition of the topic that no row supersedes.
 2. After publishing check `out/release.json` → `counts`: `current` unchanged, `superseded` + 1. In `out/tables/guidelines.csv` the old DOI is superseded, the new one current; `out/tables/trends.csv` keeps both years. The old guideline, PDF and run are kept.
 
 A **focused update** (only some questions revised): give it its own `topic_id`, no `supersedes_doi`. Both stay current; note the possible double counting in `docs/progress.md`. Replacing single recommendations is out of scope (`TODOS.md`).
@@ -79,7 +79,7 @@ Any change to the model, prompt, few-shot pool, extraction algorithm or a result
 
 | Symptom | Action |
 |---|---|
-| `PDF of <doi> differs from the bytes its active run read` / blocker `PDF missing or changed` | (a) restore the recorded bytes: `rebind-pdf <backup copy>` copies them back (`restored`; check `sha256sum` = `inputs.pdfs` in `out/release.json`); else (b) `uv run python -m evident rebind-pdf <pdf>`: accepted only when every rebuilt prompt matches the run's (no model call), logged in `corpus/pdf_rebinds.csv`; else (c) `add --force <pdf>` re-extracts, then judge new pairs. |
+| `PDF of <doi> differs from the bytes its active run read` / blocker `PDF missing or changed` | (a) restore the recorded bytes: `rebind-pdf <backup copy>` copies them back (`restored`; check `sha256sum` = `inputs.pdfs` in `out/release.json`); else (b) `uv run python -m evident rebind-pdf <pdf>`: accepted only when every rebuilt prompt matches the run's (no model call), logged in `corpus/pdf_rebinds.csv`, then `publish --snapshot <id>` to record the new hash; else (c) `add --force <pdf>` re-extracts, then judge new pairs. |
 | `rebind-pdf`: `changes the model input (chunk N prompt differs)` | The text really changed (e.g. a download stamp). Use (a) or (c). |
 | `model_digest changed since the version was registered` | The model was re-pulled. Restore the recorded digest; otherwise it is an extractor upgrade (C). |
 | `No manifest row with pdf_filename …` / missing or inaccessible PDF | Fix the manifest filename or import the PDF (A.4); never mark it published. |
@@ -87,4 +87,4 @@ Any change to the model, prompt, few-shot pool, extraction algorithm or a result
 | exit 3 / `verdicts for the same texts` | Run both judges and the consensus (A.5). A conflicting ledger row is a hand edit: restore `live_verdicts.csv` from git. |
 | `status` shows a BUILDING or COMPLETE candidate | `status --published` shows the release. Finish with `snapshot --resume`, or `reject --snapshot ID --reason TEXT`. |
 | `Publication blocked` / render error | Nothing was written; the previous `out/` and `out/release.json` stand. Fix the listed cause and publish again. |
-| `no release record` / `public outputs predate the active runs` / `<file>: differs from release` | `uv run python -m evident publish --snapshot <published id>` (after `publish --package`, which renders the M4 outputs into `out/`, always). |
+| `no release record` / `public outputs predate the active runs` / `changed since release` / `<file>: differs from release` | `uv run python -m evident publish --snapshot <published id>` (after `publish --package`, which renders the M4 outputs into `out/`, always). |

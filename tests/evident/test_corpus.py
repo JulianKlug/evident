@@ -49,9 +49,8 @@ class TestLoadManifest:
         assert len(entries) == _N_REPO_GUIDELINES
         assert {e.society for e in entries} == {"ACP", "ESICM", "SCCM"}
 
-        # Current = latest edition of its topic. Most older editions are linked by supersedes_doi;
-        # ERC-ESICM temperature control 2022 is only folded into the post-resuscitation topic
-        # (2025 already supersedes 2021 and the field takes one DOI)
+        # Current = latest edition of its topic; every older one is linked by supersedes_doi
+        # (ERC-ESICM post-resuscitation 2025 supersedes 2021 and temperature control 2022)
         latest = {}
         for e in entries:
             latest[e.topic_id] = max(latest.get(e.topic_id, e.year), e.year)
@@ -66,8 +65,8 @@ class TestLoadManifest:
         acp = entries[2]
         assert (acp.doi, acp.year, acp.grading_family.value) == ("10.7326/m22-2056", 2023, "grade")
         assert acp.pdf_filename == "10_7326_M22-2056.pdf"  # original case, as on disk
-        assert entries[1].supersedes_doi == "10.1007/a"
-        assert entries[0].supersedes_doi is None
+        assert entries[1].supersedes == ("10.1007/a",)
+        assert entries[0].supersedes == ()
 
     def test_missing_column(self, tmp_path):
         assert "line 1" in _problems(_manifest(tmp_path, header=_HEADER.replace(",topic_id", "")))[0]
@@ -111,6 +110,15 @@ class TestLoadManifest:
         same_year = "10.1007/b,ESICM,2016,Fluids v2,fluids,10.1007/a,grade,"
         assert "not earlier" in " ".join(_problems(_manifest(tmp_path, _A, same_year)))
 
+    def test_supersedes_several(self, tmp_path):
+        c = "10.1007/c,ESICM,2024,Fluids v3,fluids,10.1007/a; https://doi.org/10.1007/B,grade,"
+        b = "10.1007/b,ESICM,2020,Fluids focused,fluids,,grade,"
+        assert load_manifest(_manifest(tmp_path, _A, b, c))[2].supersedes == ("10.1007/a", "10.1007/b")
+
+    def test_each_superseded_doi_checked(self, tmp_path):
+        c = "10.1007/c,ESICM,2024,Fluids v3,fluids,10.1007/a;10.1007/zz,grade,"
+        assert "unknown doi 10.1007/zz" in " ".join(_problems(_manifest(tmp_path, _A, c)))
+
     def test_cycle(self, tmp_path):
         a = "10.1007/a,ESICM,2016,Fluids v1,fluids,10.1007/b,grade,"
         assert "cycle" in " ".join(_problems(_manifest(tmp_path, a, _B)))
@@ -120,9 +128,16 @@ class TestCurrentEditions:
     def test_chain(self, tmp_path):
         assert current_editions(load_manifest(_manifest(tmp_path, _A, _B, _C, _ACP))) == {"10.1007/c", "10.7326/m22-2056"}
 
-    def test_latest_year_without_supersedes(self, tmp_path):
+    def test_older_edition_without_link_is_refused(self, tmp_path):
+        # A newer row in the same topic never hides an older one implicitly (PR #4 review)
         b = "10.1007/b,ESICM,2020,Fluids v2,fluids,,grade,"
-        assert current_editions(load_manifest(_manifest(tmp_path, _A, b))) == {"10.1007/b"}
+        with pytest.raises(ManifestError, match="line 2: 10.1007/a .*no row supersedes it"):
+            current_editions(load_manifest(_manifest(tmp_path, _A, b)))
+
+    def test_one_edition_supersedes_two(self, tmp_path):
+        b = "10.1007/b,ESICM,2020,Fluids focused,fluids,,grade,"
+        c = "10.1007/c,ESICM,2024,Fluids v3,fluids,10.1007/a;10.1007/b,grade,"
+        assert current_editions(load_manifest(_manifest(tmp_path, _A, b, c))) == {"10.1007/c"}
 
     def test_same_year_tie(self, tmp_path):
         b = "10.1007/b,ESICM,2016,Fluids alt,fluids,,grade,"

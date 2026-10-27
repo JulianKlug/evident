@@ -34,7 +34,7 @@ doi,society,year,title,topic_id,supersedes_doi,grading_family,pdf_filename,joint
 10.1007/s00134-023-07033-8,ESICM,2023,ERS/ESICM/ESCMID/ALAT guidelines for the management of severe community-acquired pneumonia,ers-esicm-severe-cap,,grade,,
 10.1007/s00134-023-07050-7,ESICM,2023,"ESICM guidelines on acute respiratory distress syndrome: definition, phenotyping and respiratory support strategies",esicm-ards,,grade,,
 10.1007/s00134-024-07579-1,ESICM,2024,European Society of Intensive Care Medicine guidelines on end of life and palliative care in the intensive care unit,esicm-end-of-life,,grade,,
-10.1007/s00134-025-08117-3,ESICM,2025,European Resuscitation Council and European Society of Intensive Care Medicine guidelines 2025: post-resuscitation care,erc-esicm-post-resuscitation,10.1007/s00134-021-06368-4,grade,,
+10.1007/s00134-025-08117-3,ESICM,2025,European Resuscitation Council and European Society of Intensive Care Medicine guidelines 2025: post-resuscitation care,erc-esicm-post-resuscitation,10.1007/s00134-021-06368-4;10.1007/s00134-022-06620-5,grade,,
 10.1007/s00134-025-08137-z,ESICM,2025,ESICM guidelines on circulatory shock and hemodynamic monitoring 2025,esicm-shock-hemodynamic-monitoring,,grade,,
 10.1097/ccm.0000000000001525,SCCM,2016,Guidelines for the Provision and Assessment of Nutrition Support Therapy in the Adult Critically Ill Patient: Society of Critical Care Medicine (SCCM) and American Society for Parenteral and Enteral Nutrition (A.S.P.E.N.),sccm-nutrition-adult,,grade,,
 10.1097/ccm.0000000000001847,SCCM,2016,Guidelines for the Appropriate Use of Bedside General and Cardiac Ultrasonography in the Evaluation of Critically Ill Patients-Part II: Cardiac Ultrasonography,sccm-ultrasound-cardiac,,grade,,

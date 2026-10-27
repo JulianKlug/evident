@@ -2,8 +2,9 @@
 
     content (inputs, counts, output checksums) ─sha256─▶ release id
         │
-        ├─ id == out/release.json id ──▶ UNCHANGED: nothing written (a repeated publish is a no-op)
-        └─ new id ──▶ out/release.json  +  <archive>/<id>/release.json, <archive>/<id>/evident.db (SQLite backup)
+        ├─ id == out/release.json id ──▶ UNCHANGED: outputs re-installed (same bytes), record untouched
+        └─ new id ──▶ <archive>/<id>/release.json, <archive>/<id>/evident.db (SQLite backup)
+                      ──▶ install outputs ──▶ out/release.json
 
 The id hashes everything but the publication time and the previous id, so identical inputs and
 outputs give the same id. The analysis-code SHA is part of the content: a new commit is a new release.
@@ -18,7 +19,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Callable, Optional
 
-from evident.corpus import file_sha256
 
 SCHEMA_VERSION = 1
 RELEASE_FILE = "release.json"
@@ -46,29 +46,29 @@ def current_release(publish_dir: str) -> Optional[dict]:
         return json.load(f)
 
 
-def output_checksums(publish_dir: str, paths: list[str]) -> dict[str, str]:
-    """{path relative to the publish dir: SHA-256}, e.g. {"tables/headline.csv": "9f2c…"}."""
-    return {os.path.relpath(p, publish_dir): file_sha256(p) for p in sorted(paths)}
+def write_release(content: dict, publish_dir: str, archive_dir: Optional[str], backup: Callable[[str], None],
+                  install: Callable[[], None]) -> tuple[str, ReleaseOutcome]:
+    """Archive, install() the outputs, then record the release; backup(path) writes the DB copy.
 
-
-def write_release(content: dict, publish_dir: str, archive_dir: Optional[str],
-                  backup: Callable[[str], None]) -> tuple[str, ReleaseOutcome]:
-    """Record a release unless out/release.json already names the same one; backup(path) writes the DB copy."""
+    The same release again re-installs the outputs (repairs a tampered out/) and keeps the record.
+    """
     rid = release_id(content)
     previous = current_release(publish_dir)
     if previous is not None and previous.get("release_id") == rid:
+        install()
         return rid, ReleaseOutcome.UNCHANGED
 
     record = {"schema_version": SCHEMA_VERSION, "release_id": rid,
               "published_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
               "previous_release_id": previous.get("release_id") if previous else None, **content}
 
-    # Archive first: a crash leaves an archived release that out/ does not name yet, never the reverse
+    # Archive first: a failure leaves an archived release that out/ does not show yet, never the reverse
     if archive_dir is not None:
         release_dir = os.path.join(archive_dir, rid)
         os.makedirs(release_dir, exist_ok=True)
         _write_json(os.path.join(release_dir, RELEASE_FILE), record)
         backup(os.path.join(release_dir, ARCHIVE_DB))
+    install()
     _write_json(os.path.join(publish_dir, RELEASE_FILE), record)
     return rid, ReleaseOutcome.NEW
 

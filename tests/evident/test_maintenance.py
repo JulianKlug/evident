@@ -387,7 +387,7 @@ class TestRelease:
 
         def broken(bundle, out_dir):
             raise RuntimeError("disk full")
-        monkeypatch.setattr(pipeline, "render", broken)
+        monkeypatch.setattr(pipeline, "stage", broken)
 
         with pytest.raises(RuntimeError):
             publish(world.live())
@@ -418,7 +418,6 @@ class TestRebindPdf:
         run = world.store.active_run(1, world.store.get_guideline(_A).id)
         assert (run.id, run.pdf_sha256) == (run_before, new_sha)
         assert world.store.recommendations(run.id) == recs_before
-        assert status(world.live(), StatusTarget.PUBLISHED, StatusCheck.ON).blockers == []
         with open(world.rebind_log) as f:
             assert new_sha in f.read()
 
@@ -515,3 +514,99 @@ class TestReviewFindings:
         assert rebind_pdf(world.live(), backup).status == RebindStatus.RESTORED
         assert file_sha256(world.pdf(_A)) == file_sha256(backup)
         assert status(world.live(), StatusTarget.PUBLISHED, StatusCheck.ON).blockers == []
+
+
+# ── PR #4 review ────────────────────────────────────────────────
+
+def _check(world) -> list[str]:
+    return status(world.live(), StatusTarget.PUBLISHED, StatusCheck.ON).blockers
+
+
+def _record(world) -> str:
+    with open(os.path.join(world.publish_dir, RELEASE_FILE)) as f:
+        return f.read()
+
+
+def _fail_once_on(path_suffix: str):
+    """os.rename stand-in that fails the first move onto `path_suffix`; the rollback's moves succeed."""
+    rename = os.rename
+    failed = []
+
+    def fake(src, dst):
+        if dst.endswith(path_suffix) and not failed:
+            failed.append(dst)
+            raise OSError(f"disk full: {dst}")
+        rename(src, dst)
+    return fake
+
+
+class TestStaleReleaseInputs:
+    def test_new_search_window_is_stale_until_published(self, world):
+        with open(world.search, "w") as f:
+            json.dump({"start": "2016-01-01", "cutoff": "2026-10-20"}, f)
+
+        assert any("search" in b for b in _check(world))
+        publish(world.live())
+        assert _check(world) == []
+
+    def test_rebound_pdf_is_stale_until_published(self, world):
+        world.append_to_pdf(_A, META_ONLY)
+        rebind_pdf(world.live(), world.pdf(_A))
+
+        assert any(_A in b for b in _check(world))
+        publish(world.live())
+        assert _check(world) == []
+
+    def test_new_code_commit_alone_is_not_stale(self, world):
+        live = dataclasses.replace(world.live(), code_sha=lambda: "sha2")
+
+        assert status(live, StatusTarget.PUBLISHED, StatusCheck.ON).blockers == []
+
+
+class TestAtomicPublish:
+    def test_failed_archive_leaves_outputs_and_record(self, world):
+        world.add_guideline(_D)
+        add(world.live(), world.pdf(_D))
+        outputs, record = world.output_hashes(), _record(world)
+
+        def broken(path):
+            raise OSError("archive dir not writable")
+        world.store.backup = broken
+        with pytest.raises(OSError):
+            publish(world.live())
+
+        assert (world.output_hashes(), _record(world)) == (outputs, record)
+
+    @pytest.mark.parametrize("subdir", ["tables", "figures", "dashboard"])
+    def test_failed_swap_restores_every_output_dir(self, world, monkeypatch, subdir):
+        import evident.publishing as publishing
+        world.add_guideline(_D)
+        add(world.live(), world.pdf(_D))
+        outputs, record = world.output_hashes(), _record(world)
+        entries = sorted(os.listdir(world.publish_dir))
+
+        monkeypatch.setattr(publishing.os, "rename", _fail_once_on(os.sep + subdir))
+        with pytest.raises(OSError):
+            publish(world.live())
+        monkeypatch.undo()
+
+        assert (world.output_hashes(), _record(world)) == (outputs, record)
+        assert sorted(os.listdir(world.publish_dir)) == entries  # no staging or .old leftovers
+
+    def test_failed_candidate_publish_is_blocked_then_recovers(self, world):
+        snapshot(world.live(), SnapshotStart.NEW, dataclasses.replace(CONFIG, seed=1))
+        validate(world.live())
+        outputs = world.output_hashes()
+        backup = world.store.backup
+
+        def broken(path):
+            raise OSError("archive dir not writable")
+        world.store.backup = broken
+        with pytest.raises(OSError):
+            publish(world.live())
+        world.store.backup = backup
+
+        assert world.output_hashes() == outputs
+        assert any("predate" in b for b in _check(world))
+        publish(world.live(), snapshot_id=2)
+        assert _check(world) == []
