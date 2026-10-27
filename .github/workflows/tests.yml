@@ -1,0 +1,26 @@
+# Fast tests on every PR and push to main. No GPU, Ollama, BioLORD or data dir:
+# slow tests (`-m slow`) and local-data tests stay on the GPU machine.
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  fast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      HF_HUB_OFFLINE: "1"          # fast tests use fakes; a model download is a bug
+      TRANSFORMERS_OFFLINE: "1"
+      OLLAMA_HOST: "127.0.0.1:1"   # no Ollama here: a stray call fails at once
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install (uv.lock, Python 3.9)
+        run: uv sync --frozen --extra pipeline
+      - name: Fast tests
+        run: uv run --frozen pytest tests -m "not slow" -q
