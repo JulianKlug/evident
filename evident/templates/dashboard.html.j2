@@ -146,7 +146,9 @@
     <span><b>Version</b> {{ version }}</span>
     <span><b>Model</b> {{ model }}</span>
     <span><b>Code</b> {{ code_sha }}</span>
+    {% if search_cutoff %}<span><b>Search cutoff</b> {{ search_cutoff }}</span>{% endif %}
   </div>
+  {% if search_cutoff %}<p class="muted">Editions: {{ edition_rule }}.</p>{% endif %}
   {% if joint_note %}<p class="muted">{{ joint_note }}</p>{% endif %}
 </main>
 

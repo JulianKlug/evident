@@ -10,6 +10,9 @@
                                                           └─▶ deduplicate ─▶ kept rows (one per cluster;
                                                                  copies with different mapped grades never merge)
 
+    Live map (M5): corpus/dedup/live_verdicts.csv, a ledger that only grows (merge_rows)
+        screen ─▶ resolve: verdict applies only when doi, ordinals AND both texts match ─▶ unresolved pairs block publish
+
 Pure apart from the CSV read/write. publish never calls an LLM: it recomputes the screen and
 fails closed when a screened pair lacks a verdict (DedupVerdictError).
 """
@@ -42,8 +45,8 @@ _COLUMNS = ("doi", "ordinal_a", "ordinal_b", "biolord", "lexical", "verdict", "r
             "text_a", "text_b")
 _FLOAT_DIGITS = 4
 MODEL_SEPARATOR = "+"  # consensus verdicts name both judges
+JUDGE_MODELS = ("qwen38-64k:latest", "gemma3:27b")  # the M4 judge pair; live verdicts use the same two
 SPLIT_REASON = "judges disagree; both copies kept"  # in doubt, nothing is removed
-UNJUDGED_REASON = "no verdict yet; both copies kept"  # live publish: a pair screened after the verdicts froze
 _HUMAN_SAME, _HUMAN_DIFFERENT = "same", "different"  # labels in the human check sample
 _CI_LEVEL = 0.95
 
@@ -110,6 +113,12 @@ class Adjudication:
     verdict: Verdict
     reason: str
     model: str = ""
+    text_a: str = ""  # the statements judged; a verdict applies to these texts only
+    text_b: str = ""
+
+
+# (pair, verdict, reason, model, model digest): one verdict file row, as write_adjudications takes it
+VerdictRow = tuple[CandidatePair, Verdict, str, str, str]
 
 
 @dataclass(frozen=True)
@@ -177,8 +186,36 @@ def write_adjudications(path: str, rows: Sequence[tuple[CandidatePair, Verdict, 
 def load_adjudications(path: str) -> list[Adjudication]:
     with open(path, newline="", encoding="utf-8") as f:
         return [Adjudication(r["doi"], int(r["ordinal_a"]), int(r["ordinal_b"]), Verdict(r["verdict"]), r["reason"],
-                             r["model"])
+                             r["model"], r["text_a"], r["text_b"])
                 for r in csv.DictReader(f)]
+
+
+def read_verdict_rows(path: str) -> list[VerdictRow]:
+    """Every row of a verdict file, scores and digests included, for rewriting it (merge_rows)."""
+    with open(path, newline="", encoding="utf-8") as f:
+        return [(CandidatePair(r["doi"], int(r["ordinal_a"]), int(r["ordinal_b"]), float(r["biolord"]),
+                               float(r["lexical"]), r["text_a"], r["text_b"]),
+                 Verdict(r["verdict"]), r["reason"], r["model"], r["model_digest"])
+                for r in csv.DictReader(f)]
+
+
+def merge_rows(ledger: Sequence[VerdictRow], new: Sequence[VerdictRow]) -> list[VerdictRow]:
+    """The live ledger plus new verdicts; nothing is dropped, so verdicts of replaced texts stay as history.
+
+    A pair judged again with the same texts must get the same verdict (else DedupVerdictError); it is kept once.
+    """
+    merged = {_text_key_of_pair(row[0]): row for row in ledger}
+    problems = []
+    for row in new:
+        key = _text_key_of_pair(row[0])
+        old = merged.get(key)
+        if old is not None and old[1] != row[1]:
+            problems.append(f"{key[0]} rows {key[1]}, {key[2]}: ledger says {old[1].value}, new verdict {row[1].value}")
+            continue
+        merged.setdefault(key, row)
+    if problems:
+        raise DedupVerdictError(problems)
+    return list(merged.values())
 
 
 def check_complete(pairs: Sequence[CandidatePair], adjudications: Sequence[Adjudication]) -> None:
@@ -192,21 +229,30 @@ def check_complete(pairs: Sequence[CandidatePair], adjudications: Sequence[Adjud
         raise DedupVerdictError(problems)
 
 
-def cover(pairs: Sequence[CandidatePair], adjudications: Sequence[Adjudication]) -> tuple[list[Adjudication], int]:
-    """Live publish: the verdict of each screened pair, distinct where none exists; and how many had none.
+def resolve(pairs: Sequence[CandidatePair],
+            ledger: Sequence[Adjudication]) -> tuple[list[Adjudication], list[CandidatePair]]:
+    """Live publish: (the verdict of each screened pair, the pairs without one).
 
-    Unlike check_complete, never fails: `add` brings new runs whose pairs no judge has seen yet.
+    A verdict applies only when doi, ordinals and both texts match exactly (no normalization): after
+    `add --force` ordinal 3 may be another statement, e.g. "We suggest X" → "We recommend Y".
+    Verdicts of texts no longer screened stay in the ledger unused. Two verdicts for one pair and its
+    texts: DedupVerdictError. A missing verdict is never read as distinct; the caller blocks on it.
     """
-    judged = {_key(a): a for a in adjudications}
-    out, n_unjudged = [], 0
+    counts = Counter(_text_key(a) for a in ledger)
+    problems = [f"{d} rows {oa}, {ob}: {n} verdicts for the same texts"
+                for (d, oa, ob, _, _), n in sorted(counts.items()) if n > 1]
+    if problems:
+        raise DedupVerdictError(problems)
+
+    by_key = {_text_key(a): a for a in ledger}
+    applicable, unresolved = [], []
     for p in pairs:
-        key = (p.doi, p.ordinal_a, p.ordinal_b)
-        if key in judged:
-            out.append(judged[key])
+        verdict = by_key.get(_text_key_of_pair(p))
+        if verdict is None:
+            unresolved.append(p)
             continue
-        out.append(Adjudication(*key, Verdict.DISTINCT, UNJUDGED_REASON))
-        n_unjudged += 1
-    return out, n_unjudged
+        applicable.append(verdict)
+    return applicable, unresolved
 
 
 # ── judges ──────────────────────────────────────────────────────
@@ -226,6 +272,10 @@ def consensus(a: Sequence[Adjudication], b: Sequence[Adjudication]) -> list[Adju
     one_judge = sorted({_key(x) for x in a} ^ set(by_b))
     problems = [f"{d} rows {oa}, {ob}: judged by one model only" for d, oa, ob in one_judge]
 
+    # A stale judge file (before add --force) holds other texts under the same ordinals
+    problems += [f"{x.doi} rows {x.ordinal_a}, {x.ordinal_b}: judged different texts"
+                 for x in a if _key(x) in by_b and _text_key(x) != _text_key(by_b[_key(x)])]
+
     out = []
     for first in a:
         second = by_b.get(_key(first))
@@ -244,6 +294,14 @@ def consensus(a: Sequence[Adjudication], b: Sequence[Adjudication]) -> list[Adju
 
 def _key(a: Adjudication) -> tuple[str, int, int]:
     return a.doi, a.ordinal_a, a.ordinal_b
+
+
+def _text_key(a: Adjudication) -> tuple[str, int, int, str, str]:
+    return a.doi, a.ordinal_a, a.ordinal_b, a.text_a, a.text_b
+
+
+def _text_key_of_pair(p: CandidatePair) -> tuple[str, int, int, str, str]:
+    return p.doi, p.ordinal_a, p.ordinal_b, p.text_a, p.text_b
 
 
 # ── human check ─────────────────────────────────────────────────

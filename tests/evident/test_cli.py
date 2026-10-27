@@ -19,6 +19,8 @@ from evident.pipeline import (
     SnapshotStart,
 )
 from evident.corpus import file_sha256
+from evident.dedup import CandidatePair
+from evident.release import ReleaseOutcome
 from evident.store import Store
 from evident.validation import heldout_report, SnapshotScore
 from tests.evident.pipeline_fakes import CONFIG
@@ -36,7 +38,7 @@ def calls(monkeypatch, tmp_path):
         monkeypatch.setattr(pipeline, name, fake)
 
     record("snapshot", SnapshotReport(1, SnapshotState.COMPLETE, 3, 0, 0, [], []))
-    record("publish", PublishReport(1, True, "out", 3, 0, 0))
+    record("publish", PublishReport(1, True, "out", 3, 0, 0, release_id="r1", release_outcome=ReleaseOutcome.NEW))
     record("add", AddReport(1, "10.1000/d", AddStatus.ADDED))
     record("reject", RejectReport(3, "m@d", "worse F1"))
     return seen
@@ -83,6 +85,52 @@ def test_failed_add_does_not_publish(calls, tmp_path, monkeypatch):
     monkeypatch.setattr(pipeline, "add", lambda deps, pdf, mode: AddReport(1, "d", AddStatus.FAILED, "boom"))
     assert _main(tmp_path, "add", "x.pdf") == 1
     assert calls == []
+
+
+def test_add_no_publish_stages_only(calls, tmp_path):
+    assert _main(tmp_path, "add", "x.pdf", "--no-publish") == 0
+    assert calls == [("add", ("x.pdf", IngestMode.NORMAL))]
+
+
+def test_add_needing_duplicate_review_exits_3(calls, tmp_path, monkeypatch, capsys):
+    pair = CandidatePair("10.1000/d", 0, 2, 0.9, 0.9, "a", "b")
+
+    def blocked(deps, accept, snapshot_id):
+        raise pipeline.UnresolvedDuplicatesError(1, [pair])
+    monkeypatch.setattr(pipeline, "publish", blocked)
+
+    assert _main(tmp_path, "add", "x.pdf") == 3
+    out = capsys.readouterr()
+    assert "10.1000/d rows 0, 2" in out.out
+    assert "--snapshot 1 --ledger corpus/dedup/live_verdicts.csv --dois 10.1000/d" in out.out
+    assert "publish --snapshot 1" in out.out and "Traceback" not in out.err
+
+
+def test_rebind_pdf(tmp_path, monkeypatch):
+    seen = []
+    monkeypatch.setattr(pipeline, "rebind_pdf", lambda deps, pdf: seen.append(pdf) or pipeline.RebindReport(
+        1, "10.1000/a", pipeline.RebindStatus.REBOUND, "old", "new"))
+    assert _main(tmp_path, "rebind-pdf", "a.pdf") == 0
+    assert seen == ["a.pdf"]
+
+
+@pytest.mark.parametrize("flags, target, check", [
+    ([], pipeline.StatusTarget.LATEST, pipeline.StatusCheck.OFF),
+    (["--published", "--check"], pipeline.StatusTarget.PUBLISHED, pipeline.StatusCheck.ON),
+])
+def test_status_flags(tmp_path, monkeypatch, flags, target, check):
+    seen = []
+    monkeypatch.setattr(pipeline, "status", lambda deps, t, c: seen.append((t, c)) or pipeline.StatusReport())
+    _main(tmp_path, "status", *flags)
+    assert seen == [(target, check)]
+
+
+@pytest.mark.parametrize("blockers, code", [([], 0), (["10.1000/a: PDF missing or changed"], 1)])
+def test_status_check_exit_code(tmp_path, monkeypatch, blockers, code):
+    report = pipeline.StatusReport(snapshot_id=1, state=SnapshotState.PUBLISHED, extractor_version_id="v" * 64,
+                                   model="m@d", blockers=blockers, n_unresolved_pairs=0)
+    monkeypatch.setattr(pipeline, "status", lambda deps, t, c: report)
+    assert _main(tmp_path, "status", "--published", "--check") == code
 
 
 def test_publish_accept_regression(calls, tmp_path):

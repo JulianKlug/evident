@@ -47,7 +47,7 @@ from evident.analytics import (
 )
 from evident.corpus import file_sha256
 from evident.domain import Certainty, GateResult, Strength
-from evident.paper import BiasRow, PaperPackage, Proportion
+from evident.paper import EDITION_RULE, BiasRow, PaperPackage, Proportion
 from evident.themes import ThemeRow
 
 _TABLES = "tables"
@@ -133,6 +133,7 @@ class PublishBundle:
     recs: list[HarmonizedRow]  # current and superseded editions, for the browser
     paper: Optional[PaperPackage] = None  # only with publish --package
     themes: list[ThemeRow] = field(default_factory=list)  # exploratory; empty → no theme figure or table
+    search_cutoff: Optional[str] = None  # live map: last date searched, shown with the edition rule
 
 
 class DraftFieldError(ValueError):
@@ -603,6 +604,8 @@ def _write_dashboard(bundle: PublishBundle, figures: list[_Figure], figure_dir: 
                  for f in figures],
         common_caption=_common_caption(bundle),
         joint_note=_joint_note(c),  # the rest of the provenance is in the validation table and line beside it
+        search_cutoff=bundle.search_cutoff,
+        edition_rule=EDITION_RULE,
         all_label=_ALL,
         society_colours=_SOCIETY_COLOURS,
         data_json=_embedded_json({

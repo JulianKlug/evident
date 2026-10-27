@@ -20,6 +20,7 @@ from evident.pipeline import (
     NotPublishableError,
     NoSnapshotInProgressError,
     NothingToPublishError,
+    PublishBlockedError,
     SnapshotInProgressError,
     SnapshotStart,
     StaleValidationError,
@@ -327,7 +328,8 @@ class TestStatus:
             f.write(b"%PDF a, downloaded again")
 
         assert status(world.deps()).pdf_changed == [_A]
-        assert publish(world.deps()).pdf_changed == [_A]
+        with pytest.raises(PublishBlockedError, match=_A):  # M5: blocks instead of warning
+            publish(world.deps())
 
     def test_eta_and_failures(self, world):
         snapshot(world.deps(runner=FakeRunner(fail=(_C,))), _NEW, CONFIG)

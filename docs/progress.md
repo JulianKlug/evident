@@ -960,3 +960,18 @@ On the frozen DB: audit passes; the package stops at the held-out labels (3 blan
 Captions: each figure states its own caption; the corpus/provenance note appears once. Dashboard: ungraded share hidden (CSV columns kept). SCCM caption changes to "evaluated separately on 3 held-out guidelines" only when the package carries held-out results.
 
 Held-out SCCM (2026-10-19): labels blind, pages left blank (optional now). 2017 safe medication guideline labelled in its own 1/2 + A–D notation, now mapped under GRADE (no snapshot 8 row uses it); its 3 evidence statements are labelled but not scored; one duplicate row removed. Result (n=3, Wilson intervals ignore clustering): TP 29, FP 3, FN 0; P 0.906 [0.758, 0.968], R 1.000 [0.883, 1.000], F1 0.951; strength 29/29, certainty and combined 26/29 (0.897). Ungraded statements: 0/17 recovered (expected for v2). Package from `3738471`, hashes in `freeze.md`. ERS labels deferred to M6 (`TODOS.md`).
+
+## M5: maintenance mode, code (2026-10-26)
+
+Spec `docs/specs/m5-maintenance-spec.md`, runbook `docs/runbook.md`, design Decision 11.
+
+- Live `publish` checks before writing anything: candidates = manifest, coverage (also on re-publish), PDFs as the runs read them, extractor artefacts, search window (`corpus/search.json`), and a verdict for every screened duplicate pair. Any failure leaves `out/` unchanged.
+- Duplicate verdicts bind to the judged texts; ledger `corpus/dedup/live_verdicts.csv` seeded from the frozen `paper1_verdicts.csv` (unchanged, hash still matches `configs/paper1.json`). The judge scripts take `--snapshot/--manifest/--ledger/--dry-run`; the consensus merges into the ledger and refuses the frozen file.
+- `add`: refuses a changed PDF without `--force` (bytes in the PDF dir untouched), checks curation before extracting, exits 3 when pairs need judging; `--no-publish` stages. `rebind-pdf` accepts new bytes when every rebuilt prompt hash matches the run's (no model call).
+- `status --published --check`: the release, even while a candidate builds; exit 1 on a blocker.
+- `out/release.json` (schema 1): id = SHA-256 of sources, versions, inputs, counts and output checksums; archived with a DB backup in `artifacts/releases/<id>/`.
+- Tests: 71 new, 805 pass (pipeline, CLI, scripts, runbook procedures A–C on a scratch DB).
+- On a copy of the live DB: `status --published --check` → only blocker "no release record"; `publish --snapshot 8` → 75 current guidelines, 140 duplicates removed (as M4), release `f0e36aa13d5f…`; repeated → `unchanged`, outputs byte-identical. The live `out/` was not touched.
+
+Exit still open: one real guideline published after 2026-10-04, added with runbook A.
+

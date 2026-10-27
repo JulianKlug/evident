@@ -7,6 +7,11 @@
                                                                                    │
                                                           add <pdf> (same version) ┘
 
+    publish (live, M5): gates ─▶ duplicate ledger ─▶ staged render ─▶ [transition] ─▶ out/release.json
+        gates: candidates = manifest, every guideline has an active run, PDFs as the runs read them,
+               extractor artefacts unchanged, search window; any failure → nothing written
+    rebind-pdf <pdf>: new bytes, same prompts (no model call) ─▶ the run now names the new bytes
+
     publish_package (read-only, frozen copy of a PUBLISHED snapshot):
         audit (fail closed) ─▶ rows + held-out score + spot check ─▶ paper tables ─▶ <package>/ + outputs
 
@@ -15,11 +20,13 @@ Every model, Ollama call and GT load comes in through PipelineDeps, so tests run
 
 from __future__ import annotations
 
+import csv
 import json
 import logging
 import os
 import shutil
 import statistics
+from datetime import datetime, timezone
 from dataclasses import asdict, dataclass, field, replace
 from enum import Enum
 from typing import Callable, Optional, Sequence
@@ -45,6 +52,7 @@ from evident.corpus import (
     file_sha256,
     load_candidates,
     load_manifest,
+    load_search_window,
     load_theme_assignments,
     sync_to_store,
 )
@@ -54,16 +62,18 @@ from evident.dedup import (
     SCREEN_BIOLORD,
     SPLIT_REASON,
     SCREEN_LEXICAL,
+    Adjudication,
     CandidatePair,
     DedupResult,
+    DedupVerdictError,
     Verdict,
     check_complete,
-    cover,
     deduplicate,
     load_adjudications,
     load_human_check,
     remap_ordinals,
     removed_rows,
+    resolve,
     score_human_check,
     screen,
 )
@@ -73,6 +83,7 @@ from evident.domain import (
     ExtractorVersion,
     GateResult,
     Guideline,
+    LlmCall,
     MemberOrigin,
     RawRecommendation,
     RunStatus,
@@ -80,6 +91,7 @@ from evident.domain import (
     SnapshotState,
 )
 from evident.extraction import (
+    ArtifactMismatchError,
     Artifacts,
     ExtractionOutput,
     ExtractorConfig,
@@ -105,8 +117,9 @@ from evident.paper import (
     trend_points,
 )
 from evident.publishing import PublishBundle, ValidationSummary, package_target_problem, render, render_package
-from evident.store import Store
-from evident.themes import theme_certainty
+from evident.release import ReleaseOutcome, current_release, output_checksums, write_release
+from evident.store import DuplicatePdfError, Store
+from evident.themes import UNASSIGNED, rec_key, theme_certainty
 from evident.validation import (
     GateReport,
     HeldoutReport,
@@ -129,6 +142,7 @@ _DIGEST_PREFIX = 12  # same length as `ollama list` IDs
 _BOOTSTRAP_UNIT = "guideline, resampled within society; ALL stratified by society"
 _WAL_SUFFIX = "-wal"  # SQLite write-ahead log beside the DB: readers see its frames, the DB hash does not
 _IGNORED_FILE_PREFIXES = ("~$", ".")  # editor lock files beside label files, e.g. .~lock.x.xlsx#
+_REBIND_LOG_COLUMNS = ("doi", "run_id", "old_pdf_sha256", "new_pdf_sha256", "rebound_at")
 
 
 class TreeState(str, Enum):
@@ -153,6 +167,22 @@ class AddStatus(str, Enum):
     FAILED = "failed"
 
 
+class RebindStatus(str, Enum):
+    REBOUND = "rebound"      # new bytes, same prompts: the run now names them
+    RESTORED = "restored"    # the bytes the run read, copied back over a drifted PDF dir copy
+    UNCHANGED = "unchanged"  # the bytes the run read, already in place
+
+
+class StatusTarget(str, Enum):
+    LATEST = "latest"        # newest snapshot not rejected, e.g. a candidate still building
+    PUBLISHED = "published"  # the public release, even while a candidate builds
+
+
+class StatusCheck(str, Enum):
+    OFF = "off"
+    ON = "on"  # run every publication gate; screens duplicates, so it loads BioLORD
+
+
 @dataclass(frozen=True)
 class PipelineDeps:
     store: Store
@@ -165,7 +195,12 @@ class PipelineDeps:
     code_sha: Callable[[], Optional[str]]
     publish_dir: str  # tables/, figures/, dashboard/ are (re)written here
     themes_path: Optional[str] = None  # frozen theme assignments; None → no theme figure
-    dedup_verdicts_path: Optional[str] = None  # frozen duplicate verdicts; None → every copy kept
+    dedup_verdicts_path: Optional[str] = None  # live verdict ledger; None → every copy kept
+    candidates_path: Optional[str] = None  # included candidates must equal the manifest; None → not checked
+    search_path: Optional[str] = None  # corpus/search.json, the search window; None → not checked or recorded
+    release_archive_dir: Optional[str] = None  # one dir per new release (record + DB backup); None → no archive
+    prompt_hashes: Optional[Callable[[ExtractorConfig, str, str], dict[int, str]]] = None  # rebind-pdf; no LLM
+    rebind_log_path: Optional[str] = None  # CSV appended per rebind: doi, run, old and new PDF SHA-256
 
 
 @dataclass(frozen=True)
@@ -279,6 +314,45 @@ class PackageAuditError(PipelineError):
         self.problems = problems
 
 
+class PublishBlockedError(PipelineError):
+    """A publication gate failed; nothing was written, the previous outputs and release stand."""
+
+    def __init__(self, problems: list[str]):
+        super().__init__("Publication blocked; previous outputs unchanged:\n" + "\n".join(f"  {p}" for p in problems))
+        self.problems = problems
+
+
+class UnresolvedDuplicatesError(PipelineError):
+    """Screened pairs without a verdict for their texts; judge them, then publish again."""
+
+    def __init__(self, snapshot_id: int, pairs: list[CandidatePair]):
+        super().__init__(f"{len(pairs)} screened duplicate pair(s) of snapshot {snapshot_id} have no verdict for "
+                         "their texts; previous outputs unchanged")
+        self.snapshot_id = snapshot_id
+        self.pairs = pairs
+
+
+class PdfChangedError(PipelineError):
+    def __init__(self, doi: str):
+        super().__init__(f"PDF of {doi} differs from the bytes its active run read; restore them, or run "
+                         "rebind-pdf (same model input) or add --force (re-extract)")
+        self.doi = doi
+
+
+class NoActiveRunError(PipelineError):
+    def __init__(self, doi: str, snapshot_id: int):
+        super().__init__(f"{doi} has no active run in published snapshot {snapshot_id}; use add")
+        self.doi = doi
+
+
+class PromptMismatchError(PipelineError):
+    def __init__(self, doi: str, detail: str):
+        super().__init__(f"New PDF of {doi} changes the model input ({detail}); nothing changed. "
+                         "Re-extract with add --force")
+        self.doi = doi
+        self.detail = detail
+
+
 class ManifestEntryMissingError(PipelineError):
     def __init__(self, filename: str):
         super().__init__(f"No manifest row with pdf_filename {filename}; add the manifest row first")
@@ -319,9 +393,9 @@ class PublishReport:
     n_skipped_superseded: int
     model: str = ""
     paths: list[str] = field(default_factory=list)  # every file written
-    pdf_changed: list[str] = field(default_factory=list)  # published from runs whose PDF has since changed
     n_duplicates_removed: int = 0
-    n_unjudged_pairs: int = 0  # screened pairs without a verdict (new runs): both copies kept
+    release_id: Optional[str] = None
+    release_outcome: Optional[ReleaseOutcome] = None  # UNCHANGED: identical to the release already out
 
 
 @dataclass(frozen=True)
@@ -351,6 +425,15 @@ class AddReport:
 
 
 @dataclass(frozen=True)
+class RebindReport:
+    snapshot_id: int
+    doi: str
+    status: RebindStatus
+    old_sha256: Optional[str]
+    new_sha256: str
+
+
+@dataclass(frozen=True)
 class StatusReport:
     snapshot_id: Optional[int] = None  # None: no snapshot yet
     state: Optional[SnapshotState] = None
@@ -370,6 +453,12 @@ class StatusReport:
     failures: list[tuple[str, str]] = field(default_factory=list)  # every failed run, as history
     gate: Optional[GateResult] = None
     pdf_changed: list[str] = field(default_factory=list)  # PDF bytes differ from what the active run read
+    n_current: int = 0       # manifest editions counted in the current map
+    n_superseded: int = 0    # trends only
+    release_id: Optional[str] = None  # out/release.json
+    blockers: list[str] = field(default_factory=list)  # StatusCheck.ON: why publish would refuse; [] = clean
+    n_unresolved_pairs: Optional[int] = None  # StatusCheck.ON only
+    n_unassigned: Optional[int] = None  # current recs under "Not yet assigned" in the theme figure
 
 
 # ── commands ────────────────────────────────────────────────────
@@ -438,33 +527,41 @@ def publish(deps: PipelineDeps, accept_regression: Optional[str] = None,
     """Publish a complete snapshot, or re-publish the latest published one's outputs.
 
     snapshot_id None: the only complete snapshot, else the published one; several → AmbiguousPublishError.
+    Every gate runs before anything is written (M5 spec §5): a failure leaves the outputs and release as they were.
     """
-    entries = _sync(deps)  # current PDF hashes, for the changed-PDF warning
+    entries = _sync(deps)  # current PDF hashes, for the changed-PDF gate
     published = deps.store.latest_snapshot(SnapshotState.PUBLISHED)
-    complete = _publish_target(deps.store, snapshot_id, published)
+    target = _publish_target(deps.store, snapshot_id, published)
 
     # Re-publish: after `add`, only the outputs of the published snapshot change
-    if complete.state == SnapshotState.PUBLISHED:
-        return _write_outputs(deps, complete, entries, republished=True)
+    republished = target.state == SnapshotState.PUBLISHED
+    validation = deps.store.latest_validation(target.id)
+    if not republished:
+        if validation is None:
+            raise ValidationMissingError(target.id)
 
-    validation = deps.store.latest_validation(complete.id)
-    if validation is None:
-        raise ValidationMissingError(complete.id)
+        # The gate is only meaningful against the snapshot that is published now
+        published_id = published.id if published else None
+        if validation.baseline_snapshot_id != published_id:
+            raise StaleValidationError(target.id, validation.baseline_snapshot_id, published_id)
 
-    # The gate is only meaningful against the snapshot that is published now
-    published_id = published.id if published else None
-    if validation.baseline_snapshot_id != published_id:
-        raise StaleValidationError(complete.id, validation.baseline_snapshot_id, published_id)
-
-    gaps = _coverage_gaps(deps.store, complete.id, entries)
+    # A re-publish passes the same coverage check: `add` can leave a manifest row without a run
+    gaps = _coverage_gaps(deps.store, target.id, entries)
     if gaps:
         raise CoverageError(gaps)
+    problems = _gate_problems(deps, target, entries)
+    if problems:
+        raise PublishBlockedError(problems)
 
-    if validation.gate == GateResult.FAIL and not accept_regression:
-        raise GateFailedError(complete.id, validation.report_json)
+    if not republished and validation.gate == GateResult.FAIL and not accept_regression:
+        raise GateFailedError(target.id, validation.report_json)
 
-    deps.store.transition_snapshot(complete.id, SnapshotState.PUBLISHED, accept_regression)
-    return _write_outputs(deps, deps.store.get_snapshot(complete.id), entries, republished=False)
+    # Render (staged) before the switch: a failed render leaves the published snapshot and its outputs
+    outputs = _live_outputs(deps, target, entries)
+    paths = render(outputs.bundle, deps.publish_dir)
+    if not republished:
+        deps.store.transition_snapshot(target.id, SnapshotState.PUBLISHED, accept_regression)
+    return _released(deps, deps.store.get_snapshot(target.id), entries, outputs, paths, republished)
 
 
 def reject(deps: PipelineDeps, snapshot_id: int, reason: str) -> RejectReport:
@@ -555,12 +652,31 @@ def add(deps: PipelineDeps, pdf_path: str, mode: IngestMode = IngestMode.NORMAL)
     if published is None:
         raise NoPublishedSnapshotError()
 
+    entries = load_manifest(deps.manifest_path)
     filename = os.path.basename(pdf_path)
-    entry = next((e for e in load_manifest(deps.manifest_path) if e.pdf_filename == filename), None)
+    entry = next((e for e in entries if e.pdf_filename == filename), None)
     if entry is None:
         raise ManifestEntryMissingError(filename)
     if not os.path.isfile(pdf_path):
         raise PdfMissingError(pdf_path)
+
+    # Curation first: an extraction for a guideline publish would refuse is wasted GPU time
+    problems = _candidate_problems(deps, entries)
+    if problems:
+        raise PublishBlockedError(problems)
+
+    # A changed PDF is never "already present", and must not overwrite the bytes the run read
+    existing = deps.store.get_guideline(entry.doi)
+    run = deps.store.active_run(published.id, existing.id) if existing else None
+    new_sha = file_sha256(pdf_path)
+    if mode == IngestMode.NORMAL and run and run.pdf_sha256 and run.pdf_sha256 != new_sha:
+        raise PdfChangedError(entry.doi)
+    owner = next((g.doi for g in deps.store.list_guidelines() if g.pdf_sha256 == new_sha and g.doi != entry.doi), None)
+    if owner:
+        raise DuplicatePdfError(owner, entry.doi)
+
+    # Same version as the published snapshot, or nothing: add never changes version
+    cfg = _config_checked(deps, deps.store.get_extractor_version(published.extractor_version_id))
 
     # The PDF dir is the single home of PDFs
     dest = os.path.join(deps.pdf_dir, filename)
@@ -573,8 +689,6 @@ def add(deps: PipelineDeps, pdf_path: str, mode: IngestMode = IngestMode.NORMAL)
     if mode == IngestMode.NORMAL and deps.store.active_run(published.id, guideline.id):
         return AddReport(published.id, guideline.doi, AddStatus.ALREADY_PRESENT)
 
-    # Same version as the published snapshot, or nothing: add never changes version
-    cfg = _config_checked(deps, deps.store.get_extractor_version(published.extractor_version_id))
     if guideline.id not in {m.guideline_id for m in deps.store.members(published.id)}:
         deps.store.add_published_member(published.id, guideline.id)
 
@@ -584,14 +698,64 @@ def add(deps: PipelineDeps, pdf_path: str, mode: IngestMode = IngestMode.NORMAL)
     return AddReport(published.id, guideline.doi, AddStatus.ADDED)
 
 
-def status(deps: PipelineDeps) -> StatusReport:
-    store = deps.store
-    latest = [store.latest_snapshot(s) for s in SnapshotState if s != SnapshotState.REJECTED]
-    snap = max((s for s in latest if s), key=lambda s: s.id, default=None)
-    if snap is None:
-        return StatusReport()
+def rebind_pdf(deps: PipelineDeps, pdf_path: str) -> RebindReport:
+    """Accept new bytes for a guideline's PDF when they give the model the same prompts; no model call.
 
-    _sync(deps)  # current PDF hashes, for the changed-PDF flag
+    Every prompt of the active run is rebuilt from the new PDF and compared by chunk with the stored hashes.
+    Any difference (text, chunk count) changes nothing: PromptMismatchError, re-extract with add --force.
+    """
+    published = deps.store.latest_snapshot(SnapshotState.PUBLISHED)
+    if published is None:
+        raise NoPublishedSnapshotError()
+
+    filename = os.path.basename(pdf_path)
+    entry = next((e for e in load_manifest(deps.manifest_path) if e.pdf_filename == filename), None)
+    if entry is None:
+        raise ManifestEntryMissingError(filename)
+    if not os.path.isfile(pdf_path):
+        raise PdfMissingError(pdf_path)
+
+    guideline = deps.store.get_guideline(entry.doi)
+    run = deps.store.active_run(published.id, guideline.id) if guideline else None
+    if run is None:
+        raise NoActiveRunError(entry.doi, published.id)
+
+    new_sha = file_sha256(pdf_path)
+    dest = os.path.join(deps.pdf_dir, filename)
+    if new_sha == run.pdf_sha256:
+        if _sha_or_none(dest) == new_sha:
+            return RebindReport(published.id, entry.doi, RebindStatus.UNCHANGED, run.pdf_sha256, new_sha)
+        shutil.copyfile(pdf_path, dest)  # e.g. from a backup: restores what the run read
+        return RebindReport(published.id, entry.doi, RebindStatus.RESTORED, run.pdf_sha256, new_sha)
+
+    # Same version, same artefacts: the prompts rebuilt now are the ones the run would send
+    cfg = _config_checked(deps, deps.store.get_extractor_version(published.extractor_version_id))
+    mismatch = _prompt_mismatch(deps.prompt_hashes(cfg, pdf_path, entry.doi), deps.store.llm_calls(run.id))
+    if mismatch:
+        raise PromptMismatchError(entry.doi, mismatch)
+
+    # Verified: the PDF dir gets the new bytes, guideline and run name them
+    deps.store.rebind_pdf(guideline.id, run.id, dest, new_sha)  # DuplicatePdfError before anything is copied
+    if os.path.abspath(pdf_path) != os.path.abspath(dest):
+        shutil.copyfile(pdf_path, dest)
+    _log_rebind(deps.rebind_log_path, entry.doi, run.id, run.pdf_sha256, new_sha)
+    return RebindReport(published.id, entry.doi, RebindStatus.REBOUND, run.pdf_sha256, new_sha)
+
+
+def status(deps: PipelineDeps, target: StatusTarget = StatusTarget.LATEST,
+           check: StatusCheck = StatusCheck.OFF) -> StatusReport:
+    store = deps.store
+    if target == StatusTarget.PUBLISHED:
+        snap = store.latest_snapshot(SnapshotState.PUBLISHED)
+    else:
+        latest = [store.latest_snapshot(s) for s in SnapshotState if s != SnapshotState.REJECTED]
+        snap = max((s for s in latest if s), key=lambda s: s.id, default=None)
+    if snap is None:
+        return StatusReport(blockers=["no published snapshot"] if check == StatusCheck.ON else [])
+
+    entries = _sync(deps)  # current PDF hashes, for the changed-PDF flag
+    n_current = len(current_editions(entries))
+    release = current_release(deps.publish_dir)
     guidelines = _guidelines_by_id(store)
     members = store.members(snap.id)
     runs = store.runs(snap.id)
@@ -622,6 +786,10 @@ def status(deps: PipelineDeps) -> StatusReport:
         failures=[(guidelines[r.guideline_id].doi, r.error or "") for r in runs if r.status == RunStatus.FAILED],
         gate=validation.gate if validation else None,
         pdf_changed=_pdf_changed(store, snap.id, guidelines),
+        n_current=n_current,
+        n_superseded=len(entries) - n_current,
+        release_id=release.get("release_id") if release else None,
+        **(_checked(deps, snap, entries, release) if check == StatusCheck.ON else {}),
     )
 
 
@@ -838,38 +1006,190 @@ def _outliers(store: Store, snapshot_id: int, guidelines: dict[int, Guideline]) 
     return flagged
 
 
-def _write_outputs(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry],
-                   republished: bool) -> PublishReport:
+@dataclass(frozen=True)
+class _LiveOutputs:
+    """What one live publish renders, before anything is written."""
+    bundle: PublishBundle
+    all_rows: list[HarmonizedRow]  # every edition, before duplicate removal
+    dedup: DedupResult
+
+
+def _live_outputs(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry]) -> _LiveOutputs:
+    """Rows, duplicate removal and bundle; UnresolvedDuplicatesError when a screened pair has no verdict."""
     all_rows, facts = _harmonized_rows(deps.store, snap, entries)
 
-    # Same duplicate removal as publish --package; pairs no judge has seen keep both copies
-    dedup, n_unjudged = _live_deduplicate(all_rows, deps)
-    rows = dedup.kept
-    bundle = _bundle(deps, snap, rows, facts)
+    # Same duplicate removal as publish --package; a pair without a verdict for its texts blocks
+    adjudications, unresolved = _live_verdicts(all_rows, deps)
+    if unresolved:
+        raise UnresolvedDuplicatesError(snap.id, unresolved)
+    dedup = deduplicate(all_rows, adjudications)
+
+    bundle = replace(_bundle(deps, snap, dedup.kept, facts), search_cutoff=_search_cutoff(deps))
     if dedup.removed:
         stored = deps.store.latest_validation(snap.id)
         report = _rescored_development(deps, _kept_recs_by_doi(deps.store, snap.id, dedup.removed),
                                        deps.similarity_model)
         bundle = replace(bundle, validation=_summary_of(report, stored.gate, stored.baseline_snapshot_id)
                          if stored else None)
-    paths = render(bundle, deps.publish_dir)
+    return _LiveOutputs(bundle, all_rows, dedup)
 
+
+def _released(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry], outputs: _LiveOutputs,
+              paths: list[str], republished: bool) -> PublishReport:
+    """Write the release record (unless identical to the one out) and report the publication."""
+    rows = outputs.dedup.kept
     members = {m.guideline_id: m for m in deps.store.members(snap.id)}
     contributing = {r.doi for r in rows if r.edition == Edition.CURRENT}
     n_excluded = sum(1 for m in members.values() if m.excluded_reason)
     n_superseded = len({r.doi for r in rows if r.edition == Edition.SUPERSEDED})
-    pdf_changed = _pdf_changed(deps.store, snap.id, _guidelines_by_id(deps.store))
+
+    content = _release_content(deps, snap, entries, outputs, paths, n_excluded)
+    release_id, outcome = write_release(content, deps.publish_dir, deps.release_archive_dir, deps.store.backup)
     return PublishReport(snap.id, republished, deps.publish_dir, len(contributing), n_excluded, n_superseded,
-                         bundle.model, paths, pdf_changed, len(dedup.removed), n_unjudged)
+                         outputs.bundle.model, paths, len(outputs.dedup.removed), release_id, outcome)
 
 
-def _live_deduplicate(rows: list[HarmonizedRow], deps: PipelineDeps) -> tuple[DedupResult, int]:
-    """Frozen verdicts applied to the live rows; (result, screened pairs without a verdict)."""
+def _release_content(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry], outputs: _LiveOutputs,
+                     paths: list[str], n_excluded: int) -> dict:
+    """Everything the release id hashes (M5 spec §5): source, versions, inputs, counts, output checksums."""
+    version = deps.store.get_extractor_version(snap.extractor_version_id)
+    runs = _active_runs_by_guideline(deps.store, snap.id)
+    validation = deps.store.latest_validation(snap.id)
+    n_current = len(current_editions(entries))
+    window = load_search_window(deps.search_path) if deps.search_path else None
+    return {
+        "snapshot": {"id": snap.id, "state": snap.state.value, "published_at": snap.published_at,
+                     "accept_reason": snap.accept_reason},
+        "extractor": {"version_id": version.id, "model_name": version.model_name,
+                      "model_digest": version.model_digest, "embedding_revision": version.embedding_revision,
+                      "classifier_sha256": version.classifier_sha256},
+        "code": {"analysis_sha": deps.code_sha(),
+                 "extraction_shas": sorted({run.code_sha for _, run in runs if run.code_sha})},
+        "search": {"start": window.start.isoformat(), "cutoff": window.cutoff.isoformat()} if window else None,
+        "edition_rule": EDITION_RULE,
+        "validation": ({"gate": validation.gate.value, "baseline_snapshot_id": validation.baseline_snapshot_id}
+                       if validation else None),
+        "inputs": {
+            "manifest_sha256": file_sha256(deps.manifest_path),
+            "candidates_sha256": _sha_or_none(deps.candidates_path),
+            "search_sha256": _sha_or_none(deps.search_path),
+            "dedup_verdicts_sha256": _sha_or_none(deps.dedup_verdicts_path),
+            "themes_sha256": _sha_or_none(deps.themes_path),
+            "pdfs": {g.doi: run.pdf_sha256 for g, run in runs},
+            "runs": {g.doi: run.id for g, run in runs},
+        },
+        "counts": {
+            "guidelines": len(entries), "current": n_current, "superseded": len(entries) - n_current,
+            "excluded": n_excluded, "recommendations": len(outputs.all_rows),
+            "recommendations_kept": len(outputs.dedup.kept), "duplicates_removed": len(outputs.dedup.removed),
+            "not_yet_assigned": _n_unassigned(deps, outputs.dedup.kept),
+        },
+        "outputs": output_checksums(deps.publish_dir, paths),
+    }
+
+
+def _live_verdicts(rows: list[HarmonizedRow],
+                   deps: PipelineDeps) -> tuple[list[Adjudication], list[CandidatePair]]:
+    """(verdicts bound to the screened pairs' texts, pairs without one); no ledger → no screen, nothing removed."""
     if deps.dedup_verdicts_path is None:
-        return DedupResult(list(rows), {}, 0, {}), 0
-    adjudications, n_unjudged = cover(_screen_rows(rows, deps.similarity_model),
-                                      load_adjudications(deps.dedup_verdicts_path))
-    return deduplicate(rows, adjudications), n_unjudged
+        return [], []
+    return resolve(_screen_rows(rows, deps.similarity_model), load_adjudications(deps.dedup_verdicts_path))
+
+
+def _gate_problems(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry]) -> list[str]:
+    """M5 spec §5 gates 1, 3 and 5; coverage (2) and duplicate verdicts (4) are checked by the caller."""
+    problems = _candidate_problems(deps, entries)
+    problems += [f"{doi}: PDF missing or changed since its run (restore it, rebind-pdf, or add --force)"
+                 for doi in _pdf_changed(deps.store, snap.id, _guidelines_by_id(deps.store))]
+    try:
+        _config_checked(deps, deps.store.get_extractor_version(snap.extractor_version_id))
+    except ArtifactMismatchError as e:
+        problems.append(f"extractor artefact drift: {e}")
+    if deps.search_path is not None:
+        try:
+            load_search_window(deps.search_path)
+        except ManifestError as e:
+            problems += e.problems
+    return problems
+
+
+def _candidate_problems(deps: PipelineDeps, entries: list[ManifestEntry]) -> list[str]:
+    """Included candidates and manifest rows differ: a curation step is missing."""
+    if deps.candidates_path is None:
+        return []
+    try:
+        check_candidates(load_candidates(deps.candidates_path), entries)
+    except ManifestError as e:
+        return e.problems
+    return []
+
+
+def _checked(deps: PipelineDeps, snap: Snapshot, entries: list[ManifestEntry], release: Optional[dict]) -> dict:
+    """StatusReport fields of a strict check: every blocker publish would raise, plus stale public outputs."""
+    blockers = [f"{doi}: no active run" for doi in _coverage_gaps(deps.store, snap.id, entries)]
+    blockers += _gate_problems(deps, snap, entries)
+
+    rows, _ = _harmonized_rows(deps.store, snap, entries)
+    try:
+        adjudications, unresolved = _live_verdicts(rows, deps)
+    except DedupVerdictError as e:
+        return {"blockers": blockers + e.problems}
+    if unresolved:
+        blockers.append(f"{len(unresolved)} screened duplicate pair(s) without a verdict for their texts")
+
+    # The public outputs must be those of the active runs, e.g. not before an `add --no-publish`
+    runs = {g.doi: run.id for g, run in _active_runs_by_guideline(deps.store, snap.id)}
+    if release is None:
+        blockers.append("no release record: publish first")
+    elif snap.state == SnapshotState.PUBLISHED and (release["snapshot"]["id"] != snap.id
+                                                    or release["inputs"]["runs"] != runs):
+        blockers.append(f"public outputs predate the active runs: publish --snapshot {snap.id}")
+    if release is not None:
+        # e.g. publish --package swapped the M4 outputs in, or a crash came between render and release
+        blockers += [f"{rel}: differs from release {release['release_id'][:_DIGEST_PREFIX]}; publish again"
+                     for rel, sha in sorted(release["outputs"].items())
+                     if _sha_or_none(os.path.join(deps.publish_dir, rel)) != sha]
+
+    kept = deduplicate(rows, adjudications).kept if not unresolved else rows
+    return {"blockers": blockers, "n_unresolved_pairs": len(unresolved), "n_unassigned": _n_unassigned(deps, kept)}
+
+
+def _n_unassigned(deps: PipelineDeps, rows: list[HarmonizedRow]) -> Optional[int]:
+    """Current recommendations the theme figure shows as "Not yet assigned"; None without a themes file."""
+    if deps.themes_path is None:
+        return None
+    assignments = load_theme_assignments(deps.themes_path)
+    return sum(1 for r in rows
+               if r.edition == Edition.CURRENT and assignments.get(rec_key(r.doi, r.text), UNASSIGNED) == UNASSIGNED)
+
+
+def _search_cutoff(deps: PipelineDeps) -> Optional[str]:
+    return load_search_window(deps.search_path).cutoff.isoformat() if deps.search_path else None
+
+
+def _prompt_mismatch(rebuilt: dict[int, str], calls: list[LlmCall]) -> Optional[str]:
+    """First difference between the rebuilt prompts and the run's calls, e.g. "chunk 3 prompt differs"; None = same."""
+    stored: dict[int, set[str]] = {}
+    for c in calls:
+        stored.setdefault(c.chunk_id, set()).add(c.prompt_sha256)  # self-consistency: one prompt, N samples
+    if set(rebuilt) != set(stored):
+        return f"{len(rebuilt)} chunks now, {len(stored)} chunks in the run"
+    for chunk in sorted(rebuilt):
+        if stored[chunk] != {rebuilt[chunk]}:
+            return f"chunk {chunk} prompt differs"
+    return None
+
+
+def _log_rebind(path: Optional[str], doi: str, run_id: int, old_sha: Optional[str], new_sha: str) -> None:
+    """Append one row to the rebind log; the DB keeps only the new hash."""
+    if path is None:
+        return
+    is_new = not os.path.isfile(path)
+    with open(path, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f, lineterminator="\n")
+        if is_new:
+            w.writerow(_REBIND_LOG_COLUMNS)
+        w.writerow([doi, run_id, old_sha or "", new_sha, datetime.now(timezone.utc).isoformat(timespec="seconds")])
 
 
 def _kept_recs_by_doi(store: Store, snapshot_id: int, removed: dict[tuple[str, int], int]) -> dict:

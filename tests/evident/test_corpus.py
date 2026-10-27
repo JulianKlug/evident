@@ -1,6 +1,7 @@
 """Tests for evident.corpus: manifest validation, current editions, store sync."""
 
 import os
+from datetime import date
 
 import pytest
 
@@ -12,6 +13,7 @@ from evident.corpus import (
     current_editions,
     load_candidates,
     load_manifest,
+    load_search_window,
     load_theme_assignments,
     sync_to_store,
 )
@@ -20,6 +22,7 @@ from evident.store import DuplicatePdfError, Store
 _REPO_MANIFEST = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "manifest.csv")
 _REPO_CANDIDATES = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "candidates.csv")
 _REPO_THEMES = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "themes", "assignments.csv")
+_REPO_SEARCH = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "search.json")
 _N_REPO_GUIDELINES = 85
 _HEADER = "doi,society,year,title,topic_id,supersedes_doi,grading_family,pdf_filename"
 _A = "10.1007/a,ESICM,2016,Fluids v1,fluids,,grade,"
@@ -252,3 +255,23 @@ def test_theme_assignments_need_every_column(tmp_path):
 
 def test_repo_theme_assignments_load():
     assert load_theme_assignments(_REPO_THEMES)
+
+
+class TestSearchWindow:
+    def test_repo_window_is_the_m4_search(self):
+        window = load_search_window(_REPO_SEARCH)
+        assert (window.start, window.cutoff) == (date(2016, 1, 1), date(2026, 10, 4))
+
+    @pytest.mark.parametrize("body", [
+        None,                                                # missing file
+        '{"start": "2016-01-01"}',                           # no cutoff
+        '{"start": "2016-01-01", "cutoff": "04.10.2026"}',   # not ISO
+        '{"start": "2016-01-01", "cutoff": "2999-01-01"}',   # in the future
+        '{"start": "2026-10-05", "cutoff": "2026-10-04"}',   # start after cutoff
+    ])
+    def test_invalid_window(self, tmp_path, body):
+        path = tmp_path / "search.json"
+        if body is not None:
+            path.write_text(body)
+        with pytest.raises(ManifestError, match="search window"):
+            load_search_window(str(path))

@@ -7,11 +7,13 @@
       publish  [--snapshot ID] [--accept-regression REASON]
       publish  --snapshot ID --package DIR --analysis-config FILE --heldout-labels DIR   # read-only DB
       reject   --snapshot ID --reason TEXT      # retire a candidate for good
-      add PDF  [--force]                       # then re-publish
-      status
+      add PDF  [--force] [--no-publish]        # then re-publish, unless duplicate pairs need review
+      rebind-pdf PDF                           # new bytes, same prompts: no re-extraction
+      status   [--published] [--check]         # --check: every publication gate, nonzero on a blocker
 
 Maps flags to enums, builds the real PipelineDeps, prints reports.
-Exit codes: 0 ok, 1 known error (message only), 2 usage error.
+Exit codes: 0 ok, 1 known error or failed gate (message only), 2 usage error,
+3 needs review (screened duplicate pairs without a verdict; public outputs unchanged).
 """
 
 from __future__ import annotations
@@ -27,8 +29,16 @@ from typing import Optional
 import scripts.search_guidelines as search
 from evident import pipeline
 from evident.corpus import ManifestError
-from evident.dedup import DedupVerdictError
-from evident.extraction import ExtractionError, ExtractorConfig, Models, load_similarity_model, probe_artifacts, run
+from evident.dedup import JUDGE_MODELS, DedupVerdictError
+from evident.extraction import (
+    ExtractionError,
+    ExtractorConfig,
+    Models,
+    load_similarity_model,
+    probe_artifacts,
+    prompt_hashes,
+    run,
+)
 from evident.harmonization import UnsupportedGradingFamilyError
 from evident.paper import AnalysisConfig
 from evident.publishing import DraftFieldError
@@ -39,15 +49,22 @@ from extraction.llm_client import ModelNotFoundError
 _DEFAULT_DB = "out/evident.sqlite"
 _DEFAULT_MANIFEST = "corpus/manifest.csv"
 _DEFAULT_THEMES = "corpus/themes/assignments.csv"  # frozen; scripts/assign_themes.py writes it
-_DEFAULT_DEDUP_VERDICTS = "corpus/dedup/paper1_verdicts.csv"  # frozen; scripts/paper1_dedup_consensus.py writes it
+_DEFAULT_DEDUP_VERDICTS = "corpus/dedup/live_verdicts.csv"  # ledger; scripts/paper1_dedup_consensus.py merges into it
+_DEFAULT_CANDIDATES = "corpus/candidates.csv"
+_DEFAULT_SEARCH = "corpus/search.json"  # scripts/search_guidelines.py writes it
 _DEFAULT_PDF_DIR = "/mnt/data1/klug/datasets/evidence_extraction/pdfs"
-_PUBLISH_DIR = "out"  # tables/, figures/, dashboard/
+_PUBLISH_DIR = "out"  # tables/, figures/, dashboard/, release.json
+_RELEASE_ARCHIVE = "artifacts/releases"  # <release id>/release.json + evident.db
+_REBIND_LOG = "corpus/pdf_rebinds.csv"
+_JUDGE_DIR = "corpus/dedup/judges"
+_SHA_PREFIX = 12  # same length as `ollama list` IDs
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 _PACKAGE_DEVICE = "cpu"  # held-out scoring embeddings: same numbers on any machine
 
 _EXIT_OK = 0
 _EXIT_ERROR = 1
+_EXIT_NEEDS_REVIEW = 3
 
 _KNOWN_ERRORS = (pipeline.PipelineError, StoreError, ManifestError, ExtractionError, ValidationJoinError,
                  ModelNotFoundError, UnsupportedGradingFamilyError, HeldoutLabelError, DraftFieldError,
@@ -84,6 +101,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     try:
         with Store.open(args.db, mode) as store:
             return _COMMANDS[args.command](args, _deps(args, store))
+    except pipeline.UnresolvedDuplicatesError as e:
+        _print_review(e, args)
+        return _EXIT_NEEDS_REVIEW
     except _KNOWN_ERRORS as e:
         print(f"error: {e}", file=sys.stderr)
         return _EXIT_ERROR
@@ -127,10 +147,7 @@ def _publish(args, deps) -> int:
     print(f"snapshot {report.snapshot_id} [{report.model}] {verb}: {len(report.paths)} files in {report.publish_dir} "
           f"({report.n_headline_guidelines} guidelines; skipped {report.n_skipped_excluded} excluded, "
           f"{report.n_skipped_superseded} superseded; {report.n_duplicates_removed} duplicates removed)")
-    _print_list("warning: PDF changed since its run (re-extract with add --force)", report.pdf_changed)
-    if report.n_unjudged_pairs:
-        print(f"warning: {report.n_unjudged_pairs} screened duplicate pairs have no verdict; both copies kept "
-              "(adjudicate them: scripts/paper1_dedup_adjudicate.py)")
+    print(f"release {report.release_id} ({report.release_outcome.value})")
     return _EXIT_OK
 
 
@@ -162,6 +179,9 @@ def _add(args, deps) -> int:
     if report.status == pipeline.AddStatus.FAILED:
         print(f"error: {report.error}", file=sys.stderr)
         return _EXIT_ERROR
+    if args.no_publish:
+        print(f"staged; publish with: publish --snapshot {report.snapshot_id}")
+        return _EXIT_OK
 
     # add = ingest, then re-publish that snapshot (never a pending candidate)
     return _publish(argparse.Namespace(command="publish", accept_regression=None, snapshot=report.snapshot_id,
@@ -174,11 +194,20 @@ def _reject(args, deps) -> int:
     return _EXIT_OK
 
 
+def _rebind_pdf(args, deps) -> int:
+    report = pipeline.rebind_pdf(deps, args.pdf)
+    print(f"{report.doi}: {report.status.value} (snapshot {report.snapshot_id}) "
+          f"{(report.old_sha256 or 'none')[:_SHA_PREFIX]} → {report.new_sha256[:_SHA_PREFIX]}")
+    return _EXIT_OK
+
+
 def _status(args, deps) -> int:
-    r = pipeline.status(deps)
+    target = pipeline.StatusTarget.PUBLISHED if args.published else pipeline.StatusTarget.LATEST
+    check = pipeline.StatusCheck.ON if args.check else pipeline.StatusCheck.OFF
+    r = pipeline.status(deps, target, check)
     if r.snapshot_id is None:
-        print("no snapshot")
-        return _EXIT_OK
+        print("no published snapshot" if args.published else "no snapshot")
+        return _EXIT_ERROR if args.check else _EXIT_OK
 
     print(f"snapshot {r.snapshot_id}: {r.state.value}  model {r.model}  version {r.extractor_version_id[:12]}")
     print(f"  members {r.n_members}, excluded {len(r.excluded)}, pending {len(r.pending)}")
@@ -193,12 +222,21 @@ def _status(args, deps) -> int:
     _print_list("slow", [f"{d}: {s / 60:.0f} min" for d, s in r.slow])
     _print_list("outliers", [f"{d}: {why}" for d, why in r.outliers])
     _print_list("coverage gaps", r.coverage_gaps)
-    _print_list("PDF changed since its run (re-extract with add --force)", r.pdf_changed)
-    return _EXIT_OK
+    _print_list("PDF changed since its run (restore it, rebind-pdf, or add --force)", r.pdf_changed)
+    print(f"  editions: current {r.n_current}, superseded {r.n_superseded}")
+    print(f"  release: {r.release_id or 'none'}")
+    if not args.check:
+        return _EXIT_OK
+
+    print(f"  unresolved duplicate pairs: {_count_or_na(r.n_unresolved_pairs)}")
+    print(f"  not yet assigned to a theme (warning): {_count_or_na(r.n_unassigned)}")
+    _print_list("BLOCKERS", r.blockers)
+    print("check: " + ("failed" if r.blockers else "clean"))
+    return _EXIT_ERROR if r.blockers else _EXIT_OK
 
 
 _COMMANDS = {"snapshot": _snapshot, "validate": _validate, "publish": _publish, "reject": _reject,
-             "add": _add, "status": _status}
+             "add": _add, "rebind-pdf": _rebind_pdf, "status": _status}
 
 
 # ── wiring ──────────────────────────────────────────────────────
@@ -210,7 +248,9 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--pdf-dir", default=_DEFAULT_PDF_DIR)
     parser.add_argument("--themes", default=_DEFAULT_THEMES, help="theme assignments for the theme figure")
     parser.add_argument("--dedup-verdicts", default=_DEFAULT_DEDUP_VERDICTS,
-                        help="duplicate verdicts applied by publish; screened pairs without one keep both copies")
+                        help="verdict ledger applied by publish; a screened pair without a verdict blocks it")
+    parser.add_argument("--candidates", default=_DEFAULT_CANDIDATES, help="must include exactly the manifest DOIs")
+    parser.add_argument("--search", default=_DEFAULT_SEARCH, help="search window recorded in the release")
     commands = parser.add_subparsers(dest="command", required=True)
 
     snap = commands.add_parser("snapshot", help="extract every manifest guideline with one version")
@@ -240,8 +280,14 @@ def _parser() -> argparse.ArgumentParser:
     add = commands.add_parser("add", help="extract one new guideline with the published version, then publish")
     add.add_argument("pdf")
     add.add_argument("--force", action="store_true", help="extract again even if already present")
+    add.add_argument("--no-publish", action="store_true", help="ingest only; publish later with publish --snapshot")
 
-    commands.add_parser("status", help="progress, ETA, failures, outliers, coverage")
+    rebind = commands.add_parser("rebind-pdf", help="accept new PDF bytes that give the model the same prompts")
+    rebind.add_argument("pdf")
+
+    stat = commands.add_parser("status", help="progress, ETA, failures, outliers, coverage")
+    stat.add_argument("--published", action="store_true", help="the published snapshot, even while one builds")
+    stat.add_argument("--check", action="store_true", help="run every publication gate; exit 1 on a blocker")
     return parser
 
 
@@ -259,6 +305,11 @@ def _deps(args, store: Store) -> pipeline.PipelineDeps:
         publish_dir=_PUBLISH_DIR,
         themes_path=args.themes,
         dedup_verdicts_path=args.dedup_verdicts,
+        candidates_path=args.candidates,
+        search_path=args.search,
+        release_archive_dir=_RELEASE_ARCHIVE,
+        prompt_hashes=prompt_hashes,
+        rebind_log_path=_REBIND_LOG,
     )
 
 
@@ -302,6 +353,25 @@ def _print_metrics(label: str, m) -> None:
     print(f"    strength {_fmt(m.strength_accuracy)}  certainty {_fmt(m.certainty_accuracy)}  "
           f"combined {_fmt(m.combined_accuracy)} {_fmt_ci(m.combined_ci)}")
     print(f"    ungraded P {_fmt(m.ungraded_precision)}  R {_fmt(m.ungraded_recall)}")
+
+
+def _count_or_na(n: Optional[int]) -> str:
+    return "n/a" if n is None else str(n)
+
+
+def _print_review(e: pipeline.UnresolvedDuplicatesError, args) -> None:
+    """The pairs to judge and the exact follow-up commands; the public outputs were not touched."""
+    print(f"needs review: {e}", file=sys.stderr)
+    _print_list("pairs (doi rows a, b)", [f"{p.doi} rows {p.ordinal_a}, {p.ordinal_b}" for p in e.pairs])
+    dois = " ".join(sorted({p.doi for p in e.pairs}))
+    judge_files = [os.path.join(_JUDGE_DIR, f"live-{m.replace(':', '-')}.csv") for m in JUDGE_MODELS]
+    print("  next:")
+    for model, out in zip(JUDGE_MODELS, judge_files):
+        print(f"    uv run python scripts/paper1_dedup_adjudicate.py --db {args.db} --manifest {args.manifest} "
+              f"--snapshot {e.snapshot_id} --ledger {args.dedup_verdicts} --dois {dois} --model {model} --out {out}")
+    print(f"    uv run python scripts/paper1_dedup_consensus.py --first {judge_files[0]} --second {judge_files[1]} "
+          f"--out {args.dedup_verdicts}")
+    print(f"    uv run python -m evident publish --snapshot {e.snapshot_id}")
 
 
 def _print_list(title: str, items: list[str]) -> None:

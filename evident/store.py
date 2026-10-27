@@ -501,6 +501,40 @@ class Store:
         ).fetchall()
         return [self._run_from_row(r) for r in rows]
 
+    def llm_calls(self, run_id: int) -> list[LlmCall]:
+        """Every model call of a run, in call order; raw_text included."""
+        rows = self._conn.execute(
+            """SELECT chunk_id, prompt_sha256, raw_text, sample_idx, seed, prompt_tokens, eval_tokens, duration_ms
+               FROM llm_call WHERE run_id = ? ORDER BY id""",
+            (run_id,),
+        ).fetchall()
+        return [LlmCall(**dict(r)) for r in rows]
+
+    def rebind_pdf(self, guideline_id: int, run_id: int, pdf_path: str, pdf_sha256: str) -> None:
+        """New PDF bytes for a guideline and its active run, proven to give the model the same prompts."""
+        clash = self._conn.execute(
+            "SELECT doi FROM guideline WHERE pdf_sha256 = ? AND id != ?", (pdf_sha256, guideline_id),
+        ).fetchone()
+        if clash:
+            row = self._conn.execute("SELECT doi FROM guideline WHERE id = ?", (guideline_id,)).fetchone()
+            raise DuplicatePdfError(clash["doi"], row["doi"] if row else str(guideline_id))
+
+        with self._transaction():
+            self._conn.execute("UPDATE guideline SET pdf_path = ?, pdf_sha256 = ? WHERE id = ?",
+                               (pdf_path, pdf_sha256, guideline_id))
+            cur = self._conn.execute("UPDATE extraction_run SET pdf_sha256 = ? WHERE id = ? AND guideline_id = ?",
+                                     (pdf_sha256, run_id, guideline_id))
+            if cur.rowcount == 0:
+                raise NotFoundError(f"Run {run_id} of guideline {guideline_id} does not exist")
+
+    def backup(self, path: str) -> None:
+        """A consistent copy of the live DB (SQLite backup API); copying a WAL-mode file is not."""
+        dest = sqlite3.connect(path)
+        try:
+            self._conn.backup(dest)
+        finally:
+            dest.close()
+
     def recommendations(self, run_id: int) -> list[RawRecommendation]:
         rows = self._conn.execute(
             """SELECT ordinal, text, raw_strength, raw_certainty, raw_category, page, chunk_id

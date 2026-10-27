@@ -8,12 +8,15 @@
     (every search hit, with an include/exclude decision; curation record for the supplement)
 
     corpus/themes/assignments.csv ──load_theme_assignments──▶ {rec key: theme} (frozen, for the theme figure)
+
+    corpus/search.json ──load_search_window──▶ SearchWindow (start, cutoff), written by scripts/search_guidelines.py
 """
 
 from __future__ import annotations
 
 import csv
 import hashlib
+import json
 import os
 import re
 from dataclasses import dataclass, field
@@ -36,6 +39,8 @@ _REQUIRED_COLUMNS = ("doi", "society", "year", "title", "topic_id", "grading_fam
 _OPTIONAL_COLUMNS = ("supersedes_doi", "pdf_filename")
 _JOINT_COLUMN = "joint_with"  # may be absent from the header
 _JOINT_SEPARATOR = ";"
+
+_SEARCH_KEYS = ("start", "cutoff")  # corpus/search.json, ISO dates
 
 _THEME_COLUMNS = ("key", "doi", "society", "method", "phrase", "theme")
 _CANDIDATE_COLUMNS = ("doi", "society", "year", "title", "journal", "pmid", "source", "decision", "reason",
@@ -91,6 +96,13 @@ class Candidate:
     duplicate_of: Optional[str]
     source: str = ""  # search query that found it first, e.g. "pubmed_broad"
     line: int = 0
+
+
+@dataclass(frozen=True)
+class SearchWindow:
+    """First and last publication date the literature search covered; the cutoff is not the publication date."""
+    start: date
+    cutoff: date
 
 
 @dataclass
@@ -172,6 +184,26 @@ def load_theme_assignments(path: str) -> dict[str, str]:
     if problems:
         raise ManifestError(problems)
     return out
+
+
+def load_search_window(path: str) -> SearchWindow:
+    """corpus/search.json, e.g. {"start": "2016-01-01", "cutoff": "2026-10-04"}; a cutoff after today is an error."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        window = SearchWindow(*(date.fromisoformat(data[k]) for k in _SEARCH_KEYS))
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        raise ManifestError([f"{path}: no valid search window ({type(e).__name__}: {e})"])
+
+    if window.cutoff > date.today() or window.start > window.cutoff:
+        raise ManifestError([f"{path}: search window {window.start}..{window.cutoff} is not in the past"])
+    return window
+
+
+def write_search_window(path: str, window: SearchWindow) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump({k: getattr(window, k).isoformat() for k in _SEARCH_KEYS}, f, indent=2)
+        f.write("\n")
 
 
 def check_candidates(candidates: list[Candidate], entries: list[ManifestEntry]) -> None:

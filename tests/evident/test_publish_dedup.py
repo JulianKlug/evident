@@ -1,4 +1,4 @@
-"""Live publish applies the frozen duplicate verdicts, like publish --package; unjudged pairs keep both copies.
+"""Live publish applies the duplicate verdicts, like publish --package; an unjudged pair blocks it (M5).
 
     World (b: 3 recs) ─snapshot─validate─▶ plant a copy of b row 0 as row 3 ─▶ publish(verdicts) ─▶ out/
 """
@@ -10,7 +10,16 @@ import os
 import sqlite3
 
 from evident.dedup import Verdict, write_adjudications
-from evident.pipeline import SnapshotStart, duplicate_candidates, publish, snapshot, validate
+import pytest
+
+from evident.pipeline import (
+    SnapshotStart,
+    UnresolvedDuplicatesError,
+    duplicate_candidates,
+    publish,
+    snapshot,
+    validate,
+)
 from tests.evident.pipeline_fakes import CONFIG, GUIDELINES, World
 from tests.legacy_golden import FakeEncoder
 
@@ -64,16 +73,17 @@ def test_publish_removes_judged_duplicates(tmp_path):
     report = publish(deps)
 
     assert _esicm_graded(world) == "4"  # b 3 + c 1; the copy is gone
-    assert (report.n_duplicates_removed, report.n_unjudged_pairs) == (1, 0)
+    assert report.n_duplicates_removed == 1
 
 
-def test_publish_keeps_both_copies_of_an_unjudged_pair(tmp_path):
+def test_publish_refuses_an_unjudged_pair(tmp_path):
     world = _world(tmp_path)
     deps = dataclasses.replace(world.deps(), dedup_verdicts_path=_verdicts(world, skip_planted=True))
-    report = publish(deps)
 
-    assert _esicm_graded(world) == "5"
-    assert (report.n_duplicates_removed, report.n_unjudged_pairs) == (0, 1)
+    with pytest.raises(UnresolvedDuplicatesError) as err:
+        publish(deps)
+    assert [(p.doi, p.ordinal_a, p.ordinal_b) for p in err.value.pairs] == [_PLANTED]
+    assert not os.path.exists(world.headline)
 
 
 def test_publish_without_verdicts_keeps_every_copy(tmp_path):
@@ -81,7 +91,7 @@ def test_publish_without_verdicts_keeps_every_copy(tmp_path):
     report = publish(world.deps())
 
     assert _esicm_graded(world) == "5"
-    assert (report.n_duplicates_removed, report.n_unjudged_pairs) == (0, 0)
+    assert report.n_duplicates_removed == 0
 
 
 def test_dashboard_shows_the_deduplicated_validation(tmp_path):

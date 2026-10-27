@@ -1,19 +1,25 @@
 """Fakes for pipeline and E2E tests: tmp manifest + PDFs, canned runner, fixed probe, small labelled set.
 
     World(tmp) ──deps()──▶ PipelineDeps(store=tmp DB, runner=FakeRunner, probe=FakeProbe, ...)
+    LiveWorld(tmp) ──live()──▶ + candidates, search window, verdict ledger, release archive (M5)
 """
 
 from __future__ import annotations
 
+import csv
+import dataclasses
+import json
 import os
 from dataclasses import replace
 from typing import Optional
 
 import pandas as pd
 
+from evident.dedup import Verdict, merge_rows, read_verdict_rows, write_adjudications
 from evident.domain import Category, GradingFamily, LlmCall, RawRecommendation, ThinkingMode
 from evident.extraction import Artifacts, ExtractionMode, ExtractionOutput, ExtractorConfig, FewShotMode
-from evident.pipeline import PipelineDeps
+from evident.corpus import file_sha256
+from evident.pipeline import PipelineDeps, duplicate_candidates
 from evident.store import Store
 from evident.validation import GtRow, LabelledGuideline
 from tests.legacy_golden import FakeEncoder
@@ -48,8 +54,18 @@ GUIDELINES = {
         ("We recommend active cooling for patients with exertional heat stroke", "strong", "moderate"),
         ("We suggest against dantrolene for heat stroke", "conditional", "very low"),
     ]),
+    "10.1000/f": ("ESICM", 2026, "topic-f", [  # M5: a late guideline whose summary list repeats a statement
+        ("We suggest prone positioning in severe ARDS", "conditional", "moderate"),
+        ("We recommend lung protective ventilation in ARDS", "strong", "high"),
+        ("We suggest prone positioning in severe ARDS (conditional recommendation)", "conditional", "moderate"),
+    ]),
 }
 LABELLED_DOIS = ("10.1000/a", "10.1000/b")
+
+# Re-downloaded PDF bytes (M5 rebind-pdf), appended to a fake PDF; fake_prompt_hashes reads them
+META_ONLY = b" %meta re-downloaded"              # bytes change, extracted text does not
+TEXT_CHANGE = b" TEXT downloaded on 2026-10-25"  # a visible stamp: the prompt changes
+EXTRA_PAGE = b" PAGES"                           # one more chunk
 
 
 class FakeRunner:
@@ -132,6 +148,82 @@ class World:
             runner=runner or self.runner, probe=self.probe, labelled=labelled,
             similarity_model=FakeEncoder(), code_sha=lambda: "sha1", publish_dir=self.publish_dir,
         )
+
+
+_CANDIDATE_HEADER = ["doi", "society", "year", "title", "journal", "pmid", "source", "decision", "reason",
+                     "duplicate_of"]
+def fake_prompt_hashes(cfg, pdf_path, doi) -> dict[int, str]:
+    """FakeRunner's single chunk has prompt hash "p"; marker bytes stand for a text or page change."""
+    with open(pdf_path, "rb") as f:
+        body = f.read()
+    if TEXT_CHANGE.strip() in body:
+        return {0: "q"}
+    if EXTRA_PAGE.strip() in body:
+        return {0: "p", 1: "p"}
+    return {0: "p"}
+
+
+class LiveWorld(World):
+    """World plus the live inputs the CLI passes: candidates, search window, verdict ledger, release archive."""
+
+    def __init__(self, tmp_path, runner=None):
+        super().__init__(tmp_path, runner=runner)
+        self.candidates = os.path.join(self.root, "candidates.csv")
+        self.search = os.path.join(self.root, "search.json")
+        self.ledger = os.path.join(self.root, "live_verdicts.csv")
+        self.archive = os.path.join(self.root, "releases")
+        self.rebind_log = os.path.join(self.root, "pdf_rebinds.csv")
+        with open(self.search, "w") as f:
+            json.dump({"start": "2016-01-01", "cutoff": "2026-10-04"}, f)
+        write_adjudications(self.ledger, [])
+        self.write_candidates()
+
+    def add_guideline(self, doi: str, **row) -> None:
+        """A curated guideline: manifest row and included candidate, PDF in the PDF dir."""
+        self.add_row(doi, **row)
+        self.write_candidates()
+
+    def write_candidates(self, extra: tuple[str, ...] = ()) -> None:
+        with open(self.candidates, "w", newline="") as f:
+            w = csv.writer(f, lineterminator="\n")
+            w.writerow(_CANDIDATE_HEADER)
+            for doi in [*self.dois, *extra]:
+                society, year = GUIDELINES[doi][:2]
+                w.writerow([doi, society, year, f"Title {doi}", "J", "", "pubmed", "include", "", ""])
+
+    def live(self, runner=None):
+        return dataclasses.replace(
+            self.deps(runner), candidates_path=self.candidates, search_path=self.search,
+            dedup_verdicts_path=self.ledger, release_archive_dir=self.archive, prompt_hashes=fake_prompt_hashes,
+            rebind_log_path=self.rebind_log)
+
+    def judge(self, snapshot_id: int, duplicates=()) -> None:
+        """Both judges agree: the listed pairs are duplicates, every other unjudged screened pair distinct."""
+        pairs = duplicate_candidates(self.store, snapshot_id, self.manifest, FakeEncoder())
+        new = [(p, Verdict.DUPLICATE if (p.doi, p.ordinal_a, p.ordinal_b) in duplicates else Verdict.DISTINCT,
+                "reason", "m1+m2", "d1+d2") for p in pairs]
+        write_adjudications(self.ledger, merge_rows(read_verdict_rows(self.ledger), new))
+
+    def output_hashes(self) -> dict[str, str]:
+        out = {}
+        for root, _, files in os.walk(self.publish_dir):
+            for name in files:
+                path = os.path.join(root, name)
+                out[os.path.relpath(path, self.publish_dir)] = file_sha256(path)
+        return out
+
+    def pdf(self, doi: str) -> str:
+        return os.path.join(self.pdf_dir, doi_to_filename(doi))
+
+    def append_to_pdf(self, doi: str, marker: bytes, directory: str = None) -> str:
+        """The PDF re-downloaded with `marker` in it; in the PDF dir unless another directory is given."""
+        with open(self.pdf(doi), "rb") as f:
+            body = f.read()
+        path = os.path.join(directory, doi_to_filename(doi)) if directory else self.pdf(doi)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as f:
+            f.write(body + marker)
+        return path
 
 
 def write_heldout_xlsx(directory: str, doi: str, rows: list[tuple], sheet: str = "labels") -> str:

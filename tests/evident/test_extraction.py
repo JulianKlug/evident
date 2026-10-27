@@ -221,3 +221,31 @@ class TestRun:
         assert (seen["seed"], seen["think"], seen["adaptive_threshold"], seen["normalize"]) == (
             4, ThinkMode.ON, False, False)
         assert seen["similarity_model"] is encoder and seen["n_samples"] == 3
+
+
+class TestPromptHashes:
+    """rebind-pdf rebuilds the prompts run() sends, without a model (M5 spec §4.2.6)."""
+
+    def _no_model(self, monkeypatch):
+        def refuse(model):
+            raise AssertionError("model client created")
+        monkeypatch.setattr(ex, "OllamaClient", refuse)
+
+    def test_single_pass_matches_the_run(self, acp, monkeypatch):
+        out = ex.run(acp["cfg"], acp["pdf"], _DOI, Models(similarity=None))
+        self._no_model(monkeypatch)
+
+        assert ex.prompt_hashes(acp["cfg"], acp["pdf"], _DOI) == {c.chunk_id: c.prompt_sha256 for c in out.calls}
+
+    def test_self_consistency_matches_every_sample(self, acp, monkeypatch):
+        cfg = dataclasses.replace(acp["cfg"], mode=ExtractionMode.SELF_CONSISTENCY)
+        out = ex.run(cfg, acp["pdf"], _DOI, Models(similarity=FakeEncoder()))
+        self._no_model(monkeypatch)
+
+        rebuilt = ex.prompt_hashes(cfg, acp["pdf"], _DOI)
+        assert {c.sample_idx for c in out.calls} == {0, 1, 2}
+        assert all(rebuilt[c.chunk_id] == c.prompt_sha256 for c in out.calls)
+
+    def test_missing_pdf(self, tmp_path):
+        with pytest.raises(PdfMissingError):
+            ex.prompt_hashes(_CFG, str(tmp_path / "missing.pdf"), _DOI)
