@@ -19,8 +19,11 @@ from evident.dedup import (
     score_human_check,
     lexical_ratio,
     load_adjudications,
+    merge_rows,
+    read_verdict_rows,
     remap_ordinals,
     removed_rows,
+    resolve,
     screen,
     write_adjudications,
 )
@@ -82,7 +85,8 @@ class TestAdjudicationFile:
         path = str(tmp_path / "verdicts.csv")
         pair = CandidatePair("d", 0, 1, 0.9, 0.95, "a", "b")
         write_adjudications(path, [(pair, Verdict.DUPLICATE, "restated", "m", "digest")])
-        assert load_adjudications(path) == [Adjudication("d", 0, 1, Verdict.DUPLICATE, "restated", "m")]
+        assert load_adjudications(path) == [Adjudication("d", 0, 1, Verdict.DUPLICATE, "restated", "m", "a", "b")]
+        assert read_verdict_rows(path) == [(pair, Verdict.DUPLICATE, "restated", "m", "digest")]
 
     def test_complete_when_every_screened_pair_has_a_verdict(self):
         pairs = [CandidatePair("d", 0, 1, 0.9, 0.9, "a", "b")]
@@ -218,3 +222,49 @@ class TestHumanCheck:
         rows = [_row("d", 0), _row("d", 1)]
         check = score_human_check([HumanLabel("d", 0, 1, "merged", False)], rows, {("d", 1): 0})
         assert (check.n_agree, check.n_false_merge, check.agree_ci_low) == (0, 1, 0.0)
+
+
+class TestLiveLedger:
+    """M5: a verdict applies only to the texts judged; the ledger only grows."""
+
+    _PAIR = CandidatePair("d", 0, 3, 0.9, 0.9, "We suggest X", "We suggest X (weak)")
+
+    def _verdict(self, pair=_PAIR, verdict=Verdict.DUPLICATE):
+        return Adjudication(pair.doi, pair.ordinal_a, pair.ordinal_b, verdict, "r", "m", pair.text_a, pair.text_b)
+
+    def test_verdict_for_the_same_texts_applies(self):
+        applicable, unresolved = resolve([self._PAIR], [self._verdict()])
+        assert (applicable, unresolved) == ([self._verdict()], [])
+
+    def test_same_ordinals_other_text_is_unresolved(self):
+        reworded = CandidatePair("d", 0, 3, 0.9, 0.9, "We suggest X", "We recommend Y")
+        applicable, unresolved = resolve([reworded], [self._verdict()])
+        assert (applicable, unresolved) == ([], [reworded])
+
+    def test_whitespace_is_a_different_text(self):
+        spaced = CandidatePair("d", 0, 3, 0.9, 0.9, "We suggest  X", "We suggest X (weak)")
+        assert resolve([spaced], [self._verdict()])[1] == [spaced]
+
+    def test_two_verdicts_for_the_same_texts(self):
+        with pytest.raises(DedupVerdictError, match="2 verdicts"):
+            resolve([self._PAIR], [self._verdict(), self._verdict(verdict=Verdict.DISTINCT)])
+
+    def test_merge_keeps_history_and_adds_new_pairs(self):
+        reworded = CandidatePair("d", 0, 3, 0.9, 0.9, "We suggest X", "We recommend Y")
+        old = [(self._PAIR, Verdict.DUPLICATE, "r", "m", "dg")]
+        merged = merge_rows(old, [(reworded, Verdict.DISTINCT, "r", "m", "dg"),
+                                  (self._PAIR, Verdict.DUPLICATE, "r2", "m", "dg")])
+        assert [(r[0], r[1]) for r in merged] == [(self._PAIR, Verdict.DUPLICATE), (reworded, Verdict.DISTINCT)]
+
+    def test_merge_refuses_a_flipped_verdict(self):
+        with pytest.raises(DedupVerdictError, match="ledger says duplicate"):
+            merge_rows([(self._PAIR, Verdict.DUPLICATE, "r", "m", "dg")],
+                       [(self._PAIR, Verdict.DISTINCT, "r", "m", "dg")])
+
+
+def test_consensus_refuses_judges_of_different_texts():
+    first = Adjudication("d", 0, 1, Verdict.DUPLICATE, "r", "q", "We suggest X", "We suggest X (weak)")
+    second = Adjudication("d", 0, 1, Verdict.DUPLICATE, "r", "g", "We suggest X", "We recommend Y")  # stale run
+
+    with pytest.raises(DedupVerdictError, match="judged different texts"):
+        consensus([first], [second])

@@ -21,6 +21,7 @@ from evident.validation import (
     load_spotcheck,
     score,
 )
+from tests.conftest import needs_local_data
 from tests.evident.pipeline_fakes import write_heldout_xlsx
 from tests.legacy_golden import FakeEncoder
 
@@ -131,6 +132,7 @@ class TestGate:
             gate(_scores(), other)
 
 
+@needs_local_data
 def test_load_labelled_real_data():
     labelled = load_labelled()
     assert len(labelled) == 12

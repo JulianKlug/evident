@@ -11,7 +11,7 @@
 - **Joint SCCM–ESICM sensitivity analysis:** only if a reviewer asks.
 
 ## M5: living map
-- **Adjudicate new duplicate pairs on `add`:** `publish` keeps both copies of a screened pair without a verdict and warns; run both judges (`scripts/paper1_dedup_adjudicate.py`) on new runs and extend the verdict file.
+- **M5 exit demonstration:** add one genuinely eligible guideline published after the 2026-10-04 cutoff (ACP menopause 2026 once screened) with `docs/runbook.md` procedure A; record it in `docs/progress.md`.
 - **Host the dashboard publicly**, after approval (spec §10).
 
 ## Discordance analytics

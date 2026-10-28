@@ -8,11 +8,13 @@
         ▼
     corpus/candidates.csv: existing rows keep their decision; new hits are appended undecided,
     tagged with the query that found them first
+    corpus/search.json: the window searched (start, cutoff); live publish records it in the release
 
 A human then sets decision (include/exclude) and reason per row (spec M3 §4.1–4.3).
 
 Usage:
     python scripts/search_guidelines.py [--email YOU@ORG] [--until 2026-10-04] [--out corpus/candidates.csv]
+        [--search-out corpus/search.json]
 
 Never imports extraction.pdf_loader (its DOI fallback reaches Sci-Hub).
 """
@@ -35,9 +37,11 @@ from typing import Optional
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from evident.corpus import SearchWindow, write_search_window  # noqa: E402
 from utils.doi import normalize_doi  # noqa: E402
 
 _DEFAULT_OUT = "corpus/candidates.csv"
+_DEFAULT_SEARCH_OUT = "corpus/search.json"
 _EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
 _TOOL = "evident"
 _START_DATE = "2016/01/01"
@@ -171,6 +175,7 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--until", type=lambda v: datetime.strptime(v, _DATE_FORMAT).date(), default=date.today(),
                         help="last publication date searched (default: today); reproduces a past search")
     parser.add_argument("--out", default=_DEFAULT_OUT)
+    parser.add_argument("--search-out", default=_DEFAULT_SEARCH_OUT, help="search window file live publish reads")
     return parser.parse_args(argv)
 
 
@@ -189,7 +194,10 @@ def main(argv: Optional[list[str]] = None) -> int:
     existing = read_rows(args.out)
     rows = merge(existing, all_hits)
     write_rows(rows, args.out)
-    print(f"{args.out}: {len(rows)} rows ({len(rows) - len(existing)} new), searched until {args.until:%Y-%m-%d}")
+    start = datetime.strptime(_START_DATE, "%Y/%m/%d").date()
+    write_search_window(args.search_out, SearchWindow(start, args.until))
+    print(f"{args.out}: {len(rows)} rows ({len(rows) - len(existing)} new), searched until {args.until:%Y-%m-%d} "
+          f"→ {args.search_out}")
     return 0
 
 

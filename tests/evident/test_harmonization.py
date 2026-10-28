@@ -8,6 +8,7 @@ import pytest
 from evident.domain import AxisStatus, Category, Certainty, Direction, GradingFamily, Strength
 from evident.harmonization import UnsupportedGradingFamilyError, harmonize
 from extraction.datasets import GtMode, load_acp_datasets, load_icu_datasets
+from tests.conftest import HAS_LOCAL_DATA, needs_local_data
 
 _EXPECTED_CSV = os.path.join(os.path.dirname(__file__), "..", "fixtures", "harmonization_gt_expected.csv")
 _N_GT_ROWS = 48  # ACP 29 + ICU 19 (2 ESICM part 2 trauma recs added 2026-10-03)
@@ -43,14 +44,16 @@ def _assert_invariant(h):
     assert (h.certainty_status == M) == (h.certainty is not None)
 
 
-GT_ROWS = _gt_rows()
+GT_ROWS = _gt_rows() if HAS_LOCAL_DATA else []
 
 
+@needs_local_data
 def test_every_gt_row_has_an_expectation():
     assert len(GT_ROWS) == _N_GT_ROWS
     assert {r[0] for r in GT_ROWS} == set(_expected())
 
 
+@needs_local_data
 @pytest.mark.parametrize("key, raw_class, raw_loe, text, category", GT_ROWS, ids=[r[0] for r in GT_ROWS])
 def test_gt_row(key, raw_class, raw_loe, text, category):
     h = harmonize(raw_class, raw_loe, text, category, GradingFamily.GRADE)

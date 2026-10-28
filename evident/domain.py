@@ -82,7 +82,7 @@ class Guideline:
     title: str
     topic_id: str
     grading_family: GradingFamily
-    supersedes_doi: Optional[str] = None
+    supersedes_doi: Optional[str] = None  # ";"-separated when it replaces several editions
     pdf_path: Optional[str] = None
     pdf_sha256: Optional[str] = None
     added_at: Optional[str] = None  # set by the store on insert

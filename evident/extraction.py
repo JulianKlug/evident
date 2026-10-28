@@ -5,6 +5,7 @@
           └───────────────────────────────▶ version_for ──▶ ExtractorVersion (id = sha256)
 
     run(cfg, pdf, doi, models) ──▶ extract_guideline | self_consistency_extract ──▶ ExtractionOutput
+    prompt_hashes(cfg, pdf, doi) ──▶ {chunk id: prompt SHA-256}, the same prompts run() sends; no LLM (rebind-pdf)
 
 The only evident module, with validation, that imports legacy extraction code.
 """
@@ -22,7 +23,7 @@ from evaluation.grading import GRADE
 from evident.domain import Category, ExtractorVersion, LlmCall, RawRecommendation, ThinkingMode
 from extraction.datasets import get_few_shot_examples, load_acp_datasets, load_icu_datasets
 from extraction.deduplication import DedupKey
-from extraction.extractor import CallRecord, extract_guideline
+from extraction.extractor import CallRecord, chunk_prompt_hashes, extract_guideline
 from extraction.llm_client import OllamaClient, ThinkMode
 from extraction.prompts import PromptStrategy, PromptVersion, build_prompt
 from extraction.self_consistency import self_consistency_extract
@@ -219,9 +220,7 @@ def run(cfg: ExtractorConfig, pdf_path: str, target_doi: str, models: Models) ->
     if not os.path.isfile(pdf_path):
         raise PdfMissingError(pdf_path)
 
-    examples = []
-    if cfg.few_shot == FewShotMode.FEW_SHOT:
-        examples = get_few_shot_examples(GRADE, cfg.n_examples, exclude_doi=target_doi, seed=cfg.few_shot_seed)
+    examples = _examples(cfg, target_doi)
     strategy = _strategy(cfg, examples)
 
     client = OllamaClient(model=cfg.model)
@@ -253,9 +252,24 @@ def run(cfg: ExtractorConfig, pdf_path: str, target_doi: str, models: Models) ->
     )
 
 
+def prompt_hashes(cfg: ExtractorConfig, pdf_path: str, target_doi: str) -> dict[int, str]:
+    """{chunk id: SHA-256 of the prompt run() would send for it}, built without calling the model."""
+    if not os.path.isfile(pdf_path):
+        raise PdfMissingError(pdf_path)
+    hashes = chunk_prompt_hashes(pdf_path, _strategy(cfg, _examples(cfg, target_doi)), cfg.pages_per_chunk)
+    return dict(enumerate(hashes))
+
+
 def prompt_template(cfg: ExtractorConfig, examples: list[dict]) -> str:
     """The extraction prompt as sent per page, with a placeholder for the page text (paper supplement)."""
     return build_prompt(_PAGE_PLACEHOLDER, _strategy(cfg, examples))
+
+
+def _examples(cfg: ExtractorConfig, target_doi: str) -> list[dict]:
+    """Seeded few-shot draw without the target guideline; [] for zero-shot."""
+    if cfg.few_shot != FewShotMode.FEW_SHOT:
+        return []
+    return get_few_shot_examples(GRADE, cfg.n_examples, exclude_doi=target_doi, seed=cfg.few_shot_seed)
 
 
 def _strategy(cfg: ExtractorConfig, examples: list[dict]) -> PromptStrategy:

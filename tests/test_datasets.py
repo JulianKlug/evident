@@ -13,8 +13,10 @@ from extraction.datasets import (
     GtMode,
 )
 from evaluation.grading import GRADE, ABCD_123, ESC_ERS
+from tests.conftest import needs_local_data
 
 
+@needs_local_data
 class TestLoadACPDatasets:
     def test_loads_datasets(self):
         datasets = load_acp_datasets()
@@ -29,6 +31,7 @@ class TestLoadACPDatasets:
             assert ds.doi
 
 
+@needs_local_data
 class TestLoadERSDatasets:
     def test_loads_datasets(self):
         datasets = load_ers_datasets()
@@ -57,6 +60,7 @@ class TestLoadERSDatasets:
                     f"Roman numeral LOE not normalized: '{loe}' in {ds.key}"
 
 
+@needs_local_data
 class TestLoadICUDatasets:
     def test_loads_datasets(self):
         datasets = load_icu_datasets()
@@ -82,6 +86,7 @@ class TestLoadICUDatasets:
                     f"Unnormalized grade: '{c}' in {ds.key}"
 
 
+@needs_local_data
 class TestLoadAllDatasets:
     def test_returns_all(self):
         datasets = load_all_datasets()
@@ -91,6 +96,7 @@ class TestLoadAllDatasets:
         assert "ICU" in names
 
 
+@needs_local_data
 class TestGetFewShotExamples:
     def test_returns_examples(self):
         examples = get_few_shot_examples(GRADE, n_examples=3)
@@ -137,6 +143,7 @@ def test_icu_loader_reads_all_xlsx(tmp_path, monkeypatch):
     assert sum(len(ds.ground_truth_df) for ds in datasets) == 3
 
 
+@needs_local_data
 def test_icu_loader_real_data_counts():
     datasets = load_icu_datasets()
     assert len(datasets) == 3
@@ -147,6 +154,7 @@ def _labelled_grade_datasets():
     return load_acp_datasets() + load_icu_datasets()
 
 
+@needs_local_data
 class TestFewShotLeakageAndSeed:
     def test_no_own_gt_rows_when_excluded_by_doi(self):
         datasets = _labelled_grade_datasets()
@@ -171,6 +179,7 @@ class TestFewShotLeakageAndSeed:
         assert a != b
 
 
+@needs_local_data
 class TestGtMode:
     @pytest.mark.parametrize("loader, n_rows", [(load_acp_datasets, 29), (load_icu_datasets, 19)])
     @pytest.mark.parametrize("mode", list(GtMode))

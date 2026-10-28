@@ -120,3 +120,11 @@ def test_merge_dedups_doi_case(tmp_path):
     rows = search.merge([], [search.Hit("10.1/a", "SCCM", 2021, "x", "J", "1", "pubmed"),
                              search.Hit("10.1/a", "ESICM", 2021, "x", "J", "2", "pubmed_broad")])
     assert len(rows) == 1
+
+
+def test_main_writes_the_search_window(http, tmp_path):
+    out, window = tmp_path / "candidates.csv", tmp_path / "search.json"
+
+    assert search.main(["--until", "2026-10-04", "--out", str(out), "--search-out", str(window)]) == 0
+
+    assert json.loads(window.read_text()) == {"start": "2016-01-01", "cutoff": "2026-10-04"}

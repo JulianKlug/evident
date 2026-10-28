@@ -119,6 +119,20 @@ def _chunk_pages(
     return [text for _, text in _chunk_spans(pages, pages_per_chunk, overlap)]
 
 
+def chunk_prompt_hashes(
+    source: str,
+    strategy: PromptStrategy,
+    pages_per_chunk: int = 1,
+    output_format: str = "pipe",
+) -> list[str]:
+    """SHA-256 of each chunk's prompt, in chunk order, as extract_guideline sends them; no LLM call.
+
+    Self-consistency sends the same prompt per chunk for every sample, so this covers both modes.
+    """
+    spans = _chunk_spans(load_pdf_pages(source), pages_per_chunk=pages_per_chunk)
+    return [_prompt_sha256(build_prompt(text, strategy, output_format=output_format)) for _, text in spans]
+
+
 def extract_guideline(
     source: str,
     strategy: PromptStrategy,

@@ -8,6 +8,11 @@ from evaluation.grading import GradingScheme
 
 MATCHING_EVAL_PATH = "/mnt/data1/klug/datasets/evidence_extraction/matching_evaluation.xlsx"
 
+# Private labels and PDFs: on the GPU machine only, not in CI
+LOCAL_DATA_ROOT = "/mnt/data1/klug/datasets/evidence_extraction"
+HAS_LOCAL_DATA = os.path.isdir(LOCAL_DATA_ROOT)
+needs_local_data = pytest.mark.skipif(not HAS_LOCAL_DATA, reason=f"local data not found at {LOCAL_DATA_ROOT}")
+
 
 class FakeSimilarityModel:
     """A mock similarity model that uses simple word overlap for fast tests."""
