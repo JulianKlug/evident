@@ -136,6 +136,27 @@ Not for publication: tests the method end to end. The paper to publish (M7) cove
 **Status:** code done 2026-10-26 (`docs/specs/m5-maintenance-spec.md`, `docs/runbook.md`); live release 2026-10-27 (`0c1c6f4868a4`); exit waits for a real post-cutoff guideline (spec §7).
 
 ## M6 — Expansion to non-surgical specialties
+Infrastructure first (M6.0–M6.4), then the specialty rollout (M6.5). Input: the 2026-10-27 society survey
+(389 societies, one guideline each, grading system per society).
+
+```
+M6.0 Society registry ──▶ M6.2 Grading detection ──┐
+                                                   ├──▶ M6.4 Scheme-aware extraction ──▶ M6.5 Specialty rollout
+M6.3 Harmonization ────────────────────────────────┘                                          ▲
+M6.1 Discovery + PDF fetch ───────────────────────────────────────────────────────────────────┘
+```
+
+M6.0, M6.1 and M6.3 can run in parallel.
+
+| Sub | Spec | Exit |
+|-----|------|------|
+| M6.0 Society registry + gold set | `docs/specs/m6-0-society-registry.md` | `corpus/societies.csv` and a human-verified grading system per society |
+| M6.1 Discovery + PDF fetch | `docs/specs/m6-1-discovery-and-fetch.md` | All guidelines per society searched; every missing PDF has a reason |
+| M6.2 Grading detection | `docs/specs/m6-2-grading-detection.md` | Per-guideline family suggestion meets accuracy threshold on the gold set |
+| M6.3 Harmonization | `docs/specs/m6-3-harmonization.md` | Families covering ≥73% of graded societies mapped, tested, published |
+| M6.4 Scheme-aware extraction | `docs/specs/m6-4-scheme-aware-extraction.md` | Non-GRADE F1 within 0.05 of the GRADE baseline; no GRADE regression |
+
+### M6.5 — Specialty rollout
 Order by label availability and scheme difficulty:
 
 | Step | Specialty / societies | Scheme work | Validation |
@@ -154,9 +175,9 @@ Includes guidelines from independent expert panels without a society (e.g. posit
 early mobilisation 2024, `10.1007/s00134-024-07532-2`), once the corpus covers all guidelines.
 
 Per specialty:
-1. Add a scheme mapping in harmonization, with a table test.
-2. Add manifest rows.
-3. Fetch PDFs.
+1. Confirm the scheme mapping exists (M6.3); add it if missing, with a table test.
+2. Add manifest rows (M6.1 triage), with `grading_family` confirmed from M6.2 suggestions.
+3. Fetch PDFs (M6.1).
 4. Opaque-table PDFs: use auto-vision or table-first (known case: NI9RV3E7).
 5. Run a snapshot, then validate on whatever labels exist.
 6. Mark specialties without labels "accuracy unvalidated".
