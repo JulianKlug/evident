@@ -118,4 +118,23 @@ methods text: `docs/methods_grading_harmonisation.md`.
 - Raw labels are stored unchanged and harmonized on read, so a mapping change never needs re-extraction.
 - Outputs: `recommendations.csv` / dashboard add family, scales and the alternative mapping;
   `tables/headline_sensitivity.csv` when any non-GRADE guideline is published.
-- Not done here: census regexes for M6.2 (planned next to the tables), `consensus_level` extraction (M6.4).
+- Families: `idsa` (evidence I–III; also ESCMID/ECMM, D = against) and `esmo` (I–V) are separate, so each has
+  the right default evidence scale.
+- Notation (§6): combined labels are split only where a token is no code itself ("I-A", "IIa-B", "2a-B-NR",
+  "1C", "AII"); the other axis is read only from tokens the first match left, never from a window that is a code
+  of the first axis ("Class II a" = IIa, not level A); ties between different mappings stay unmapped. Legacy
+  aliases: ESC numeric classes and the NI9RV3E7 OCR forms (ILA, LIB, ILI …), arabic IDSA quality levels.
+- Direction (all families, GRADE included): "not recommended", "cannot be recommended", "do not offer",
+  "not indicated", "avoid …", "should be avoided", German "soll/sollte … nicht" → against; "cannot be
+  recommended" with an evidence-gap clause ("insufficient evidence") → no recommendation.
+- Legacy ERS: NI9RV3E7 (ESC_ERS, 217 labelled rows) and BDYDTUHA (ABCD_123 = ESCMID SoR A–D + QoE I–III,
+  60 rows) map every row through `esc_class` and `idsa` (tests need the local data dir).
+- Coverage (§8): `corpus/grading/society_grading_survey.csv` (exported with the tables) → 277 of 284 graded
+  surveyed societies (97.5%) have both scales mapped; the 7 others are D7 systems. Counted against the survey,
+  one representative guideline per society; the exit against the M6.0 gold set stays open until it exists.
+- Provenance: `grading_tables_sha256` (all crosswalk CSVs) is a release input; a table change makes `status`
+  report the release stale.
+- Schema v5: read-only opening needs the exact schema, so the frozen v4 paper1 DB is reproduced with the code
+  at tag `paper1-freeze` (`docs/paper1/README.md`), never migrated.
+- Not done here: census regexes (M6.2), `consensus_level` extraction (M6.4), per-decision sensitivity analyses
+  (e.g. D1 or D2 alone; M7).

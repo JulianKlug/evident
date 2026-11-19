@@ -19,6 +19,7 @@ one found after dropping filler words ("class", "level", "grade", …). Ties bet
 from __future__ import annotations
 
 import csv
+import hashlib
 import os
 import re
 from dataclasses import dataclass
@@ -34,6 +35,14 @@ CROSSWALK_COLUMNS = ("scale_key", "axis", "native_code", "aliases", "native_mean
                      "alternative", "confidence", "note")
 FAMILY_COLUMNS = ("family", "strength_scale", "evidence_scale")
 DECISION_COLUMNS = ("id", "question", "rule", "alternative", "rationale")
+SURVEY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                           "corpus", "grading", "society_grading_survey.csv")
+SURVEY_COLUMNS = ("society", "name", "discipline", "region", "family", "strength_levels", "evidence_levels",
+                  "notation_example", "strength_scale", "evidence_scale", "harmonisability", "inclusion",
+                  "source_guideline", "year", "url")
+_EXCLUDED_PREFIX = "Excluded"
+_UNGRADED_SOCIETY = "Ungraded (consensus)"
+_HARMONISED = {"Full", "Full – approximate", "Partial – evidence only", "Partial – strength only"}
 WILDCARD = "*"  # the scale has no native labels: every statement gets this row (e.g. S_NONE, S_NO_GRADING)
 
 _ALIAS_SEPARATOR = "|"
@@ -46,6 +55,14 @@ _FILLER_WORDS = {"class", "level", "levels", "grade", "grades", "loe", "lor", "c
                  "recommendation", "strength", "quality", "certainty", "category", "cat", "ce", "rg", "type", "the"}
 _MINUS_SIGNS = {"−": "-", "–": "-", "‐": "-"}
 _DIGIT_LETTER = re.compile(r"^(\d)([a-d])$")  # GRADE "1c" → "1", "c"
+_LETTER_ROMAN = re.compile(r"^([a-e])(i{1,3}|iv|v)$")  # IDSA "aii" → "a", "ii"
+_FIRST_HYPHEN = re.compile(r"^([^-]+)-(.+)$")  # ESC "i-a" → "i", "a"; ACC/AHA "2a-b-nr" → "2a", "b-nr"
+
+
+class _Field(Enum):
+    """Which raw field is searched for an axis: its own, or the other axis's (combined notation)."""
+    OWN = "own"
+    OTHER = "other"
 # Panel agreement is never strength (D8): "strong consensus" must not read as "strong"
 _CONSENSUS_PATTERN = r"\b(?:very\s+|strong(?:est)?\s+|broad\s+)?consensus\b|\bagreement\b|\d+(?:\.\d+)?\s*%"
 
@@ -121,20 +138,64 @@ def match(scales: ScalePair, raw_strength: str, raw_certainty: str
           ) -> tuple[Optional[CrosswalkEntry], Optional[CrosswalkEntry]]:
     """(strength entry, evidence entry) for the raw labels; None where no code is found.
 
-    Each axis searches its own field first, then the other field, e.g. ESMO "[I, A]" extracted into
-    raw_strength only. In the other field, windows that are also codes of the other axis are skipped.
+    Each axis searches its own field first. A combined notation in one field, e.g. ESMO "[I, A]" or ESC
+    "I-A", is then searched for the other axis, but only in the tokens the first match did not use, and
+    never in a window that is also a code of the first axis: ESC "Class II a" is class IIa, not level A.
     """
     tables = _tables()
     strength_scale = _scale(tables, scales.strength, _STRENGTH_AXIS)
     evidence_scale = _scale(tables, scales.evidence, _EVIDENCE_AXIS)
+    strength_tokens, certainty_tokens = _normalize(raw_strength), _normalize(raw_certainty)
 
-    strength = _find(strength_scale, raw_strength) or _find(strength_scale, raw_certainty, evidence_scale)
+    strength_own = _find(strength_scale, strength_tokens, evidence_scale)
     if evidence_scale.codes_from_strength:
-        evidence = evidence_scale.exact.get(" ".join(_normalize(strength.native_code))) if strength else None
-        return strength, evidence
+        strength = strength_own or _find(strength_scale, certainty_tokens, evidence_scale, _Field.OTHER)
+        evidence = evidence_scale.exact.get(" ".join(_normalize(strength.entry.native_code))) if strength else None
+        return (strength.entry if strength else None), evidence
 
-    evidence = _find(evidence_scale, raw_certainty) or _find(evidence_scale, raw_strength, strength_scale)
-    return strength, evidence
+    evidence_own = _find(evidence_scale, certainty_tokens, strength_scale)
+    strength = strength_own or _find(strength_scale, _rest(evidence_own, certainty_tokens), evidence_scale,
+                                     _Field.OTHER)
+    evidence = evidence_own or _find(evidence_scale, _rest(strength_own, strength_tokens), strength_scale,
+                                     _Field.OTHER)
+    return (strength.entry if strength else None), (evidence.entry if evidence else None)
+
+
+@dataclass(frozen=True)
+class SurveyCoverage:
+    """Surveyed societies whose assigned scales the crosswalk maps (spec §8: ≥ 73% of graded societies)."""
+    n_surveyed: int
+    excluded: tuple      # survey rows (dicts), with their exclusion reason in "inclusion"
+    graded: tuple        # included and not consensus-only
+    covered: tuple
+    unsupported: tuple   # graded but not covered, with the reason in "harmonisability"
+
+    @property
+    def share(self) -> float:
+        return len(self.covered) / len(self.graded)
+
+
+def tables_sha256() -> str:
+    """One hash over the committed crosswalk CSVs: release provenance, like the manifest's (M5)."""
+    digest = hashlib.sha256()
+    for name in sorted(os.listdir(DATA_DIR)):
+        if name.endswith(".csv"):
+            digest.update(name.encode("utf-8"))
+            with open(os.path.join(DATA_DIR, name), "rb") as f:
+                digest.update(f.read())
+    return digest.hexdigest()
+
+
+def survey_coverage() -> SurveyCoverage:
+    with open(SURVEY_PATH, newline="") as f:
+        rows = list(csv.DictReader(f))
+    scales = _tables().scales
+    excluded = tuple(r for r in rows if r["inclusion"].startswith(_EXCLUDED_PREFIX))
+    graded = tuple(r for r in rows if r not in excluded and r["harmonisability"] != _UNGRADED_SOCIETY)
+    covered = tuple(r for r in graded if r["strength_scale"] in scales and r["evidence_scale"] in scales
+                    and r["harmonisability"] in _HARMONISED)
+    unsupported = tuple(r for r in graded if r not in covered)
+    return SurveyCoverage(len(rows), excluded, graded, covered, unsupported)
 
 
 def entries(scale_key: str) -> tuple:
@@ -152,6 +213,20 @@ def render_doc() -> str:
              "## Decisions", "", "| ID | Question | Rule | Alternative |", "|---|---|---|---|"]
     lines += [f"| {d['id']} | {_cell(d['question'])} | {_cell(d['rule'])} | {_cell(d['alternative'])} |"
               for d in tables.decisions]
+
+    coverage = survey_coverage()
+    lines += ["", "## Survey coverage", "",
+              f"{coverage.n_surveyed} societies surveyed (one representative guideline each), "
+              f"{len(coverage.excluded)} excluded, {len(coverage.graded)} graded (consensus-only societies "
+              f"not counted). Covered: {len(coverage.covered)} of {len(coverage.graded)} graded societies "
+              f"({100 * coverage.share:.1f}%) have both assigned scales mapped. Source: "
+              "`corpus/grading/society_grading_survey.csv`.", "",
+              "### Graded but not covered", "", "| Society | Strength scale | Evidence scale | Reason |",
+              "|---|---|---|---|"]
+    lines += [f"| {r['society']} | {r['strength_scale']} | {r['evidence_scale']} | {_cell(r['harmonisability'])} |"
+              for r in coverage.unsupported]
+    lines += ["", "### Excluded", "", "| Society | Reason |", "|---|---|"]
+    lines += [f"| {r['society']} | {_cell(r['inclusion'])} |" for r in coverage.excluded]
 
     lines += ["", "## Families (default scales)", "", "| Family | Strength scale | Evidence scale |", "|---|---|---|"]
     for family, pair in sorted(tables.families.items(), key=lambda kv: kv[0].value):
@@ -183,12 +258,6 @@ def _strip_filler(tokens: list[str]) -> str:
     return " ".join(t for t in tokens if t not in _FILLER_WORDS)
 
 
-def _windows(tokens: list[str]):
-    for size in range(min(_MAX_WINDOW, len(tokens)), 0, -1):
-        for start in range(len(tokens) - size + 1):
-            yield tokens[start:start + size]
-
-
 def _lookup(scale: _Scale, window: list[str]):
     """(quality, entry) for one token window.
 
@@ -205,44 +274,73 @@ def _lookup(scale: _Scale, window: list[str]):
     return None
 
 
-def _best(scale: _Scale, tokens: list[str], other: Optional[_Scale]) -> Optional[CrosswalkEntry]:
+@dataclass(frozen=True)
+class _Hit:
+    """A code found in a label: the entry and which tokens it used."""
+    entry: CrosswalkEntry
+    tokens: tuple
+    start: int
+    end: int
+
+
+def _rest(hit: Optional[_Hit], tokens: list[str]) -> list[str]:
+    """Tokens of the field the hit did not use; all of them without a hit (or for a wildcard)."""
+    if hit is None or hit.start == hit.end:
+        return tokens
+    return list(hit.tokens[:hit.start] + hit.tokens[hit.end:])
+
+
+def _best(scale: _Scale, tokens: list[str], other: _Scale, field: _Field) -> Optional[_Hit]:
     found = []
-    for window in _windows(tokens):
-        hit = _lookup(scale, window)
-        if hit is None:
-            continue
-        if other is not None and _lookup(other, window) is not None:
-            continue  # e.g. "a" in "[I, A]" is a code of the other axis
-        found.append(hit)
+    for size in range(min(_MAX_WINDOW, len(tokens)), 0, -1):
+        for start in range(len(tokens) - size + 1):
+            window = tokens[start:start + size]
+            hit = _lookup(scale, window)
+            if hit is None:
+                continue
+            if field == _Field.OTHER and _lookup(other, window) is not None:
+                continue  # e.g. "a" in "[I, A]" read for strength is a code of the evidence axis
+            quality, entry = hit
+            found.append((quality, _Hit(entry, tuple(tokens), start, start + size)))
     if not found:
         return None
 
     top = max(quality for quality, _ in found)
-    winners = {entry for quality, entry in found if quality == top}
-    if len(winners) == 1:
-        return winners.pop()
-    values = {(e.value, e.alternative, e.direction) for e in winners}
-    return winners.pop() if len(values) == 1 else None  # equivalent codes, e.g. "A" and "Level I"
+    winners = [h for quality, h in found if quality == top]
+    if len({_mapping(h.entry) for h in winners}) > 1:
+        return None  # e.g. two different codes, equally good: never guess
+    return winners[0]
 
 
-def _split_digit_letter(tokens: list[str]) -> list[str]:
+def _split_combined(tokens: list[str], scale: _Scale, other: _Scale) -> list[str]:
+    """Split tokens that are no code themselves: 'i-a' → i a, '2a-b-nr' → 2a b-nr, '1c' → 1 c, 'aii' → a ii."""
     out = []
     for t in tokens:
-        m = _DIGIT_LETTER.match(t)
-        out += [m.group(1), m.group(2)] if m else [t]
+        if t in scale.exact or t in other.exact:
+            out.append(t)
+            continue
+        hyphen = _FIRST_HYPHEN.match(t)
+        joined = _DIGIT_LETTER.match(t) or _LETTER_ROMAN.match(t)
+        parts = hyphen.groups() if hyphen else joined.groups() if joined else (t,)
+        out += list(parts)
     return out
 
 
-def _find(scale: _Scale, label: str, other: Optional[_Scale] = None) -> Optional[CrosswalkEntry]:
+def _find(scale: _Scale, tokens: list[str], other: _Scale, field: _Field = _Field.OWN) -> Optional[_Hit]:
     if scale.wildcard is not None:
-        return scale.wildcard
-    tokens = _normalize(label)
+        return _Hit(scale.wildcard, tuple(tokens), 0, 0)
     if not tokens:
         return None
-    return _best(scale, tokens, other) or _best(scale, _split_digit_letter(tokens), other)
+    split = _split_combined(tokens, scale, other)
+    return _best(scale, tokens, other, field) or (_best(scale, split, other, field) if split != tokens else None)
 
 
 # ---------------------------------------------------------------- loading
+
+def _mapping(entry: CrosswalkEntry) -> tuple:
+    """What a code means for the analysis: two codes are interchangeable only if all three agree."""
+    return entry.value, entry.alternative, entry.direction
+
 
 def _scale(tables: _Tables, key: str, axis: Optional[str]) -> _Scale:
     scale = tables.scales.get(key)
@@ -294,13 +392,13 @@ def _build_scale(key: str, axis: str, description: str, rows: list[dict], codes_
             tokens = _normalize(code)
             key_exact = " ".join(tokens)
             previous = exact.get(key_exact)
-            if previous is not None and previous.value != entry.value:
-                raise GradingTableError(f"{key}: '{code}' maps to both {previous.value} and {entry.value}")
+            if previous is not None and _mapping(previous) != _mapping(entry):
+                raise GradingTableError(f"{key}: '{code}' maps to both {_mapping(previous)} and {_mapping(entry)}")
             exact.setdefault(key_exact, entry)
 
             key_stripped = _strip_filler(tokens)
             previous = stripped.get(key_stripped)
-            if previous is not None and previous.value != entry.value:
+            if previous is not None and _mapping(previous) != _mapping(entry):
                 conflicts.add(key_stripped)  # e.g. "Level I" (A) vs "I" (Insufficient): exact match only
             stripped.setdefault(key_stripped, entry)
 

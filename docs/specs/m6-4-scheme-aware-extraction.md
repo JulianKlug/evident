@@ -4,6 +4,9 @@
 **Sources of truth:** `docs/roadmap.md` (M6), `docs/specs/m6-3-harmonization.md`, `evident/extraction.py`,
 `extraction/` (legacy prompts, parser, few-shot pool), `docs/progress.md` (2026-03-08 cross-scheme fallback).
 
+
+> **M6.3 change (2026-11-19):** grading is resolved per guideline as a family *and* a scale pair (`strength_scale`, `evidence_scale` in `corpus/manifest.csv`, keys of `evident/grading_data/scales.csv`; empty = family default). Extraction profiles must follow the scale pair, not only the family, and raw labels must reach the store verbatim: the current prompt (`extraction/prompts.py`) coerces them to GRADE vocabulary, so the M6.3 mappings cannot apply until this changes.
+
 ## 1. Goal
 
 Extract recommendations and their raw grades from guidelines graded in any M6.3 family, at least as well as

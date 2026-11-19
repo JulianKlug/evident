@@ -16,7 +16,8 @@ class GradingFamily(str, Enum):
     GRADE = "grade"
     ESC_CLASS = "esc_class"          # Class I/IIa/IIb/III + Level A/B/C
     ACC_AHA = "acc_aha"              # COR 1/2a/2b/3 + LOE A/B-R/B-NR/C-LD/C-EO (2015+)
-    IDSA_ESMO = "idsa_esmo"          # [I–V, A–E]
+    IDSA = "idsa"                    # A–E + quality I–III (also ESCMID/ECMM: D = against)
+    ESMO = "esmo"                    # [I–V, A–E] (also ESGO, ESTRO)
     OXFORD = "oxford"                # grade A–D + Oxford levels
     SIGN = "sign"                    # grade A–D/GPP + SIGN 1++…4
     USPSTF = "uspstf"

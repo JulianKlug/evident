@@ -29,6 +29,8 @@ from evident.grading_tables import (  # noqa: E402
     DECISION_COLUMNS,
     FAMILY_COLUMNS,
     SCALE_COLUMNS,
+    SURVEY_COLUMNS,
+    SURVEY_PATH,
     WILDCARD,
     render_doc,
 )
@@ -53,7 +55,20 @@ _EXPLICIT_CODES = {
 _EXTRA_ALIASES = {
     ("S_GRADE_NUM", "1"): ["I"],
     ("S_GRADE_NUM", "2"): ["II"],
+    # ESC: numeric classes, split "II a", and OCR 'L' for 'I' (NI9RV3E7; extraction/datasets.py)
+    ("S_ESC_CLASS", "I"): ["1"],
+    ("S_ESC_CLASS", "IIa"): ["2a", "II a", "ILA", "LLA"],
+    ("S_ESC_CLASS", "IIb"): ["2b", "II b", "ILB", "LIB"],
+    ("S_ESC_CLASS", "III"): ["3", "ILI", "LLI"],
+    # IDSA quality I–III written in arabic numerals (legacy ABCD_123 ground truth, e.g. BDYDTUHA)
+    ("E_ROMAN3", "I"): ["1"],
+    ("E_ROMAN3", "II"): ["2"],
+    ("E_ROMAN3", "III"): ["3"],
 }
+# Workbook "Societies" columns, in SURVEY_COLUMNS order
+_SURVEY_SOURCE_COLUMNS = ("Society", "Name", "Discipline", "Region", "Family (updated)", "Strength – native levels",
+                          "Evidence – native levels", "Example notation", "Assigned strength scale",
+                          "Assigned evidence scale", "Harmonisability", "Inclusion", "Source guideline", "Year", "URL")
 _PLACEHOLDER_SCALES = {"S_UNKNOWN", "E_UNKNOWN"}  # "to be determined": no mapping to export
 # Evidence scales printed only through the strength letter (EPA: "Grade A" = ≥1 level-I study), decided 2026-11-19
 _CODES_FROM_STRENGTH = {"E_EPA"}
@@ -62,7 +77,8 @@ _CODES_FROM_STRENGTH = {"E_EPA"}
 _FAMILIES = [
     ("esc_class", "S_ESC_CLASS", "E_ESC"),
     ("acc_aha", "S_ACCAHA_COR", "E_ACCAHA"),
-    ("idsa_esmo", "S_IDSA_AE", "E_ROMAN5_ESMO"),
+    ("idsa", "S_IDSA_AE", "E_ROMAN3"),
+    ("esmo", "S_IDSA_AE", "E_ROMAN5_ESMO"),
     ("oxford", "S_LETTER_GRADE", "E_OXFORD2011"),
     ("sign", "S_LETTER_GRADE", "E_SIGN"),
     ("uspstf", "S_USPSTF", "E_GRADE4"),
@@ -95,7 +111,10 @@ def _read_workbook(path: str):
     crosswalk = [r for r in wb["Crosswalk"].iter_rows(min_row=_FIRST_DATA_ROW, values_only=True) if r[0]]
     decisions = [r for r in wb["Decisions to validate"].iter_rows(min_row=_FIRST_DATA_ROW, values_only=True)
                  if r[0]]
-    return scales, crosswalk, decisions
+    sheet = wb["Societies"].iter_rows(values_only=True)
+    header = next(sheet)
+    societies = [dict(zip(header, r)) for r in sheet if r[0]]
+    return scales, crosswalk, decisions, societies
 
 
 def _write(path: str, columns, rows) -> None:
@@ -106,7 +125,7 @@ def _write(path: str, columns, rows) -> None:
 
 
 def export(xlsx: str) -> None:
-    scales, crosswalk, decisions = _read_workbook(xlsx)
+    scales, crosswalk, decisions, societies = _read_workbook(xlsx)
 
     scale_rows = [(_text(key), _text(axis).lower(), _text(desc), _text(quality),
                    "strength_grade" if key in _CODES_FROM_STRENGTH else "own")
@@ -128,7 +147,12 @@ def export(xlsx: str) -> None:
     _write(os.path.join(DATA_DIR, "families.csv"), FAMILY_COLUMNS, _FAMILIES)
     _write(os.path.join(DATA_DIR, "decisions.csv"), DECISION_COLUMNS,
            [(_text(i), _text(q), _text(rule), _text(alt), _text(why)) for i, q, rule, alt, why, *_ in decisions])
-    print(f"{len(scale_rows)} scales, {len(crosswalk_rows)} crosswalk rows → {DATA_DIR}")
+    # One row per surveyed society: what the coverage report counts (one representative guideline each)
+    os.makedirs(os.path.dirname(SURVEY_PATH), exist_ok=True)
+    _write(SURVEY_PATH, SURVEY_COLUMNS,
+           [tuple(_text(s.get(col)) for col in _SURVEY_SOURCE_COLUMNS) for s in societies])
+    print(f"{len(scale_rows)} scales, {len(crosswalk_rows)} crosswalk rows → {DATA_DIR}; "
+          f"{len(societies)} societies → {SURVEY_PATH}")
 
 
 def main() -> None:

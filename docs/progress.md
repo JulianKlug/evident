@@ -1003,4 +1003,12 @@ Spec `docs/specs/m6-3-harmonization.md` (§9–§10). Review of 389 societies' g
 - `harmonize(..., scales, variant)`: GRADE path untouched; other families match token windows against the guideline's scales ("[I, A]", "Class I, Level B", "GRADE 1C", "LoE A-/RG 1-"), unknown codes stay unmapped. `MappingVariant.ALTERNATIVE` gives the sensitivity mapping.
 - Outputs: `recommendations.csv` + dashboard add `grading_family`, scales and `*_alt`; `tables/headline_sensitivity.csv` once a non-GRADE guideline is published.
 - Tests: 913 pass (+~350 crosswalk round-trip and real-phrasing cases). Publish of snapshot 8 on a DB copy: every table byte-identical except the 7 new `recommendations.csv` columns.
-- Open: M6.2 census regexes; M6.4 must extract non-GRADE labels verbatim (prompt currently coerces to GRADE vocabulary); direction text rules miss "cannot be recommended" (EASL open recommendations).
+- Open: M6.2 census regexes; M6.4 must extract non-GRADE labels verbatim (prompt currently coerces to GRADE vocabulary).
+- Review of PR #5 (2026-11-19), fixed test-first:
+  - Direction (all families, GRADE too): "not recommended", "do not offer", "not indicated", "avoid", German "soll/sollte … nicht" → against; "cannot be recommended" + evidence-gap clause → no recommendation. Snapshot 8: 0 of 1,687 rows change.
+  - Notation: hyphen/joined forms ("I-A", "2a-B-NR", "AII") split only when no code; the other axis reads only unused tokens; ESC numeric and OCR aliases.
+  - `idsa_esmo` split into `idsa` (I–III) and `esmo` (I–V).
+  - Legacy ERS NI9RV3E7 (217 rows) and BDYDTUHA (60) map every row.
+  - Coverage from `corpus/grading/society_grading_survey.csv`: 277/284 graded societies (97.5%).
+  - Duplicate codes checked on the full mapping; round-trip checks code, direction and alternative; D3/D7 texts match the crosswalk.
+  - `grading_tables_sha256` is a release input; frozen v4 DB documented (runbook).

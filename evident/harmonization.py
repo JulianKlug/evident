@@ -32,13 +32,27 @@ from evident.grading_tables import CrosswalkEntry, Harmonised
 
 _AGAINST_PATTERNS = (r"\b(recommends?|suggests?)\s+against\b",
                      r"\b(recommends?|suggests?)\s+not\b",
-                     r"\bshould\s+not\b", r"\bdo\s+not\s+(use|give|administer|perform)\b")
+                     r"\bshould\s+not\b", r"\bdo\s+not\s+(use|give|administer|perform|offer|prescribe)\b",
+                     # "X is not recommended", "X cannot be recommended for routine use", "X is not indicated"
+                     r"\bnot\s+(be\s+)?recommended\b", r"\bcannot\s+be\s+recommended\b",
+                     r"\bnot\s+indicated\b",
+                     # "Avoid X", "X should be avoided"; not "To avoid infection, give X"
+                     r"^\W*avoid\b", r"\bbe\s+avoided\b",
+                     # German (AWMF): "X sollte (bei Kindern) nicht angewendet werden", "wird nicht empfohlen";
+                     # not "nicht nur" (not only)
+                     r"\b(soll|sollte|sollten|kann|können)\b[^.]*?\bnicht\b(?!\s+nur\b)",
+                     r"\bnicht\s+empfohlen\b")
 # Panel declined to give a direction, e.g. "We make no suggestion for or against X",
-# "We are unable to issue a recommendation for or against X"
+# "We are unable to issue a recommendation for or against X",
+# "nutraceuticals cannot be recommended since there is insufficient evidence" (EASL; without the
+# evidence clause "cannot be recommended" is a recommendation against)
+_EVIDENCE_GAP = r"\b(insufficient|inconclusive|lack\s+of|lacking|limited|no)\b[^.]*?\bevidence\b"
 _NO_REC_PATTERNS = (r"\bcannot\s+(recommend|suggest)\b", r"\bno\s+recommendation\b",
                     r"\bno\s+suggestion\s+for\s+or\s+against\b",
                     r"\bunable\s+to\s+(make|issue)\s+a\s+recommendation\b",
-                    r"\bevidence\s+(was|is)\s+(inconclusive|insufficient)\b")
+                    r"\bevidence\s+(was|is)\s+(inconclusive|insufficient)\b",
+                    rf"\bcannot\s+be\s+recommended\b[^.]*?{_EVIDENCE_GAP}",
+                    rf"{_EVIDENCE_GAP}[^.]*?\bcannot\s+be\s+recommended\b")
 _BEST_PRACTICE_PATTERN = r"best practice|good practice statement"
 
 _PLACEHOLDERS = {"0", "0.0", "nan", "na", "n/a", ""}

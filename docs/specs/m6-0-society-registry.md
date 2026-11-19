@@ -66,7 +66,8 @@ One row per in-scope society.
 | Column | Notes |
 |---|---|
 | `society` | FK to `societies.csv` |
-| `family` | Closed list, same values as M6.3's `GradingFamily` plus `consensus_only`, `mixed` |
+| `family` | Closed list, same values as M6.3's `GradingFamily` (which now includes `consensus_only`) plus `mixed` |
+| `strength_scale`, `evidence_scale` | Native scales (M6.3 `scales.csv` keys), e.g. `S_ESC_CLASS`, `E_ESC`; the survey's assignments are in `corpus/grading/society_grading_survey.csv` |
 | `system_name` | As the society names it |
 | `strength_levels`, `evidence_levels` | `;`-separated, verbatim labels |
 | `notation_example` | e.g. `Class I, Level A` |

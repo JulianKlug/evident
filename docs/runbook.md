@@ -16,6 +16,7 @@ search ─▶ curate (candidates + manifest) ─▶ PDF ─▶ add ─┬─ exi
 - BioLORD in the local Hugging Face cache (never downloaded at run time).
 - PDF dir `/mnt/data1/klug/datasets/evidence_extraction/pdfs`; the institutional VPN for paywalled journals.
 - Live DB `out/evident.sqlite`. Never point any command at the frozen M4 DB, `corpus/dedup/paper1_verdicts.csv` or `configs/paper1.json`.
+- The frozen M4 DB is schema v4; code from M6.3 on (schema v5) opens a read-only DB only at its own version. Reproduce paper1 with the code at tag `paper1-freeze`; never migrate the frozen file.
 
 **Backup first, every time.** A live WAL-mode DB must not be copied with `cp`:
 

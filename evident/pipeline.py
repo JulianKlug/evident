@@ -105,7 +105,7 @@ from evident.extraction import (
     prompt_template,
     version_for,
 )
-from evident.grading_tables import resolve_scales
+from evident.grading_tables import resolve_scales, tables_sha256
 from evident.harmonization import harmonize
 from evident.paper import (
     EDITION_RULE,
@@ -1104,6 +1104,8 @@ def _release_inputs(deps: PipelineDeps, runs: list[tuple[Guideline, ExtractionRu
         "search_sha256": _sha_or_none(deps.search_path),
         "dedup_verdicts_sha256": _sha_or_none(deps.dedup_verdicts_path),
         "themes_sha256": _sha_or_none(deps.themes_path),
+        # Mapping data: a crosswalk change changes the harmonized outputs without any new extraction
+        "grading_tables_sha256": tables_sha256(),
         "pdfs": {g.doi: run.pdf_sha256 for g, run in runs},
         "runs": {g.doi: run.id for g, run in runs},
     }

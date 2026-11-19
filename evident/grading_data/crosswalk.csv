@@ -17,11 +17,11 @@ S_ACCAHA_COR,strength,2a,,Class 2a (moderate) – is reasonable,CONDITIONAL,FOR,
 S_ACCAHA_COR,strength,2b,,Class 2b (weak) – may be reasonable,CONDITIONAL,FOR,,H,
 S_ACCAHA_COR,strength,3: No benefit,,Class 3: No Benefit (moderate),CONDITIONAL,AGAINST,STRONG,M,ACC/AHA labels this tier 'moderate'.
 S_ACCAHA_COR,strength,3: Harm,,Class 3: Harm (strong),STRONG,AGAINST,,H,
-S_ESC_CLASS,strength,I,,Is recommended / indicated,STRONG,FOR,,H,
-S_ESC_CLASS,strength,IIa,,Should be considered,CONDITIONAL,FOR,STRONG,M,Intermediate tier (conservative rule).
-S_ESC_CLASS,strength,IIb,,May be considered,CONDITIONAL,FOR,,H,
+S_ESC_CLASS,strength,I,1,Is recommended / indicated,STRONG,FOR,,H,
+S_ESC_CLASS,strength,IIa,2a|II a|ILA|LLA,Should be considered,CONDITIONAL,FOR,STRONG,M,Intermediate tier (conservative rule).
+S_ESC_CLASS,strength,IIb,2b|II b|ILB|LIB,May be considered,CONDITIONAL,FOR,,H,
 S_ESC_CLASS,strength,II,,ESH 2023: IIa+IIb merged ('conflicting benefit'),CONDITIONAL,FOR,,H,
-S_ESC_CLASS,strength,III,,Is not recommended,STRONG,AGAINST,CONDITIONAL,M,ESC does not distinguish 'no benefit' from 'harm'.
+S_ESC_CLASS,strength,III,3|ILI|LLI,Is not recommended,STRONG,AGAINST,CONDITIONAL,M,ESC does not distinguish 'no benefit' from 'harm'.
 S_IDSA_AE,strength,A,,"Strong evidence for efficacy with a substantial clinical benefit, strongly recommended",STRONG,FOR,,H,
 S_IDSA_AE,strength,B,,"Strong or moderate evidence for efficacy but with a limited clinical benefit, generally recommended",CONDITIONAL,FOR,STRONG,M,Intermediate tier.
 S_IDSA_AE,strength,C,,"Insufficient evidence for efficacy or benefit does not outweigh the risk or the disadvantages, optional",CONDITIONAL,as stated,NO_REC,M,"'Optional' treated as open recommendation (D3): CONDITIONAL, direction from wording, alt NO_REC. Wording: ESMO CPG Suppl. Table S1."
@@ -173,9 +173,9 @@ E_ACCAHA,evidence,C-EO,,Consensus of expert opinion,VERY_LOW,,,H,
 E_ESC,evidence,A,,Multiple RCTs or meta-analyses,HIGH,,,H,
 E_ESC,evidence,B,,Single RCT or large non-randomized studies,MODERATE,,LOW,M,Mixes single RCT and observational evidence.
 E_ESC,evidence,C,,"Consensus of experts and/or small/retrospective studies, registries",VERY_LOW,,LOW,M,Mostly expert consensus → VERY_LOW (D13); alt LOW for small/retrospective studies (jk 2026-11-19).
-E_ROMAN3,evidence,I,,≥1 properly randomized controlled trial,HIGH,,MODERATE,M,May rest on a single RCT.
-E_ROMAN3,evidence,II,,"Non-randomized trials, cohort/case-control, dramatic uncontrolled results",LOW,,MODERATE,M,'Design' rule (Decision D2).
-E_ROMAN3,evidence,III,,"Expert opinion, descriptive studies, committee reports",VERY_LOW,,,H,
+E_ROMAN3,evidence,I,1,≥1 properly randomized controlled trial,HIGH,,MODERATE,M,May rest on a single RCT.
+E_ROMAN3,evidence,II,2,"Non-randomized trials, cohort/case-control, dramatic uncontrolled results",LOW,,MODERATE,M,'Design' rule (Decision D2).
+E_ROMAN3,evidence,III,3,"Expert opinion, descriptive studies, committee reports",VERY_LOW,,,H,
 E_ROMAN5_ESMO,evidence,I,,≥1 large RCT of good quality or MA of RCTs without heterogeneity,HIGH,,,H,
 E_ROMAN5_ESMO,evidence,II,,Small RCTs / RCTs with suspected bias / MA with heterogeneity,MODERATE,,,H,
 E_ROMAN5_ESMO,evidence,III,,Prospective cohort studies,LOW,,,H,

@@ -10,11 +10,11 @@ Native grades mapped onto the GRADE-anchored scale. *Alternative* is the value u
 |---|---|---|---|
 | D1 | Intermediate tiers (ESC IIa, ACC/AHA 2a, IDSA B, AAN B, 'Moderate') | → CONDITIONAL. Only the top tier is STRONG. | → STRONG (aligned on the 'recommended' meaning) |
 | D2 | Evidence from non-randomised studies (ACC/AHA B-NR, ADA B, IDSA II, Oxford 3) | → LOW (GRADE convention: observational evidence starts at 'low') | → MODERATE (rank equivalence) |
-| D3 | Open' recommendations (AWMF 0 'kann', EASL/EASO 'Open') | AWMF 0 and Open → CONDITIONAL; direction as stated (from wording) | AWMF 0 → CONDITIONAL FOR; Open → NO_REC (previous rule) |
+| D3 | Open' recommendations (AWMF 0 'kann', EASL/EASO 'Open') | AWMF 0 and Open → CONDITIONAL; direction as stated (from wording) | AWMF 0 and Open → NO_REC (sensitivity alternative in the crosswalk) |
 | D4 | ESC Class III ('not recommended') | → STRONG AGAINST | → CONDITIONAL AGAINST |
 | D5 | USPSTF grade B | → STRONG FOR | → CONDITIONAL FOR |
 | D6 | Letter grades derived from evidence (Oxford, SIGN 50, HAS, ASMBS) – grade D | → CONDITIONAL (evidence → VERY_LOW per D13) | → UNGRADED (previous rule) |
-| D7 | Scales that are not gradings (appropriateness criteria, NCCN, lines of therapy, DPWG, MDS) | Strength_h = NOT_REPORTED. Evidence: NCCN 1→HIGH, 2A/2B/3→LOW (alt. VERY_LOW); MDS→NOT_REPORTED except Insufficient→VERY_LOW; DPWG kept. Exception: CANMAT/ISBD lines of treatment are mapped (First→STRONG, Second/Third→CONDITIONAL, Not recommended→STRONG AGAINST). | Projected with confidence L (previous rule) |
+| D7 | Scales that are not gradings (appropriateness criteria, NCCN, lines of therapy, DPWG, MDS) | Strength_h = NOT_REPORTED. Evidence: NCCN 1→HIGH, 2A/2B/3→LOW (alt. VERY_LOW); MDS→NOT_REPORTED except Insufficient→VERY_LOW; DPWG kept. Exception: CANMAT/ISBD lines of treatment are mapped (First→STRONG, Second/Third→CONDITIONAL, Not recommended→STRONG AGAINST). | Projected with confidence L (rejected; no sensitivity alternative) |
 | D8 | Degree of consensus (Delphi, % vote) | Separate consensus_level field, never converted into strength | — |
 | D9 | Systems that grade evidence only (ADA, GINA, GOLD, WGO, ECCO) | strength_h = NOT_REPORTED (no imputation) | Impute strength from wording ('should', 'consider') |
 | D10 | Unit of harmonisation | The guideline (and its version), not the society | — |
@@ -22,6 +22,64 @@ Native grades mapped onto the GRADE-anchored scale. *Alternative* is the value u
 | D12 | 'Not found' societies that do not publish guidelines (GIN, UICC, ADI, PECARN…) | Exclude from the database | Keep with TBD |
 | D13 | EXPERT_OPINION as level of evidence (Oxford 5, SIGN 4, ESC C, EK…) | → VERY_LOW. EXPERT_OPINION removed from the vocabulary. | Keep EXPERT_OPINION as separate level |
 | D14 | GRADE letter C in 3-level (A–C) vs 4-level (A–D) scales | 3-level (no D): C → LOW, alt. VERY_LOW (E_GRADE_LETTER3). 4-level: C → LOW (E_GRADE_LETTER). Variant chosen per guideline by presence of a D/very-low level. | One scale with alt. VERY_LOW for all C |
+
+## Survey coverage
+
+389 societies surveyed (one representative guideline each), 37 excluded, 284 graded (consensus-only societies not counted). Covered: 277 of 284 graded societies (97.5%) have both assigned scales mapped. Source: `corpus/grading/society_grading_survey.csv`.
+
+### Graded but not covered
+
+| Society | Strength scale | Evidence scale | Reason |
+|---|---|---|---|
+| EACVI | S_AUC | E_NONE | Not harmonisable (D7) |
+| ISH | S_NONE | E_NONE | Not harmonisable (D7) |
+| IDF | S_NONE | E_NONE | Not harmonisable (D7) |
+| MDS | S_MDS | E_MDS | Not harmonisable (D7) |
+| SNMMI | S_AUC | E_NONE | Not harmonisable (D7) |
+| EANO | S_NONE | E_NONE | Not harmonisable (D7) |
+| RSNA | S_AUC | E_NONE | Not harmonisable (D7) |
+
+### Excluded
+
+| Society | Reason |
+|---|---|
+| WFSICCM | Excluded (D12, 2026-11-19) |
+| IFEM | Excluded (D12, 2026-11-19) |
+| SGAIM | Excluded (D12, 2026-11-19) |
+| RCGP | Excluded (D12, 2026-11-19) |
+| WONCA | Excluded (D12, 2026-11-19) |
+| EAN-EADC | Excluded (D12, 2026-11-19) |
+| GIN | Excluded (D12, 2026-11-19) |
+| CIS | Excluded (D12, 2026-11-19) |
+| ECDC | Excluded (D12, 2026-11-19) |
+| CLSI | Excluded (D12, 2026-11-19) |
+| EUCAST | Excluded (D12, 2026-11-19) |
+| FMH-GL | Excluded (D12, 2026-11-19) |
+| ISN | Excluded (D12, 2026-11-19) |
+| WFN | Excluded (D12, 2026-11-19) |
+| ADI | Excluded (D12, 2026-11-19) |
+| EUROSPINE | Excluded (D12, 2026-11-19) |
+| EBCOG | Excluded (D12, 2026-11-19) |
+| ICOH | Excluded (D12, 2026-11-19) |
+| UICC | Excluded (D12, 2026-11-19) |
+| PECARN | Excluded (D12, 2026-11-19) |
+| AAHPM | Excluded (D12, 2026-11-19) |
+| IAHPC | Excluded (D12, 2026-11-19) |
+| USCAP | Excluded (D12, 2026-11-19) |
+| ESPRM | Excluded (D12, 2026-11-19) |
+| ISPRM | Excluded (D12, 2026-11-19) |
+| WPA | Excluded (D12, 2026-11-19) |
+| ISAM | Excluded (D12, 2026-11-19) |
+| FIMS | Excluded (D12, 2026-11-19) |
+| ESA | Excluded (D12, 2026-11-19) |
+| EFORT | Excluded (D12, 2026-11-19) |
+| ESPRAS | Excluded (D12, 2026-11-19) |
+| IALM | Excluded (D12, 2026-11-19) |
+| BPS | Excluded (D12, 2026-11-19) |
+| ASCPT | Excluded (D12, 2026-11-19) |
+| FESSH | Excluded (D12, 2026-11-19) |
+| ASSH | Excluded (D12, 2026-11-19) |
+| AAHS | Excluded (D12, 2026-11-19) |
 
 ## Families (default scales)
 
@@ -33,8 +91,9 @@ Native grades mapped onto the GRADE-anchored scale. *Alternative* is the value u
 | consensus_only | S_NO_GRADING | E_NONE |
 | easl | S_EASL3 | E_OXFORD2011 |
 | esc_class | S_ESC_CLASS | E_ESC |
+| esmo | S_IDSA_AE | E_ROMAN5_ESMO |
 | grade_numeric | S_GRADE_NUM | E_GRADE_LETTER |
-| idsa_esmo | S_IDSA_AE | E_ROMAN5_ESMO |
+| idsa | S_IDSA_AE | E_ROMAN3 |
 | nccn | S_NCCN | E_NCCN |
 | other | — | — |
 | oxford | S_LETTER_GRADE | E_OXFORD2011 |

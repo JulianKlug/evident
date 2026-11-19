@@ -4,6 +4,9 @@
 **Sources of truth:** `docs/roadmap.md` (M6), `docs/specs/m6-0-society-registry.md` (gold set),
 `docs/specs/m6-3-harmonization.md` (family list), `evident/corpus.py` (`grading_family` column).
 
+
+> **M6.3 change (2026-11-19):** grading is resolved per guideline as a family *and* a scale pair (`strength_scale`, `evidence_scale` in `corpus/manifest.csv`, keys of `evident/grading_data/scales.csv`; empty = family default). Detection should therefore propose the scale pair, not only the family, e.g. 3- vs 4-level GRADE letters (decision D14: a D level present or not), ACC/AHA before/after 2015, WFSBP before/after 2023. Census patterns are not in M6.3: they belong here, next to the label census.
+
 ## 1. Goal
 
 For every included guideline PDF, propose the `grading_family` for its manifest row, with evidence a human can

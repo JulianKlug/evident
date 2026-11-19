@@ -10,6 +10,7 @@ from evident import grading_tables
 from evident.domain import AxisStatus, Category, Certainty, Direction, GradingFamily, MappingVariant, ScalePair
 from evident.domain import Strength
 from evident.harmonization import harmonize
+from tests.conftest import needs_local_data
 
 S, W = Strength.STRONG, Strength.WEAK
 F, A = Direction.FOR, Direction.AGAINST
@@ -22,13 +23,13 @@ _DOC = os.path.join(os.path.dirname(__file__), "..", "..", "docs", "harmonizatio
 # alternative (same); None on an axis = unmapped / ungraded
 REAL = [
     # ESMO colon cancer 2026, PMC12947638
-    (("idsa_esmo", None, "[I, A]", "", "Patients should be informed of the evidence"),
+    (("esmo", None, "[I, A]", "", "Patients should be informed of the evidence"),
      (G, S, F, HI), (G, S, F, HI)),
     # ESGO vulvar cancer 2023, PMC10359596: B = generally recommended (D1)
-    (("idsa_esmo", None, "[V, B]", "", "Patients should be carefully counseled"),
+    (("esmo", None, "[V, B]", "", "Patients should be carefully counseled"),
      (G, W, F, VL), (G, S, F, VL)),
     # IDSA/ESMO C = optional → conditional, direction from text (D3)
-    (("idsa_esmo", None, "C", "III", "X should not be used routinely"), (G, W, A, LO), (NR, None, None, None)),
+    (("esmo", None, "C", "III", "X should not be used routinely"), (G, W, A, LO), (NR, None, None, None)),
     # EGS 4th edition, PMC5583689: roman I = numeric GRADE 1
     (("grade_numeric", None, "[I,D]", "", "Treatment must be individualised"), (G, S, F, VL), (G, S, F, VL)),
     # SMFM cancer in pregnancy, PMC13344446: 3-level letters, C = low or very low (D14)
@@ -168,9 +169,178 @@ def test_every_native_code_maps_to_its_row(row):
         strength, evidence = grading_tables.match(pair, *_labels_in(row, label))
         found = strength if row["axis"] == "strength" else evidence
         assert found is not None, label
+        # The row itself, not just one with the same primary value
+        assert found.native_code == row["native_code"], label
         assert found.value.value == row["harmonised"], label
+        assert (found.alternative.value if found.alternative else "") == row["alternative"], label
+        assert (found.direction.value.upper() if found.direction else "") == (
+            row["direction"] if row["direction"] in ("FOR", "AGAINST") else ""), label
 
 
 def test_mapping_document_is_up_to_date():
     with open(_DOC) as f:
         assert f.read() == grading_tables.render_doc(), "run: python scripts/export_grading_tables.py --doc"
+
+
+# ---------------------------------------------------------------- review fixes (PR #5)
+
+# Negative wording → AGAINST; "cannot be recommended" with an evidence-gap clause → no recommendation
+NEGATIVE_TEXT = [
+    ("X is not recommended", G, A),
+    ("Routine use of X is not recommended in children", G, A),
+    ("Do not offer X to people with Y", G, A),
+    ("X is not indicated after surgery", G, A),
+    ("Avoid X in pregnancy", G, A),
+    ("X should be avoided", G, A),
+    ("X cannot be recommended for routine use", G, A),
+    ("X sollte nicht angewendet werden", G, A),
+    ("X soll bei Kindern nicht eingesetzt werden", G, A),
+    ("X wird nicht empfohlen", G, A),
+    ("X sollte nicht nur bei Erwachsenen eingesetzt werden", G, F),   # "nicht nur" = not only
+    ("To avoid infection, give X", G, F),
+    ("In adults with MASLD, nutraceuticals cannot be recommended since there is insufficient evidence", NR, None),
+]
+
+
+@pytest.mark.parametrize("text, category, direction", NEGATIVE_TEXT, ids=[t for t, _, _ in NEGATIVE_TEXT])
+@pytest.mark.parametrize("family, raw_strength, raw_certainty", [
+    (GradingFamily.OXFORD, "B", "2"),          # letter grade: direction as stated
+    (GradingFamily.GRADE, "Strong", "High"),   # GRADE path gets the same rules
+])
+def test_negative_wording(family, raw_strength, raw_certainty, text, category, direction):
+    h = harmonize(raw_strength, raw_certainty, text, G, family)
+    assert (h.category, h.direction) == (category, direction)
+
+
+# Combined and legacy notations (spec §6) → (strength, certainty); ambiguous parts stay unmapped
+NOTATION = [
+    ("esc_class", "I-A", "", S, HI),
+    ("esc_class", "IIa-B", "", W, MO),
+    ("esc_class", "Class 2a", "B", W, MO),             # ESC numeric alias
+    ("esc_class", "Class II a", "", W, None),          # "a" is part of the class, not level A
+    ("esc_class", "ILA", "B", W, MO),                  # OCR: L misread for I (NI9RV3E7)
+    ("esc_class", "LIB", "C", W, VL),
+    ("esc_class", "ILI", "C", S, VL),
+    ("acc_aha", "2a-B-NR", "", W, LO),
+    ("acc_aha", "COR 2a, LOE B-NR", "", W, LO),
+    ("idsa", "A", "II", S, LO),                        # classic IDSA: evidence I–III
+    ("idsa", "AII", "", S, LO),                        # IDSA letter+roman in one token
+    ("idsa", "A-II", "", S, LO),
+    ("esmo", "[II, B]", "", W, MO),                    # ESMO: evidence I–V
+]
+
+
+@pytest.mark.parametrize("family, raw_strength, raw_certainty, strength, certainty", NOTATION,
+                         ids=[f"{n[0]}:{n[1]}|{n[2]}" for n in NOTATION])
+def test_notation(family, raw_strength, raw_certainty, strength, certainty):
+    h = harmonize(raw_strength, raw_certainty, "Give X", G, GradingFamily(family))
+    assert (h.strength, h.certainty) == (strength, certainty)
+
+
+# ---------------------------------------------------------------- legacy ERS ground truth (M6.5a pneumology)
+
+def _ers(key):
+    from extraction.datasets import load_ers_datasets
+    return next(ds for ds in load_ers_datasets() if ds.key == key)
+
+
+_ESC_STRENGTH = {"I": (S, F), "IIa": (W, F), "IIb": (W, F), "III": (S, A)}
+_ESC_LEVEL = {"A": HI, "B": MO, "C": VL}
+
+
+@needs_local_data
+def test_ers_esc_guideline_maps_every_row():
+    # NI9RV3E7: ESC/ERS pulmonary hypertension 2015, Class I–III + Level A–C (legacy ESC_ERS)
+    rows = _ers("NI9RV3E7").ground_truth_df
+    assert len(rows) == 217
+    for _, r in rows.iterrows():
+        h = harmonize(r["class"], r["LOE"], r["recommendation"], G, GradingFamily.ESC_CLASS)
+        assert (h.strength, h.direction) == _ESC_STRENGTH[r["class"]], (r["class"], r["recommendation"][:60])
+        assert h.certainty == _ESC_LEVEL[r["LOE"]]
+
+
+_ESCMID_STRENGTH = {"A": S, "B": W, "C": W, "D": W}
+_ESCMID_QUALITY = {"1": HI, "2": LO, "3": VL}
+
+
+@needs_local_data
+def test_ers_escmid_guideline_maps_every_row():
+    # BDYDTUHA: ESCMID/ERS aspergillosis 2015, SoR A–D (D = against) + QoE I–III (legacy ABCD_123)
+    rows = _ers("BDYDTUHA").ground_truth_df
+    assert len(rows) == 60
+    for _, r in rows.iterrows():
+        h = harmonize(r["class"], r["LOE"], r["recommendation"], G, GradingFamily.IDSA)
+        assert h.certainty == _ESCMID_QUALITY[str(r["LOE"])], r["recommendation"][:60]
+        if not r["class"]:
+            assert h.strength_status == AxisStatus.UNMAPPED  # quality-only statement
+            continue
+        assert h.strength == _ESCMID_STRENGTH[r["class"]], (r["class"], r["recommendation"][:60])
+        if r["class"] == "D":
+            assert h.direction == A
+
+
+def test_codes_sharing_a_label_must_agree_on_the_whole_mapping(tmp_path, monkeypatch):
+    # "B" twice in one scale, same primary value but different sensitivity alternative → refused
+    for name in ("scales.csv", "families.csv", "decisions.csv"):
+        (tmp_path / name).write_text(open(os.path.join(grading_tables.DATA_DIR, name)).read())
+    rows = _crosswalk() + [dict(_crosswalk()[0], native_code="Conditional", harmonised="CONDITIONAL",
+                                alternative="STRONG")]
+    with open(tmp_path / "crosswalk.csv", "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+    monkeypatch.setattr(grading_tables, "DATA_DIR", str(tmp_path))
+    grading_tables._tables.cache_clear()
+    try:
+        with pytest.raises(grading_tables.GradingTableError, match="maps to both"):
+            grading_tables._tables()
+    finally:
+        monkeypatch.undo()
+        grading_tables._tables.cache_clear()
+
+
+# ---------------------------------------------------------------- coverage and reported numbers
+
+_METHODS = os.path.join(os.path.dirname(__file__), "..", "..", "docs", "methods_grading_harmonisation.md")
+_MIN_COVERAGE = 0.73  # spec §8 exit
+
+
+def test_survey_coverage_meets_the_spec_exit():
+    coverage = grading_tables.survey_coverage()
+    assert coverage.share >= _MIN_COVERAGE
+    # Every graded society not covered says why (D7: not a recommendation grade)
+    assert all(r["harmonisability"] for r in coverage.unsupported)
+
+
+def test_methods_text_states_the_committed_numbers():
+    # The methods draft is prose; its numbers must match the committed tables
+    with open(os.path.join(grading_tables.DATA_DIR, "scales.csv"), newline="") as f:
+        scales = list(csv.DictReader(f))
+    codes = _crosswalk()
+    with_alternative = [r for r in codes if r["alternative"]]
+    coverage = grading_tables.survey_coverage()
+    included = coverage.n_surveyed - len(coverage.excluded)
+    with open(_METHODS) as f:
+        text = f.read()
+
+    n_strength = sum(r["axis"] == "strength" for r in scales)
+    expected = [
+        f"{len(scales)} native scales: {n_strength} for strength and {len(scales) - n_strength} for evidence",
+        f"({len(codes)} native codes)",
+        f"({len(with_alternative)} codes; {100 * len(with_alternative) / len(codes):.1f}%)",
+        f"{len(coverage.covered)} of the {len(coverage.graded)} graded societies ({100 * coverage.share:.1f}%)",
+        f"{included} of the {coverage.n_surveyed} societies ({100 * included / coverage.n_surveyed:.1f}%)",
+    ]
+    for phrase in expected:
+        assert phrase in text, phrase
+
+
+def test_tables_hash_changes_with_any_table(tmp_path, monkeypatch):
+    for name in os.listdir(grading_tables.DATA_DIR):
+        (tmp_path / name).write_bytes(open(os.path.join(grading_tables.DATA_DIR, name), "rb").read())
+    monkeypatch.setattr(grading_tables, "DATA_DIR", str(tmp_path))
+    before = grading_tables.tables_sha256()
+    with open(tmp_path / "decisions.csv", "a") as f:
+        f.write("D99,q,r,a,why\n")
+    assert grading_tables.tables_sha256() != before
