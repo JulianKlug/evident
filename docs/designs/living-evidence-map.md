@@ -35,7 +35,7 @@ from full guideline PDFs with a local LLM (single RTX 3090). Produce:
 | # | Decision | Why |
 |---|----------|-----|
 | 1 | MVP corpus: ESICM + SCCM + ACP, 2016–2026 | All GRADE-like, so harmonization is easy. ACP adds 9 labelled guidelines. |
-| 2 | Later: all non-surgical specialties (internal medicine, pneumology, cardiology, anesthesia, hematology…) | Scope of the paper to publish |
+| 2 | Later: all medical societies, surgical included (internal medicine, pneumology, cardiology, anesthesia, hematology, surgery…) | Scope of the paper to publish |
 | 3 | MVP validation: existing labels only (3 ESICM, 9 ACP). No new annotation | Speed. Ceiling: ICU accuracy rests on 17 in-sample recs. Upgrade trigger: specialty expansion or before submission |
 | 4 | Output: SQLite DB → paper figures/tables + static dashboard, same code path | Single source of truth; figures and dashboard never disagree |
 | 5 | Extractor frozen per published snapshot; snapshot = full re-extraction | Avoid trends confounded by extractor version |

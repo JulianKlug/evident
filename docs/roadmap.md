@@ -10,8 +10,8 @@ Task IDs (T1–T11) refer to that doc. Deferred items: `TODOS.md`.
    (T1 T2 T3 T6)     (T4 T7 T11)     (T5 T9 T10)          (T8, corpus)        (ICU+ACP)
                                                                  │
                                                                  ▼
-                                   M5 Maintenance mode ──▶ M6 Specialty expansion ──▶ M7 Paper
-                                     (add one guideline)     (non-surgical)            (cross-specialty)
+                                   M5 Maintenance mode ──▶ M6 All societies ──▶ M7 Paper
+                                     (add one guideline)     (all specialties)   (cross-specialty)
 ```
 
 Each milestone has an exit criterion. A milestone is done only when its criterion passes.
@@ -135,7 +135,7 @@ Not for publication: tests the method end to end. The paper to publish (M7) cove
 
 **Status:** code done 2026-10-26 (`docs/specs/m5-maintenance-spec.md`, `docs/runbook.md`); live release 2026-10-27 (`0c1c6f4868a4`); exit waits for a real post-cutoff guideline (spec §7).
 
-## M6 — Expansion to non-surgical specialties
+## M6 — Expansion to all medical societies
 Infrastructure first (M6.0–M6.4), then the specialty rollout (M6.5). Input: the 2026-10-27 society survey
 (389 societies, one guideline each, grading system per society).
 
@@ -166,7 +166,7 @@ Order by label availability and scheme difficulty:
 | 6c | Cardiology (ESC, ACC/AHA) | COR I–III × LOE A/B/C → harmonized scale | new labels needed |
 | 6d | Anesthesia (ESAIC, ASA) | mixed | new labels needed |
 | 6e | Hematology (ASH, BSH) | GRADE | new labels needed |
-| 6f | Remaining non-surgical | per society | per society |
+| 6f | Remaining specialties, surgical included | per society | per society |
 | 6g | Other critical care bodies (CCCS-SSAI, ESPNIC, BTF, British and Canadian societies) | GRADE (check per body) | none: unvalidated |
 
 6g: start from the 10 `other_society` rows in `corpus/candidates.csv`, then search each body's
@@ -187,7 +187,7 @@ Revisit the validation decision at 6a, as logged: the ceiling is ICU accuracy re
 **Exit (per specialty):** mapping tested, snapshot published, and validation reported or flagged.
 
 ## M7 — Paper (all specialties, for publication)
-- Evidence quality across non-surgical medicine; comparison with Fanaroff 2008–2018 cardiology.
+- Evidence quality across medicine, surgery included; comparison with Fanaroff 2008–2018 cardiology.
 - Discordance map: strong recommendations on low certainty, by specialty.
 - The living dashboard is cited as the maintained resource.
 

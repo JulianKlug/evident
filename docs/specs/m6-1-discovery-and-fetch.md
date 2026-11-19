@@ -74,10 +74,11 @@ Hand decisions do not scale from 3 to ~350 societies. Add a suggestion step, nev
 ### 4.3 Fetch
 
 - Add `PmcS3Source` to `scripts/fetch_pdfs.py`, ahead of the Europe PMC render. Pick the highest PMC version.
-- Keep Unpaywall opt-in with `--email`. Never default it to a personal address.
+- Keep Unpaywall opt-in with `--email`; pass `julian.klug@unige.ch` (decided 2026-11-19). No default in code.
 - Site adapters may also fetch.
 - Paywalled / blocked: the existing VPN run, then `scripts/import_pdfs.py` for manual downloads.
-- Non-English PDFs are fetched and flagged `language` in the report. Extraction scope for them is an open decision.
+- Non-English guidelines are excluded with a new `ExclusionReason.NON_ENGLISH`, suggested at triage from the
+  record's language field and confirmed by a human; their PDFs are not fetched.
 
 ### 4.4 Fetch report per society
 
@@ -102,6 +103,4 @@ by reason. Unresolved PDFs keep `ExclusionReason.PDF_UNAVAILABLE` only after the
 
 - **Access:** institutional VPN coverage per publisher; whether to request publisher text-and-data-mining API
   keys (Elsevier, Wiley, Springer).
-- **Unpaywall email:** a project or institutional address, not a personal one.
-- **Language:** extract non-English guidelines, translate, or exclude with a new reason.
 - **Window:** keep M3's 2016+ first-online rule for all specialties, or set per specialty.
