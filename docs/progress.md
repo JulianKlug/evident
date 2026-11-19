@@ -993,3 +993,14 @@ Exit still open: one real guideline published after 2026-10-04, added with runbo
 - Release `0c1c6f4868a4…` from code `e7125a1` (backup `artifacts/backups/evident-2026-10-27-1958.sqlite`): 75 current, 10 superseded, 140 duplicates removed; repeated → `unchanged`; `check: clean`.
 - Second review: a failed `out/release.json` write now restores the previous outputs; `add` refuses an unlinked older edition before extracting. 2 new tests.
 - CI: `.github/workflows/tests.yml` runs the fast tests on every PR and push to main (no GPU, Ollama, models or data dir). `tests/test_vision_ni9rv3e7.py` moved to `scripts/`: it ran a gemma3 vision extraction at pytest collection. Tests that read the private labels skip without the data dir (`needs_local_data` in `tests/conftest.py`). Fresh clone, offline, no GPU, data dir hidden: 744 passed, 27 skipped.
+
+## M6.3: grading harmonization (2026-11-19)
+
+Spec `docs/specs/m6-3-harmonization.md` (§9–§10). Review of 389 societies' grading systems in `out/grading_harmonisation/grading_systems_harmonisation_jk.xlsx`: 37 excluded (D12), 352 kept; 64 native scales, 277 crosswalk entries onto GRADE, 62 with a sensitivity alternative; decisions D1–D14 signed off; all 99 source anomalies resolved or closed, each checked against a primary guideline where it changed a mapping. Methods text: `docs/methods_grading_harmonisation.md`.
+
+- Data: `evident/grading_data/{scales,crosswalk,families,decisions}.csv` from `scripts/export_grading_tables.py` (grouped codes exploded: 314 rows); `--doc` renders `docs/harmonization_tables.md`, a test diffs it.
+- `GradingFamily` gains 13 families with default scales; `corpus/manifest.csv` may name `strength_scale` / `evidence_scale` per guideline (D10; store migration 5).
+- `harmonize(..., scales, variant)`: GRADE path untouched; other families match token windows against the guideline's scales ("[I, A]", "Class I, Level B", "GRADE 1C", "LoE A-/RG 1-"), unknown codes stay unmapped. `MappingVariant.ALTERNATIVE` gives the sensitivity mapping.
+- Outputs: `recommendations.csv` + dashboard add `grading_family`, scales and `*_alt`; `tables/headline_sensitivity.csv` once a non-GRADE guideline is published.
+- Tests: 913 pass (+~350 crosswalk round-trip and real-phrasing cases). Publish of snapshot 8 on a DB copy: every table byte-identical except the 7 new `recommendations.csv` columns.
+- Open: M6.2 census regexes; M6.4 must extract non-GRADE labels verbatim (prompt currently coerces to GRADE vocabulary); direction text rules miss "cannot be recommended" (EASL open recommendations).

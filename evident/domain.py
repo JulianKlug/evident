@@ -11,7 +11,22 @@ from typing import Optional
 
 
 class GradingFamily(str, Enum):
-    GRADE = "grade"  # M6 adds ABCD_123, ESC_ERS, ACC_AHA
+    """Grading system of a guideline. GRADE has its own rules; the others map through the crosswalk tables
+    (evident/grading_data), each with default scales a guideline may override (decision D10)."""
+    GRADE = "grade"
+    ESC_CLASS = "esc_class"          # Class I/IIa/IIb/III + Level A/B/C
+    ACC_AHA = "acc_aha"              # COR 1/2a/2b/3 + LOE A/B-R/B-NR/C-LD/C-EO (2015+)
+    IDSA_ESMO = "idsa_esmo"          # [I–V, A–E]
+    OXFORD = "oxford"                # grade A–D + Oxford levels
+    SIGN = "sign"                    # grade A–D/GPP + SIGN 1++…4
+    USPSTF = "uspstf"
+    AAN = "aan"
+    AWMF = "awmf"                    # A/B/0/EK (also ESPEN)
+    GRADE_NUMERIC = "grade_numeric"  # "1B", "2C" with the crosswalk's sensitivity alternatives
+    EASL = "easl"                    # strong/weak/open + Oxford levels
+    NCCN = "nccn"
+    CONSENSUS_ONLY = "consensus_only"
+    OTHER = "other"                  # no default: the guideline names its scales
 
 
 class Strength(str, Enum):
@@ -41,6 +56,19 @@ class AxisStatus(str, Enum):
     MAPPED = "mapped"
     UNGRADED = "ungraded"
     UNMAPPED = "unmapped"
+
+
+class MappingVariant(str, Enum):
+    """Which crosswalk value to use: the primary mapping, or the sensitivity-analysis alternative."""
+    PRIMARY = "primary"
+    ALTERNATIVE = "alternative"
+
+
+@dataclass(frozen=True)
+class ScalePair:
+    """Native scales a guideline grades with, e.g. ('S_ESC_CLASS', 'E_ESC'); keys of grading_data/scales.csv."""
+    strength: str
+    evidence: str
 
 
 class RunStatus(str, Enum):
@@ -87,6 +115,9 @@ class Guideline:
     pdf_sha256: Optional[str] = None
     added_at: Optional[str] = None  # set by the store on insert
     id: Optional[int] = None
+    # Native scales when they differ from the family default (D10), e.g. 3-level letters "E_GRADE_LETTER3"
+    strength_scale: Optional[str] = None
+    evidence_scale: Optional[str] = None
 
 
 @dataclass(frozen=True)

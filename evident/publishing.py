@@ -134,6 +134,8 @@ class PublishBundle:
     recs: list[HarmonizedRow]  # current and superseded editions, for the browser
     paper: Optional[PaperPackage] = None  # only with publish --package
     themes: list[ThemeRow] = field(default_factory=list)  # exploratory; empty → no theme figure or table
+    # Headline under the crosswalk alternatives (M6.3); empty while every guideline is GRADE
+    headline_sensitivity: list[HeadlineRow] = field(default_factory=list)
     search_cutoff: Optional[str] = None  # live map: last date searched, shown with the edition rule
 
 
@@ -230,6 +232,8 @@ def _write_tables(bundle: PublishBundle, directory: str) -> None:
     _write_dicts([_rec_dict(r) for r in bundle.recs], os.path.join(directory, "recommendations.csv"))
     if bundle.themes:
         _write_csv(bundle.themes, os.path.join(directory, "themes.csv"))
+    if bundle.headline_sensitivity:
+        _write_csv(bundle.headline_sensitivity, os.path.join(directory, "headline_sensitivity.csv"))
 
 
 def _write_csv(rows: list, path: str) -> None:
@@ -258,12 +262,19 @@ def _cell(value):
 
 def _rec_dict(r: HarmonizedRow) -> dict:
     g = r.grade
+    alt = r.grade_alt or g  # GRADE rows have no alternative: same values
     return {
         "doi": r.doi, "society": r.society, "year": r.year, "edition": r.edition.value,
         "page": _cell(r.page), "text": r.text, "raw_strength": r.raw_strength, "raw_certainty": r.raw_certainty,
         "category": g.category.value, "strength": _cell(g.strength), "direction": _cell(g.direction),
         "certainty": _cell(g.certainty), "strength_status": g.strength_status.value,
         "certainty_status": g.certainty_status.value,
+        # M6.3: the native system and the sensitivity-analysis mapping, shown beside the raw grade
+        "grading_family": r.grading_family,
+        "strength_scale": r.scales.strength if r.scales else "",
+        "evidence_scale": r.scales.evidence if r.scales else "",
+        "category_alt": alt.category.value, "strength_alt": _cell(alt.strength), "direction_alt": _cell(alt.direction),
+        "certainty_alt": _cell(alt.certainty),
     }
 
 

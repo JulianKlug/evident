@@ -88,7 +88,7 @@ class TestMigrations:
         conn = sqlite3.connect(path)
         tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
         assert tables == _TABLES
-        assert conn.execute("SELECT version FROM schema_version").fetchall() == [(4,)]
+        assert conn.execute("SELECT version FROM schema_version").fetchall() == [(5,)]
 
     def test_v1_file_migrates_to_latest_keeping_rows(self, tmp_path, monkeypatch):
         path = str(tmp_path / "db.sqlite")
@@ -102,8 +102,10 @@ class TestMigrations:
             v1 = Store(conn)
             v1._migrate()
             v1.register_extractor_version(_VERSION)
-            gid = v1.upsert_guideline(_guideline())
-            # Raw SQL: create_snapshot now writes the v2 origin column
+            # Raw SQL: upsert_guideline now writes the v5 scale columns, create_snapshot the v2 origin column
+            gid = conn.execute("""INSERT INTO guideline (doi, society, year, title, topic_id, grading_family,
+                                                         added_at)
+                                  VALUES ('10.1/a', 'ACP', 2023, 'T', 'topic', 'grade', 't')""").lastrowid
             conn.execute("INSERT INTO snapshot (extractor_version_id, state, created_at) VALUES ('v1', 'building', 't')")
             conn.execute("INSERT INTO snapshot_member (snapshot_id, guideline_id) VALUES (1, ?)", (gid,))
             conn.execute("""INSERT INTO extraction_run (snapshot_id, guideline_id, status, started_at)

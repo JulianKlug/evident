@@ -1,0 +1,14 @@
+family,strength_scale,evidence_scale
+esc_class,S_ESC_CLASS,E_ESC
+acc_aha,S_ACCAHA_COR,E_ACCAHA
+idsa_esmo,S_IDSA_AE,E_ROMAN5_ESMO
+oxford,S_LETTER_GRADE,E_OXFORD2011
+sign,S_LETTER_GRADE,E_SIGN
+uspstf,S_USPSTF,E_GRADE4
+aan,S_AAN,E_AAN_CLASS
+awmf,S_AWMF,E_OXFORD2011
+grade_numeric,S_GRADE_NUM,E_GRADE_LETTER
+easl,S_EASL3,E_OXFORD2011
+nccn,S_NCCN,E_NCCN
+consensus_only,S_NO_GRADING,E_NONE
+other,,

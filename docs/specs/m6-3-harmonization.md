@@ -1,6 +1,6 @@
 # Spec: M6.3 — Harmonization of non-GRADE grading systems
 
-**Status:** Not started
+**Status:** Mapping tables, harmonize dispatch and outputs implemented (2026-11-19); decisions D1–D14 signed off
 **Sources of truth:** `docs/roadmap.md` (M6, risks: harmonization disputes), `evident/harmonization.py`,
 `evident/domain.py`, `docs/specs/m6-0-society-registry.md` (gold set).
 
@@ -64,9 +64,10 @@ Example, ESC / ACC-AHA:
 | Class IIb | weak | for | — |
 | Class III (no benefit / harm) | strong | against | — |
 | Level A | — | — | high |
-| Level B (B-R, B-NR) | — | — | moderate |
-| Level C (C-LD) | — | — | low |
-| Level C (C-EO, expert opinion) | — | — | very_low |
+| Level B-R | — | — | moderate |
+| Level B-NR | — | — | low (alt. moderate, D2) |
+| Level C-LD | — | — | very_low (alt. low) |
+| Level C-EO (expert opinion) | — | — | very_low (D13) |
 
 Each table states its ambiguous calls (here: IIa vs IIb collapse; C-EO). Ambiguity is resolved once,
 documented, and reported in the paper (roadmap risk "harmonization disputes").
@@ -91,8 +92,28 @@ documented, and reported in the paper (roadmap risk "harmonization disputes").
 - Generated mapping document committed.
 - Remaining families listed with planned shape, or marked unsupported (their guidelines excluded with reason).
 
-## 9. Open decisions
+## 9. Decisions (resolved 2026-11-19)
 
-- ESC IIa/IIb: both weak, or a third strength level (would change `Strength` and every analysis).
-- S3 single-axis grades: infer certainty from the grade's definition, or leave certainty `unmapped`.
-- S5 documents: exclude, or keep as `no_recommendation`.
+Source of truth: `evident/grading_data/decisions.csv` (D1–D14), rendered in `docs/harmonization_tables.md`;
+methods text: `docs/methods_grading_harmonisation.md`.
+
+- ESC IIa/IIb: both weak; only the top tier is strong (D1). The alternative mapping (IIa → strong) is the
+  sensitivity analysis, so `Strength` keeps two levels.
+- S3 single-axis grades: certainty inferred from the grade's definition where it is defined by evidence
+  (EPA A–D, Oxford/SIGN letters); otherwise `unmapped` (D9).
+- S5 systems: strength `unmapped` (D7), evidence kept where it is a real certainty scale. Exception:
+  CANMAT/ISBD lines of treatment are a benefit-harm judgement and map to strength.
+
+## 10. Implementation (as built)
+
+- Crosswalk data: `evident/grading_data/{scales,crosswalk,families,decisions}.csv`, exported from the reviewed
+  workbook by `scripts/export_grading_tables.py`; `--doc` regenerates `docs/harmonization_tables.md` (a test diffs it).
+- `GradingFamily` values = coarse families with default scales (`families.csv`). A guideline overrides them with
+  `strength_scale` / `evidence_scale` in `corpus/manifest.csv` (D10; store migration 5), e.g. 3- vs 4-level letters (D14).
+- `harmonize(..., scales, variant)`: GRADE path unchanged; other families → `grading_tables.match` (token windows,
+  filler words dropped, digit-letter split "1C") → crosswalk values → GRADE category/direction rules.
+  `MappingVariant.ALTERNATIVE` returns the sensitivity mapping.
+- Raw labels are stored unchanged and harmonized on read, so a mapping change never needs re-extraction.
+- Outputs: `recommendations.csv` / dashboard add family, scales and the alternative mapping;
+  `tables/headline_sensitivity.csv` when any non-GRADE guideline is published.
+- Not done here: census regexes for M6.2 (planned next to the tables), `consensus_level` extraction (M6.4).

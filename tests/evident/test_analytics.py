@@ -10,8 +10,9 @@ from evident.analytics import (
     headline,
     strength_by_certainty,
     trends,
+    with_variant,
 )
-from evident.domain import AxisStatus, Category, Certainty, Direction, HarmonizedGrade, Strength
+from evident.domain import AxisStatus, Category, Certainty, Direction, HarmonizedGrade, MappingVariant, Strength
 
 _M, _UM, _UG = AxisStatus.MAPPED, AxisStatus.UNMAPPED, AxisStatus.UNGRADED
 
@@ -126,3 +127,14 @@ def test_caption_facts():
 def test_caption_facts_all_validated():
     facts = caption_facts(_ROWS, _FACTS[:3], labelled_dois={"10.1/a", "10.1/c"})
     assert facts.unvalidated_societies == ()
+
+
+def test_with_variant_swaps_in_the_alternative_mapping():
+    # ESC IIa: primary weak (D1), alternative strong; GRADE rows have no alternative and stay as they are
+    weak = _graded(Strength.WEAK, Direction.FOR, Certainty.MODERATE)
+    strong = _graded(Strength.STRONG, Direction.FOR, Certainty.LOW)
+    esc = HarmonizedRow("10.1/e", "ESC", 2024, weak, grading_family="esc_class", grade_alt=strong)
+    grade = _ROWS[0]
+
+    assert [r.grade for r in with_variant([esc, grade], MappingVariant.PRIMARY)] == [weak, grade.grade]
+    assert [r.grade for r in with_variant([esc, grade], MappingVariant.ALTERNATIVE)] == [strong, grade.grade]

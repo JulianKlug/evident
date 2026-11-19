@@ -135,6 +135,6 @@ def test_synthetic(args, expected):
     _assert_invariant(h)
 
 
-def test_non_grade_family_raises():
+def test_family_without_scales_raises():
     with pytest.raises(UnsupportedGradingFamilyError):
-        harmonize("I", "A", "Give X", G, "esc_ers")
+        harmonize("I", "A", "Give X", G, GradingFamily.OTHER)

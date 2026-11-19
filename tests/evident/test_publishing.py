@@ -20,7 +20,8 @@ from evident.analytics import (
     strength_by_certainty,
     trends,
 )
-from evident.domain import AxisStatus, Category, Certainty, Direction, GateResult, HarmonizedGrade, Strength
+from evident.domain import (AxisStatus, Category, Certainty, Direction, GateResult, HarmonizedGrade, ScalePair,
+                            Strength)
 from evident.publishing import PublishBundle, ValidationSummary, render
 from evident.themes import rec_key, theme_certainty
 
@@ -122,6 +123,29 @@ def test_tables(tmp_path):
 
     guidelines = list(csv.DictReader(open(os.path.join(out, "tables", "guidelines.csv"))))
     assert {g["doi"]: g["joint_with"] for g in guidelines}["10.1/b"] == "ESICM"
+
+
+def test_native_system_and_alternative_beside_the_mapped_grade(tmp_path):
+    # An ESC row: primary weak (IIa, D1), alternative strong; sensitivity headline written only then
+    alt = HarmonizedGrade(Category.GRADED, Strength.STRONG, Direction.FOR, Certainty.LOW, _M, _M)
+    esc = dataclasses.replace(_rec("10.1/a", "ACP", 2023, Strength.WEAK, Certainty.MODERATE), raw_strength="IIa",
+                              raw_certainty="B", grading_family="esc_class",
+                              scales=ScalePair("S_ESC_CLASS", "E_ESC"), grade_alt=alt)
+    bundle = dataclasses.replace(_bundle(rows=[esc]), headline_sensitivity=headline([esc], 7, "v", "m"))
+    render(bundle, str(tmp_path))
+
+    rec = list(csv.DictReader(open(tmp_path / "tables" / "recommendations.csv")))[0]
+    assert (rec["grading_family"], rec["strength_scale"], rec["evidence_scale"]) == ("esc_class", "S_ESC_CLASS", "E_ESC")
+    assert (rec["strength"], rec["strength_alt"], rec["certainty"], rec["certainty_alt"]) == (
+        "weak", "strong", "moderate", "low")
+    assert os.path.exists(tmp_path / "tables" / "headline_sensitivity.csv")
+
+
+def test_grade_rows_repeat_the_mapping_as_alternative(tmp_path):
+    render(_bundle(), str(tmp_path))
+    rec = list(csv.DictReader(open(tmp_path / "tables" / "recommendations.csv")))[0]
+    assert (rec["grading_family"], rec["strength_alt"]) == ("grade", rec["strength"])
+    assert not os.path.exists(tmp_path / "tables" / "headline_sensitivity.csv")
 
 
 def test_captions_state_counts_and_flags(tmp_path):

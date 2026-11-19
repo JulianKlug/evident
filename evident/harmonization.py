@@ -1,6 +1,9 @@
 """Raw extracted grade + text → HarmonizedGrade. Pure, no I/O.
 
 Rules run in order: clean → category → (ungraded? stop) → strength → direction → certainty.
+Other families map through the crosswalk tables (evident/grading_tables), e.g. ESC
+    "Class IIa", "Level B" → WEAK / FOR / MODERATE; MappingVariant.ALTERNATIVE → STRONG (decision D1)
+
 Examples (GRADE):
     "strong recommendation;", "high-certainty evidence", "ACP recommends against …"
         → STRONG / AGAINST / HIGH
@@ -13,6 +16,7 @@ from __future__ import annotations
 import re
 from typing import Optional
 
+from evident import grading_tables
 from evident.domain import (
     AxisStatus,
     Category,
@@ -20,8 +24,11 @@ from evident.domain import (
     Direction,
     GradingFamily,
     HarmonizedGrade,
+    MappingVariant,
+    ScalePair,
     Strength,
 )
+from evident.grading_tables import CrosswalkEntry, Harmonised
 
 _AGAINST_PATTERNS = (r"\b(recommends?|suggests?)\s+against\b",
                      r"\b(recommends?|suggests?)\s+not\b",
@@ -59,14 +66,26 @@ _NUMERIC_STRENGTHS = {"0": "no recommendation", "1": "strong", "2": "weak"}
 _LETTER_CERTAINTIES = {"a": "high", "b": "moderate", "c": "low", "d": "very low"}
 
 
+# Crosswalk vocabulary → domain; anything absent (NOT_REPORTED, NOT_APPLICABLE) leaves the axis unmapped
+_TABLE_STRENGTHS = {Harmonised.STRONG: Strength.STRONG, Harmonised.CONDITIONAL: Strength.WEAK}
+_TABLE_CERTAINTIES = {Harmonised.HIGH: Certainty.HIGH, Harmonised.MODERATE: Certainty.MODERATE,
+                      Harmonised.LOW: Certainty.LOW, Harmonised.VERY_LOW: Certainty.VERY_LOW}
+_TABLE_CATEGORIES = {Harmonised.UNGRADED: Category.BEST_PRACTICE, Harmonised.NO_REC: Category.NO_RECOMMENDATION}
+
+
 class UnsupportedGradingFamilyError(ValueError):
-    """Only GRADE is harmonized in M0; other families arrive in M6."""
+    """The family has no default scales and the guideline names none (GradingFamily.OTHER)."""
 
 
 def harmonize(raw_strength: str, raw_certainty: str, text: str,
-              raw_category: Category, family: GradingFamily) -> HarmonizedGrade:
+              raw_category: Category, family: GradingFamily,
+              scales: Optional[ScalePair] = None,
+              variant: MappingVariant = MappingVariant.PRIMARY) -> HarmonizedGrade:
     if family != GradingFamily.GRADE:
-        raise UnsupportedGradingFamilyError(f"No harmonization for grading family '{family}'")
+        resolved = grading_tables.resolve_scales(GradingFamily(family), scales)
+        if resolved is None:
+            raise UnsupportedGradingFamilyError(f"No grading scales for family '{family}'")
+        return _harmonize_from_tables(raw_strength, raw_certainty, text, Category(raw_category), resolved, variant)
 
     raw_strength, raw_certainty = _spell_out_notation(raw_strength, raw_certainty)
     strength_label = _clean(raw_strength)
@@ -175,3 +194,54 @@ def _certainty(label: str) -> tuple[Optional[Certainty], AxisStatus]:
         levels.append(level)
 
     return min(levels, key=_CERTAINTY_ORDER.index), AxisStatus.MAPPED
+
+
+# ---------------------------------------------------------------- crosswalk families
+
+def _harmonize_from_tables(raw_strength: str, raw_certainty: str, text: str, raw_category: Category,
+                           scales: ScalePair, variant: MappingVariant) -> HarmonizedGrade:
+    """Look both labels up in the guideline's scales, then apply the GRADE category and direction rules.
+
+    ESMO "[I, A]" → strength A (STRONG), evidence I (HIGH); text "… not recommended" with IDSA D → AGAINST
+    from the grade itself; an unknown code leaves its axis unmapped, never guessed.
+    """
+    strength_entry, evidence_entry = grading_tables.match(scales, raw_strength, raw_certainty)
+    strength_value = _variant_value(strength_entry, variant)
+    certainty_value = _variant_value(evidence_entry, variant)
+
+    # Ungraded / no-recommendation statements: from the extractor, the text, or the native grade itself
+    label = _clean(f"{raw_strength} {raw_certainty}")
+    category = _category(label, text, raw_category)
+    if category == Category.GRADED:
+        category = _TABLE_CATEGORIES.get(strength_value, Category.GRADED)
+    if category != Category.GRADED:
+        return HarmonizedGrade(category, None, None, None, AxisStatus.UNGRADED, AxisStatus.UNGRADED)
+
+    strength = _TABLE_STRENGTHS.get(strength_value)
+    direction = _table_direction(strength_entry, evidence_entry, label, text) if strength else None
+    certainty = _TABLE_CERTAINTIES.get(certainty_value)
+    return HarmonizedGrade(
+        category=category,
+        strength=strength,
+        direction=direction,
+        certainty=certainty,
+        strength_status=AxisStatus.MAPPED if strength else AxisStatus.UNMAPPED,
+        certainty_status=AxisStatus.MAPPED if certainty else AxisStatus.UNMAPPED,
+    )
+
+
+def _variant_value(entry: Optional[CrosswalkEntry], variant: MappingVariant) -> Optional[Harmonised]:
+    if entry is None:
+        return None
+    if variant == MappingVariant.ALTERNATIVE and entry.alternative is not None:
+        return entry.alternative
+    return entry.value
+
+
+def _table_direction(strength_entry: Optional[CrosswalkEntry], evidence_entry: Optional[CrosswalkEntry],
+                     label: str, text: str) -> Direction:
+    """The grade fixes it (ESC III, IDSA E, WFSBP "A-") or, as for GRADE, the label/text decide."""
+    for entry in (strength_entry, evidence_entry):
+        if entry is not None and entry.direction is not None:
+            return entry.direction
+    return _direction(label, text)
