@@ -60,11 +60,10 @@ _EXTRA_ALIASES = {
     ("S_ESC_CLASS", "IIa"): ["2a", "II a", "ILA", "LLA"],
     ("S_ESC_CLASS", "IIb"): ["2b", "II b", "ILB", "LIB"],
     ("S_ESC_CLASS", "III"): ["3", "ILI", "LLI"],
-    # ACC/AHA: roman classes (pre-2015 and many 2015+ documents: "COR IIa", "III - Harm")
+    # ACC/AHA 2015+: roman classes ("COR IIa", "III - Harm"); pre-2015 documents use S_ESC_CLASS
     ("S_ACCAHA_COR", "1"): ["I"],
     ("S_ACCAHA_COR", "2a"): ["IIa", "II a"],
     ("S_ACCAHA_COR", "2b"): ["IIb", "II b"],
-    ("S_ACCAHA_COR", "3"): ["III"],
     ("S_ACCAHA_COR", "3: No benefit"): ["III: No benefit"],
     ("S_ACCAHA_COR", "3: Harm"): ["III: Harm"],
     # IDSA quality I–III written in arabic numerals (legacy ABCD_123 ground truth, e.g. BDYDTUHA)

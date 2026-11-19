@@ -161,7 +161,6 @@ ACC/AHA Class of Recommendation (2015+)
 | 2b | Class 2b (weak) – may be reasonable | CONDITIONAL | for |  | H |  |
 | 3: No benefit | Class 3: No Benefit (moderate) | CONDITIONAL | against | STRONG | M | ACC/AHA labels this tier 'moderate'. |
 | 3: Harm | Class 3: Harm (strong) | STRONG | against |  | H |  |
-| 3 | Class III (pre-2015, undivided) – not helpful and may be harmful | STRONG | against |  | H | Pre-2015 ACC/AHA; as ESC III (D4). |
 
 ## S_ACOEM (strength)
 
@@ -267,7 +266,7 @@ ESC Clinical Consensus Statements (EHRA, EAPCI) : TO DO / MAY DO / NOT TO DO
 
 ## S_ESC_CLASS (strength)
 
-ESC Classes I / IIa / IIb / III (and ESH variant I/II/III)
+ESC Classes I / IIa / IIb / III (also ESH I/II/III and pre-2015 ACC/AHA, undivided III)
 
 | Native code | Meaning | Harmonised | Direction | Alternative | Confidence | Note |
 |---|---|---|---|---|---|---|

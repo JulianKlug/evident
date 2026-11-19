@@ -42,6 +42,7 @@ SURVEY_COLUMNS = ("society", "name", "discipline", "region", "family", "strength
                   "source_guideline", "year", "url")
 _EXCLUDED_PREFIX = "Excluded"
 _UNGRADED_SOCIETY = "Ungraded (consensus)"
+_SEPARATOR_DASH = "-"  # after _MINUS_SIGNS folding
 _BOTH_AXES = {"Full", "Full – approximate"}
 _HARMONISED = _BOTH_AXES | {"Partial – evidence only", "Partial – strength only"}
 WILDCARD = "*"  # the scale has no native labels: every statement gets this row (e.g. S_NONE, S_NO_GRADING)
@@ -254,12 +255,14 @@ def render_doc() -> str:
 # ---------------------------------------------------------------- matching
 
 def _normalize(label: str) -> list[str]:
-    """'Class IIa, Level B-NR.' → ['class', 'iia', 'level', 'b-nr']; arrows, +, -, % kept."""
+    """'Class IIa, Level B-NR.' → ['class', 'iia', 'level', 'b-nr']; arrows, +, -, % kept.
+
+    A free-standing dash is a separator ("III - No Benefit" = "III: No Benefit"), a bound one a code ("A-")."""
     text = re.sub(_CONSENSUS_PATTERN, " ", str(label or "").lower())
     for sign, ascii_minus in _MINUS_SIGNS.items():
         text = text.replace(sign, ascii_minus)
     text = re.sub(r"[^0-9a-z+\-↑↓↔θ%.]+", " ", text)
-    return [t.strip(".") for t in text.split() if t.strip(".")]
+    return [t.strip(".") for t in text.split() if t.strip(".") not in ("", _SEPARATOR_DASH)]
 
 
 def _strip_filler(tokens: list[str]) -> str:

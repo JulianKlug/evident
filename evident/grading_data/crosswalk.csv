@@ -17,7 +17,6 @@ S_ACCAHA_COR,strength,2a,IIa|II a,Class 2a (moderate) – is reasonable,CONDITIO
 S_ACCAHA_COR,strength,2b,IIb|II b,Class 2b (weak) – may be reasonable,CONDITIONAL,FOR,,H,
 S_ACCAHA_COR,strength,3: No benefit,III: No benefit,Class 3: No Benefit (moderate),CONDITIONAL,AGAINST,STRONG,M,ACC/AHA labels this tier 'moderate'.
 S_ACCAHA_COR,strength,3: Harm,III: Harm,Class 3: Harm (strong),STRONG,AGAINST,,H,
-S_ACCAHA_COR,strength,3,III,"Class III (pre-2015, undivided) – not helpful and may be harmful",STRONG,AGAINST,,H,Pre-2015 ACC/AHA; as ESC III (D4).
 S_ESC_CLASS,strength,I,1,Is recommended / indicated,STRONG,FOR,,H,
 S_ESC_CLASS,strength,IIa,2a|II a|ILA|LLA,Should be considered,CONDITIONAL,FOR,STRONG,M,Intermediate tier (conservative rule).
 S_ESC_CLASS,strength,IIb,2b|II b|ILB|LIB,May be considered,CONDITIONAL,FOR,,H,

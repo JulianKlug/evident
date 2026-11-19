@@ -134,8 +134,9 @@ methods text: `docs/methods_grading_harmonisation.md`.
   (88.4%) on both; the 7 others are D7 systems. Printed labels: tested on survey notation examples only. Counted against the survey,
   one representative guideline per society; the exit against the M6.0 gold set stays open until it exists.
 - Review round 2: `S_CONSENSUS` → not reported (was ungraded), so Delphi societies grading evidence (ESPNIC,
-  ESNM, ESSR, ESNR) keep their certainty; ESPE (no evidence grade) moves to `S_NO_GRADING`. ACC/AHA roman
-  classes ("COR IIa", "III - Harm") and the undivided pre-2015 Class III (strong against, as ESC III, D4).
+  ESNM, ESSR, ESNR) keep their certainty; ESPE (no evidence grade) moves to `S_NO_GRADING`. ACC/AHA 2015+ roman
+  classes ("COR IIa", "III - Harm"); a free-standing dash is a separator. A bare "III" on the 2015+ scale is
+  ambiguous → unmapped; pre-2015 ACC/AHA (undivided III) uses `S_ESC_CLASS` + `E_ESC`.
 - Provenance: `grading_tables_sha256` (all crosswalk CSVs) is a release input; a table change makes `status`
   report the release stale.
 - Schema v5: read-only opening needs the exact schema, so the frozen v4 paper1 DB is reproduced with the code

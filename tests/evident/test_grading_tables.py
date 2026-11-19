@@ -327,8 +327,8 @@ SURVEY = [
     ("APHRS", "3: No Benefit", "B-R", "CRT is not useful", (G, W, A, MO)),
     ("NLA", "III - Harm", "B-R", "Niacin should not be used", (G, S, A, MO)),
     ("NLA", "III: No Benefit", "B-R", "Lp(a) apheresis is not useful", (G, W, A, MO)),
-    # Pre-2015 ACC/AHA: one undivided Class III ("not helpful and may be harmful"), as ESC III (D4)
-    (ScalePair("S_ACCAHA_COR", "E_ESC"), "Class III", "Level C", "Routine screening is not recommended", (G, S, A, VL)),
+    # Pre-2015 ACC/AHA: I/IIa/IIb/undivided III + A/B/C, graded as ESC (D4: III strong against)
+    (ScalePair("S_ESC_CLASS", "E_ESC"), "Class III", "Level C", "Routine screening is not recommended", (G, S, A, VL)),
 ]
 
 
@@ -338,6 +338,30 @@ def test_survey_notation(society, raw_strength, raw_certainty, text, expected):
     h = harmonize(raw_strength, raw_certainty, text, G, GradingFamily.OTHER, scales=_survey_scales(society))
     assert (h.category, h.strength, h.direction, h.certainty) == expected
     _assert_invariant(h)
+
+
+_ACCAHA = ScalePair("S_ACCAHA_COR", "E_ACCAHA")
+
+# 2015+ Class III notations → (primary, alternative) (strength, direction); a bare III is ambiguous there
+ACCAHA_CLASS_III = [
+    ("III: Harm", (S, A), (S, A)),
+    ("III - Harm", (S, A), (S, A)),
+    ("3: Harm", (S, A), (S, A)),
+    ("III: No Benefit", (W, A), (S, A)),
+    ("III - No Benefit", (W, A), (S, A)),
+    ("3 – No benefit", (W, A), (S, A)),
+    ("Class III", (None, None), (None, None)),
+    ("3", (None, None), (None, None)),
+]
+
+
+@pytest.mark.parametrize("raw_strength, primary, alternative", ACCAHA_CLASS_III,
+                         ids=[s for s, _, _ in ACCAHA_CLASS_III])
+def test_accaha_class_iii(raw_strength, primary, alternative):
+    for variant, expected in ((P, primary), (ALT, alternative)):
+        h = harmonize(raw_strength, "B-R", "X is not useful", G, GradingFamily.OTHER, scales=_ACCAHA, variant=variant)
+        assert (h.strength, h.direction) == expected, variant
+        _assert_invariant(h)
 
 
 # ---------------------------------------------------------------- coverage and reported numbers

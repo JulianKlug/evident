@@ -3,7 +3,7 @@ S_GRADE2,strength,"GRADE textuel : Strong / Conditional (Weak, Discretionary)",D
 S_GRADE_NUM,strength,"Numeric GRADE (ACCP/KDIGO): 1 = recommend, 2 = suggest",Direct,own
 S_GRADE_DIR5,strength,GRADE directionnel 5 niveaux (↑↑ ↑ ↔ ↓ ↓↓),Direct,own
 S_ACCAHA_COR,strength,ACC/AHA Class of Recommendation (2015+),Structured,own
-S_ESC_CLASS,strength,ESC Classes I / IIa / IIb / III (and ESH variant I/II/III),Structured,own
+S_ESC_CLASS,strength,"ESC Classes I / IIa / IIb / III (also ESH I/II/III and pre-2015 ACC/AHA, undivided III)",Structured,own
 S_IDSA_AE,strength,IDSA-USPHS / ESMO : grade A–E (lettre),Structured,own
 S_LETTER_GRADE,strength,"Letter grade of recommendation derived from level of evidence (Oxford, SIGN 50, HAS, AACE/ASMBS, SORT, ESSKA, EPA…)",Approximate,own
 S_AWMF,strength,AWMF Empfehlungsgrad A / B / 0,Structured,own
