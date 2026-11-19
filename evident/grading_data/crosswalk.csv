@@ -12,11 +12,12 @@ S_GRADE_DIR5,strength,Θ,,Neither for nor against / No recommendation,NO_REC,NEU
 S_GRADE_DIR5,strength,↓,,Weak against,CONDITIONAL,AGAINST,,H,
 S_GRADE_DIR5,strength,↓↓,,Strong against,STRONG,AGAINST,,H,
 S_GRADE_DIR5,strength,GPP,,Good practice point,UNGRADED,as stated,,H,
-S_ACCAHA_COR,strength,1,,Class 1 (strong) – is recommended,STRONG,FOR,,H,
-S_ACCAHA_COR,strength,2a,,Class 2a (moderate) – is reasonable,CONDITIONAL,FOR,STRONG,M,Intermediate tier: conservative rule (only the top tier = STRONG).
-S_ACCAHA_COR,strength,2b,,Class 2b (weak) – may be reasonable,CONDITIONAL,FOR,,H,
-S_ACCAHA_COR,strength,3: No benefit,,Class 3: No Benefit (moderate),CONDITIONAL,AGAINST,STRONG,M,ACC/AHA labels this tier 'moderate'.
-S_ACCAHA_COR,strength,3: Harm,,Class 3: Harm (strong),STRONG,AGAINST,,H,
+S_ACCAHA_COR,strength,1,I,Class 1 (strong) – is recommended,STRONG,FOR,,H,
+S_ACCAHA_COR,strength,2a,IIa|II a,Class 2a (moderate) – is reasonable,CONDITIONAL,FOR,STRONG,M,Intermediate tier: conservative rule (only the top tier = STRONG).
+S_ACCAHA_COR,strength,2b,IIb|II b,Class 2b (weak) – may be reasonable,CONDITIONAL,FOR,,H,
+S_ACCAHA_COR,strength,3: No benefit,III: No benefit,Class 3: No Benefit (moderate),CONDITIONAL,AGAINST,STRONG,M,ACC/AHA labels this tier 'moderate'.
+S_ACCAHA_COR,strength,3: Harm,III: Harm,Class 3: Harm (strong),STRONG,AGAINST,,H,
+S_ACCAHA_COR,strength,3,III,"Class III (pre-2015, undivided) – not helpful and may be harmful",STRONG,AGAINST,,H,Pre-2015 ACC/AHA; as ESC III (D4).
 S_ESC_CLASS,strength,I,1,Is recommended / indicated,STRONG,FOR,,H,
 S_ESC_CLASS,strength,IIa,2a|II a|ILA|LLA,Should be considered,CONDITIONAL,FOR,STRONG,M,Intermediate tier (conservative rule).
 S_ESC_CLASS,strength,IIb,2b|II b|ILB|LIB,May be considered,CONDITIONAL,FOR,,H,
@@ -85,7 +86,7 @@ S_AUC,strength,Level 2,,May be appropriate (incl. 'disagreement'),NOT_REPORTED,F
 S_AUC,strength,Rarely,,Rarely appropriate / not recommended routinely,NOT_REPORTED,AGAINST,,H,D7: not a grading; native code kept.
 S_AUC,strength,Usually not appropriate (1–3),,Rarely appropriate / not recommended routinely,NOT_REPORTED,AGAINST,,H,D7: not a grading; native code kept.
 S_AUC,strength,Level 3,,Rarely appropriate / not recommended routinely,NOT_REPORTED,AGAINST,,H,D7: not a grading; native code kept.
-S_CONSENSUS,strength,*,,Strong consensus / consensus / endorsed / agreement %,UNGRADED,as stated,,H,Record the % or tier in the consensus_level field.
+S_CONSENSUS,strength,*,,Strong consensus / consensus / endorsed / agreement %,NOT_REPORTED,as stated,,H,Consensus is never strength (D8); an evidence grade printed beside it is kept (D9). Record the % or tier in the consensus_level field.
 S_ACOEM,strength,Strongly Recommended (A),,,STRONG,FOR,,H,
 S_ACOEM,strength,Moderately Recommended (B),,,CONDITIONAL,FOR,STRONG,M,
 S_ACOEM,strength,Recommended (C),,,CONDITIONAL,FOR,,H,

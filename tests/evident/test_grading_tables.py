@@ -300,6 +300,40 @@ def test_codes_sharing_a_label_must_agree_on_the_whole_mapping(tmp_path, monkeyp
         grading_tables._tables.cache_clear()
 
 
+# ---------------------------------------------------------------- survey notations (review of PR #5, round 2)
+
+def _survey_scales(society: str) -> ScalePair:
+    with open(grading_tables.SURVEY_PATH, encoding="utf-8") as f:
+        row = next(r for r in csv.DictReader(f) if r["society"] == society)
+    return ScalePair(row["strength_scale"], row["evidence_scale"])
+
+
+# (society, raw_strength, raw_certainty, text) → (category, strength, direction, certainty) from the survey's
+# notation examples: consensus agreement keeps the evidence grade (D8, D9); ACC/AHA roman classes
+SURVEY = [
+    ("ESPNIC", "strong agreement", "quality of evidence D", "Lung ultrasound should be used", (G, None, None, VL)),
+    ("ESNM", "Statement endorsed, overall agreement 95%", "GRADE B", "PPIs are effective", (G, None, None, MO)),
+    ("ESSR", "strong consensus (100% agreement)", "Level of evidence 1", "Injection is safe", (G, None, None, HI)),
+    ("ESNR", "broad consensus", "Level of Evidence (LoE): 2", "Facet injection is effective", (G, None, None, MO)),
+    ("ESPE", "A +++", "", "Growth should be monitored", (BP, None, None, None)),
+    ("SOAP", "COR IIa", "LOE C-LD", "Neuraxial anesthesia is reasonable", (G, W, F, VL)),
+    ("ACC", "Class I", "Level A", "Statins are recommended", (G, S, F, HI)),
+    ("HRS", "Class IIb", "Level B", "Pacing may be considered", (G, W, F, MO)),
+    ("NLA", "III - Harm", "B-R", "Niacin should not be used", (G, S, A, MO)),
+    ("NLA", "III: No Benefit", "B-R", "Lp(a) apheresis is not useful", (G, W, A, MO)),
+    # Pre-2015 ACC/AHA: one undivided Class III ("not helpful and may be harmful"), as ESC III (D4)
+    ("AHA", "Class III", "Level C", "Routine screening is not recommended", (G, S, A, VL)),
+]
+
+
+@pytest.mark.parametrize("society, raw_strength, raw_certainty, text, expected", SURVEY,
+                         ids=[f"{s}:{rs}|{rc}" for s, rs, rc, _, _ in SURVEY])
+def test_survey_notation(society, raw_strength, raw_certainty, text, expected):
+    h = harmonize(raw_strength, raw_certainty, text, G, GradingFamily.OTHER, scales=_survey_scales(society))
+    assert (h.category, h.strength, h.direction, h.certainty) == expected
+    _assert_invariant(h)
+
+
 # ---------------------------------------------------------------- coverage and reported numbers
 
 _METHODS = os.path.join(os.path.dirname(__file__), "..", "..", "docs", "methods_grading_harmonisation.md")
@@ -330,6 +364,7 @@ def test_methods_text_states_the_committed_numbers():
         f"({len(codes)} native codes)",
         f"({len(with_alternative)} codes; {100 * len(with_alternative) / len(codes):.1f}%)",
         f"{len(coverage.covered)} of the {len(coverage.graded)} graded societies ({100 * coverage.share:.1f}%)",
+        f"{len(coverage.both_axes)} ({100 * len(coverage.both_axes) / len(coverage.graded):.1f}%) on both axes",
         f"{included} of the {coverage.n_surveyed} societies ({100 * included / coverage.n_surveyed:.1f}%)",
     ]
     for phrase in expected:

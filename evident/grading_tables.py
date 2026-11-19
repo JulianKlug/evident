@@ -42,7 +42,8 @@ SURVEY_COLUMNS = ("society", "name", "discipline", "region", "family", "strength
                   "source_guideline", "year", "url")
 _EXCLUDED_PREFIX = "Excluded"
 _UNGRADED_SOCIETY = "Ungraded (consensus)"
-_HARMONISED = {"Full", "Full – approximate", "Partial – evidence only", "Partial – strength only"}
+_BOTH_AXES = {"Full", "Full – approximate"}
+_HARMONISED = _BOTH_AXES | {"Partial – evidence only", "Partial – strength only"}
 WILDCARD = "*"  # the scale has no native labels: every statement gets this row (e.g. S_NONE, S_NO_GRADING)
 
 _ALIAS_SEPARATOR = "|"
@@ -163,12 +164,16 @@ def match(scales: ScalePair, raw_strength: str, raw_certainty: str
 
 @dataclass(frozen=True)
 class SurveyCoverage:
-    """Surveyed societies whose assigned scales the crosswalk maps (spec §8: ≥ 73% of graded societies)."""
+    """Surveyed societies whose assigned scales the crosswalk maps (spec §8: ≥ 73% of graded societies).
+
+    Theoretical coverage: the scales exist in the crosswalk. Whether printed labels parse is tested on the
+    survey's notation examples; against real extractions it is the M6.0 gold-set exit (still open)."""
     n_surveyed: int
     excluded: tuple      # survey rows (dicts), with their exclusion reason in "inclusion"
     graded: tuple        # included and not consensus-only
     covered: tuple
     unsupported: tuple   # graded but not covered, with the reason in "harmonisability"
+    both_axes: tuple     # covered on strength and certainty; the rest on one axis (evidence or strength only)
 
     @property
     def share(self) -> float:
@@ -195,7 +200,8 @@ def survey_coverage() -> SurveyCoverage:
     covered = tuple(r for r in graded if r["strength_scale"] in scales and r["evidence_scale"] in scales
                     and r["harmonisability"] in _HARMONISED)
     unsupported = tuple(r for r in graded if r not in covered)
-    return SurveyCoverage(len(rows), excluded, graded, covered, unsupported)
+    both_axes = tuple(r for r in covered if r["harmonisability"] in _BOTH_AXES)
+    return SurveyCoverage(len(rows), excluded, graded, covered, unsupported, both_axes)
 
 
 def entries(scale_key: str) -> tuple:
@@ -218,9 +224,11 @@ def render_doc() -> str:
     lines += ["", "## Survey coverage", "",
               f"{coverage.n_surveyed} societies surveyed (one representative guideline each), "
               f"{len(coverage.excluded)} excluded, {len(coverage.graded)} graded (consensus-only societies "
-              f"not counted). Covered: {len(coverage.covered)} of {len(coverage.graded)} graded societies "
-              f"({100 * coverage.share:.1f}%) have both assigned scales mapped. Source: "
-              "`corpus/grading/society_grading_survey.csv`.", "",
+              f"not counted). Theoretical coverage (assigned scales in the crosswalk): {len(coverage.covered)} of "
+              f"{len(coverage.graded)} graded societies ({100 * coverage.share:.1f}%) on at least one axis, "
+              f"{len(coverage.both_axes)} ({100 * len(coverage.both_axes) / len(coverage.graded):.1f}%) on both. "
+              "Printed labels are tested on survey notation examples; validation against extracted labels "
+              "(M6.0 gold set) is pending. Source: `corpus/grading/society_grading_survey.csv`.", "",
               "### Graded but not covered", "", "| Society | Strength scale | Evidence scale | Reason |",
               "|---|---|---|---|"]
     lines += [f"| {r['society']} | {r['strength_scale']} | {r['evidence_scale']} | {_cell(r['harmonisability'])} |"

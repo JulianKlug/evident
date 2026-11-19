@@ -17,7 +17,7 @@ Statements that the issuing body explicitly left ungraded, such as good practice
 
 ## Crosswalk Construction
 
-We identified 64 native scales: 32 for strength and 32 for evidence. Each native code of each scale was mapped to a harmonized value in a code-level crosswalk (314 native codes). Each entry also records the code's native definition and the mapping's confidence (high, moderate, or low). When a mapping depended on a methodological choice, the entry also records an alternative value for sensitivity analysis (72 codes; 22.9%). The scales assigned to 277 of the 284 graded societies (97.5%) are fully mapped; the remaining 7 use systems that do not grade recommendations (see below). Because systems change between versions, the scale is assigned to each guideline and version rather than to the society (D10). Examples are the American College of Cardiology/American Heart Association (ACC/AHA) levels of evidence before and after 2015, and the World Federation of Societies of Biological Psychiatry (WFSBP) grading before and after its 2023 revision.
+We identified 64 native scales: 32 for strength and 32 for evidence. Each native code of each scale was mapped to a harmonized value in a code-level crosswalk (315 native codes). Each entry also records the code's native definition and the mapping's confidence (high, moderate, or low). When a mapping depended on a methodological choice, the entry also records an alternative value for sensitivity analysis (72 codes; 22.9%). The scales assigned to 277 of the 284 graded societies (97.5%) are in the crosswalk, 251 (88.4%) on both axes and 26 on one axis only; the remaining 7 use systems that do not grade recommendations (see below). This is coverage of the scales, not of printed labels; label parsing was tested on each society's notation examples. Because systems change between versions, the scale is assigned to each guideline and version rather than to the society (D10). Examples are the American College of Cardiology/American Heart Association (ACC/AHA) levels of evidence before and after 2015, and the World Federation of Societies of Biological Psychiatry (WFSBP) grading before and after its 2023 revision.
 
 The following rules were applied.
 
@@ -29,7 +29,7 @@ The following rules were applied.
 
 **Nongrading systems.** Some scales do not grade recommendations. These include appropriateness criteria, magnitude-of-benefit scores (ESMO-MCBS), molecular target actionability (ESCAT), resource tiers, efficacy conclusions (International Parkinson and Movement Disorder Society), and pharmacogenetic utility categories. Their strength was recorded as not reported (D7). An exception was made for line-of-treatment categories (Canadian Network for Mood and Anxiety Treatments; International Society for Bipolar Disorders). These categories are explicitly defined by evidence level and a benefit-harm judgment, so they were mapped to strength.
 
-**Consensus.** Panel agreement, such as Delphi votes and percentage agreement, was recorded in a separate field and never converted into strength (D8).
+**Consensus.** Panel agreement, such as Delphi votes and percentage agreement, was recorded in a separate field and never converted into strength (D8). A consensus statement that also carried an evidence grade kept that grade, with strength not reported (D9); only statements without any grade were classified as ungraded.
 
 ## Statistical Analysis
 

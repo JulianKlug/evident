@@ -25,7 +25,7 @@ Native grades mapped onto the GRADE-anchored scale. *Alternative* is the value u
 
 ## Survey coverage
 
-389 societies surveyed (one representative guideline each), 37 excluded, 284 graded (consensus-only societies not counted). Covered: 277 of 284 graded societies (97.5%) have both assigned scales mapped. Source: `corpus/grading/society_grading_survey.csv`.
+389 societies surveyed (one representative guideline each), 37 excluded, 284 graded (consensus-only societies not counted). Theoretical coverage (assigned scales in the crosswalk): 277 of 284 graded societies (97.5%) on at least one axis, 251 (88.4%) on both. Printed labels are tested on survey notation examples; validation against extracted labels (M6.0 gold set) is pending. Source: `corpus/grading/society_grading_survey.csv`.
 
 ### Graded but not covered
 
@@ -161,6 +161,7 @@ ACC/AHA Class of Recommendation (2015+)
 | 2b | Class 2b (weak) – may be reasonable | CONDITIONAL | for |  | H |  |
 | 3: No benefit | Class 3: No Benefit (moderate) | CONDITIONAL | against | STRONG | M | ACC/AHA labels this tier 'moderate'. |
 | 3: Harm | Class 3: Harm (strong) | STRONG | against |  | H |  |
+| 3 | Class III (pre-2015, undivided) – not helpful and may be harmful | STRONG | against |  | H | Pre-2015 ACC/AHA; as ESC III (D4). |
 
 ## S_ACOEM (strength)
 
@@ -220,7 +221,7 @@ Delphi agreement only (no strength) – ESNM, ESSR, ESNR, ESPE, IAP, ESPNIC, EFO
 
 | Native code | Meaning | Harmonised | Direction | Alternative | Confidence | Note |
 |---|---|---|---|---|---|---|
-| * | Strong consensus / consensus / endorsed / agreement % | UNGRADED |  |  | H | Record the % or tier in the consensus_level field. |
+| * | Strong consensus / consensus / endorsed / agreement % | NOT_REPORTED |  |  | H | Consensus is never strength (D8); an evidence grade printed beside it is kept (D9). Record the % or tier in the consensus_level field. |
 
 ## S_DPWG (strength)
 

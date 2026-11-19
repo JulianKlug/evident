@@ -1012,3 +1012,4 @@ Spec `docs/specs/m6-3-harmonization.md` (§9–§10). Review of 389 societies' g
   - Coverage from `corpus/grading/society_grading_survey.csv`: 277/284 graded societies (97.5%).
   - Duplicate codes checked on the full mapping; round-trip checks code, direction and alternative; D3/D7 texts match the crosswalk.
   - `grading_tables_sha256` is a release input; frozen v4 DB documented (runbook).
+- Review round 2: Delphi consensus beside an evidence grade keeps the certainty (`S_CONSENSUS` → not reported; ESPE → `S_NO_GRADING`); ACC/AHA roman classes and pre-2015 Class III; coverage split into theoretical ≥1 axis 97.5% / both axes 88.4%.

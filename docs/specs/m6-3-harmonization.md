@@ -129,9 +129,13 @@ methods text: `docs/methods_grading_harmonisation.md`.
   recommended" with an evidence-gap clause ("insufficient evidence") → no recommendation.
 - Legacy ERS: NI9RV3E7 (ESC_ERS, 217 labelled rows) and BDYDTUHA (ABCD_123 = ESCMID SoR A–D + QoE I–III,
   60 rows) map every row through `esc_class` and `idsa` (tests need the local data dir).
-- Coverage (§8): `corpus/grading/society_grading_survey.csv` (exported with the tables) → 277 of 284 graded
-  surveyed societies (97.5%) have both scales mapped; the 7 others are D7 systems. Counted against the survey,
+- Coverage (§8): `corpus/grading/society_grading_survey.csv` (exported with the tables) → theoretical coverage
+  (assigned scales in the crosswalk) 277 of 284 graded surveyed societies (97.5%) on at least one axis, 251
+  (88.4%) on both; the 7 others are D7 systems. Printed labels: tested on survey notation examples only. Counted against the survey,
   one representative guideline per society; the exit against the M6.0 gold set stays open until it exists.
+- Review round 2: `S_CONSENSUS` → not reported (was ungraded), so Delphi societies grading evidence (ESPNIC,
+  ESNM, ESSR, ESNR) keep their certainty; ESPE (no evidence grade) moves to `S_NO_GRADING`. ACC/AHA roman
+  classes ("COR IIa", "III - Harm") and the undivided pre-2015 Class III (strong against, as ESC III, D4).
 - Provenance: `grading_tables_sha256` (all crosswalk CSVs) is a release input; a table change makes `status`
   report the release stale.
 - Schema v5: read-only opening needs the exact schema, so the frozen v4 paper1 DB is reproduced with the code
