@@ -55,6 +55,8 @@ _EXTRA_ALIASES = {
     ("S_GRADE_NUM", "2"): ["II"],
 }
 _PLACEHOLDER_SCALES = {"S_UNKNOWN", "E_UNKNOWN"}  # "to be determined": no mapping to export
+# Evidence scales printed only through the strength letter (EPA: "Grade A" = ≥1 level-I study), decided 2026-11-19
+_CODES_FROM_STRENGTH = {"E_EPA"}
 
 # Family → default scale pair; a guideline overrides it in corpus/manifest.csv (decision D10)
 _FAMILIES = [
@@ -106,7 +108,8 @@ def _write(path: str, columns, rows) -> None:
 def export(xlsx: str) -> None:
     scales, crosswalk, decisions = _read_workbook(xlsx)
 
-    scale_rows = [(_text(key), _text(axis).lower(), _text(desc), _text(quality))
+    scale_rows = [(_text(key), _text(axis).lower(), _text(desc), _text(quality),
+                   "strength_grade" if key in _CODES_FROM_STRENGTH else "own")
                   for key, axis, desc, quality, *_ in scales if key not in _PLACEHOLDER_SCALES]
 
     # One row per native code; equivalent codes of a group share the mapping

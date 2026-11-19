@@ -29,7 +29,7 @@ from typing import Optional
 from evident.domain import Direction, GradingFamily, ScalePair
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "grading_data")
-SCALE_COLUMNS = ("scale_key", "axis", "description", "equivalence")
+SCALE_COLUMNS = ("scale_key", "axis", "description", "equivalence", "codes_from")
 CROSSWALK_COLUMNS = ("scale_key", "axis", "native_code", "aliases", "native_meaning", "harmonised", "direction",
                      "alternative", "confidence", "note")
 FAMILY_COLUMNS = ("family", "strength_scale", "evidence_scale")
@@ -39,6 +39,7 @@ WILDCARD = "*"  # the scale has no native labels: every statement gets this row 
 _ALIAS_SEPARATOR = "|"
 _MAX_WINDOW = 6
 _STRENGTH_AXIS, _EVIDENCE_AXIS = "strength", "evidence"
+_OWN_CODES, _STRENGTH_GRADE_CODES = "own", "strength_grade"  # scales.csv codes_from
 
 # Filler words around a code, e.g. "Strength of recommendation B" → "b", "LoE A-/RG 1-" → "a-", "1-"
 _FILLER_WORDS = {"class", "level", "levels", "grade", "grades", "loe", "lor", "cor", "coe", "of", "evidence",
@@ -96,6 +97,8 @@ class _Scale:
     exact: dict      # normalized code or alias → entry
     stripped: dict   # same, filler words dropped; keys shared by different mappings removed
     wildcard: Optional[CrosswalkEntry]
+    # Evidence read off the strength grade itself, e.g. EPA prints only "B": certainty from B's definition
+    codes_from_strength: bool = False
 
 
 @dataclass(frozen=True)
@@ -126,6 +129,10 @@ def match(scales: ScalePair, raw_strength: str, raw_certainty: str
     evidence_scale = _scale(tables, scales.evidence, _EVIDENCE_AXIS)
 
     strength = _find(strength_scale, raw_strength) or _find(strength_scale, raw_certainty, evidence_scale)
+    if evidence_scale.codes_from_strength:
+        evidence = evidence_scale.exact.get(" ".join(_normalize(strength.native_code))) if strength else None
+        return strength, evidence
+
     evidence = _find(evidence_scale, raw_certainty) or _find(evidence_scale, raw_strength, strength_scale)
     return strength, evidence
 
@@ -275,7 +282,7 @@ def _entry(row: dict, axis: str) -> CrosswalkEntry:
         native_meaning=row["native_meaning"], confidence=row["confidence"], note=row["note"])
 
 
-def _build_scale(key: str, axis: str, description: str, rows: list[dict]) -> _Scale:
+def _build_scale(key: str, axis: str, description: str, rows: list[dict], codes_from: str) -> _Scale:
     entries = tuple(_entry(r, axis) for r in rows)
     exact, stripped, conflicts, wildcard = {}, {}, set(), None
 
@@ -300,7 +307,8 @@ def _build_scale(key: str, axis: str, description: str, rows: list[dict]) -> _Sc
     for k in conflicts:
         stripped.pop(k)
     stripped.pop("", None)
-    return _Scale(key, axis, description, entries, exact, stripped, wildcard)
+    return _Scale(key, axis, description, entries, exact, stripped, wildcard,
+                  codes_from_strength=codes_from == _STRENGTH_GRADE_CODES)
 
 
 @lru_cache(maxsize=1)
@@ -316,7 +324,12 @@ def _tables() -> _Tables:
             raise GradingTableError(f"{key}: unknown axis '{axis}'")
         if key not in by_scale:
             raise GradingTableError(f"{key}: no crosswalk rows")
-        scales[key] = _build_scale(key, axis, row["description"], by_scale.pop(key))
+        codes_from = row["codes_from"]
+        if codes_from not in (_OWN_CODES, _STRENGTH_GRADE_CODES):
+            raise GradingTableError(f"{key}: unknown codes_from '{codes_from}'")
+        if codes_from == _STRENGTH_GRADE_CODES and axis != _EVIDENCE_AXIS:
+            raise GradingTableError(f"{key}: only an evidence scale can take its codes from the strength grade")
+        scales[key] = _build_scale(key, axis, row["description"], by_scale.pop(key), codes_from)
     if by_scale:
         raise GradingTableError(f"Crosswalk rows for undeclared scales: {sorted(by_scale)}")
 

@@ -99,8 +99,10 @@ methods text: `docs/methods_grading_harmonisation.md`.
 
 - ESC IIa/IIb: both weak; only the top tier is strong (D1). The alternative mapping (IIa → strong) is the
   sensitivity analysis, so `Strength` keeps two levels.
-- S3 single-axis grades: certainty inferred from the grade's definition where it is defined by evidence
-  (EPA A–D, Oxford/SIGN letters); otherwise `unmapped` (D9).
+- S3 single-axis grades: letter grades map to strength (A → strong, B–D → weak; D1, D6). Certainty comes from
+  the evidence level printed beside the grade. Only EPA prints the letter alone, so its certainty is read off the
+  letter's definition (`scales.csv` `codes_from = strength_grade`). An Oxford/SIGN letter without a printed level
+  leaves certainty `unmapped` (D9): the letter folds several levels together (SIGN B = 2++ or extrapolated 1++/1+).
 - S5 systems: strength `unmapped` (D7), evidence kept where it is a real certainty scale. Exception:
   CANMAT/ISBD lines of treatment are a benefit-harm judgement and map to strength.
 

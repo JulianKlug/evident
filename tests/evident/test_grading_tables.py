@@ -76,6 +76,13 @@ REAL = [
     # EFCNI newborn standards: category A carries GRADE levels
     (("other", ScalePair("S_NONE", "E_EFCNI"), "", "Evidence category A, moderate quality", "X"),
      (G, None, None, MO), (G, None, None, MO)),
+    # EPA cognitive impairment 2022: only the letter is printed; certainty derived from it (decision of 2026-11-19)
+    (("other", ScalePair("S_LETTER_GRADE", "E_EPA"), "B", "", "No clear superiority of a single antipsychotic"),
+     (G, W, F, MO), (G, S, F, MO)),
+    (("other", ScalePair("S_LETTER_GRADE", "E_EPA"), "Grade A", "", "Second-generation antipsychotics are recommended"),
+     (G, S, F, HI), (G, S, F, MO)),
+    # Oxford/SIGN letter without a printed level: certainty stays unmapped (D9)
+    (("sign", None, "Grade B", "", "Clinicians should consider a second clinician"), (G, W, F, None), (G, S, F, None)),
     # Consensus-only society: every statement ungraded
     (("consensus_only", None, "", "", "We suggest X"), (BP, None, None, None), (BP, None, None, None)),
     # NCCN categories are not a strength (D7); category 1 still carries certainty
@@ -127,9 +134,27 @@ def _crosswalk():
         return list(csv.DictReader(f))
 
 
+def _codes_from_strength():
+    with open(os.path.join(grading_tables.DATA_DIR, "scales.csv"), newline="") as f:
+        return {r["scale_key"] for r in csv.DictReader(f) if r["codes_from"] == "strength_grade"}
+
+
+_LETTER_SCALES = _codes_from_strength()
+
+
 def _scale_pair(scale_key, axis):
-    # Any valid scale on the other axis; the wildcard S_NONE / E_NONE never interferes with a lookup
+    # Any valid scale on the other axis; the wildcard S_NONE / E_NONE never interferes with a lookup.
+    # An evidence scale read off the strength letter (EPA) needs the letter grade scale beside it.
+    if scale_key in _LETTER_SCALES:
+        return ScalePair("S_LETTER_GRADE", scale_key)
     return ScalePair(scale_key, "E_NONE") if axis == "strength" else ScalePair("S_NONE", scale_key)
+
+
+def _labels_in(row, label):
+    """(raw_strength, raw_certainty) carrying the native code where the guideline prints it."""
+    if row["axis"] == "strength" or row["scale_key"] in _LETTER_SCALES:
+        return label, ""
+    return "", label
 
 
 ROUND_TRIP = [r for r in _crosswalk() if r["native_code"] != grading_tables.WILDCARD]
@@ -140,8 +165,7 @@ def test_every_native_code_maps_to_its_row(row):
     pair = _scale_pair(row["scale_key"], row["axis"])
     labels = [row["native_code"]] + [a for a in row["aliases"].split("|") if a]
     for label in labels:
-        strength, evidence = (grading_tables.match(pair, label, "") if row["axis"] == "strength"
-                              else grading_tables.match(pair, "", label))
+        strength, evidence = grading_tables.match(pair, *_labels_in(row, label))
         found = strength if row["axis"] == "strength" else evidence
         assert found is not None, label
         assert found.value.value == row["harmonised"], label
