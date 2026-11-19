@@ -302,7 +302,9 @@ def test_codes_sharing_a_label_must_agree_on_the_whole_mapping(tmp_path, monkeyp
 
 # ---------------------------------------------------------------- survey notations (review of PR #5, round 2)
 
-def _survey_scales(society: str) -> ScalePair:
+def _survey_scales(society) -> ScalePair:
+    if isinstance(society, ScalePair):  # a historical pair no surveyed society prints
+        return society
     with open(grading_tables.SURVEY_PATH, encoding="utf-8") as f:
         row = next(r for r in csv.DictReader(f) if r["society"] == society)
     return ScalePair(row["strength_scale"], row["evidence_scale"])
@@ -318,16 +320,20 @@ SURVEY = [
     ("ESPE", "A +++", "", "Growth should be monitored", (BP, None, None, None)),
     ("SOAP", "COR IIa", "LOE C-LD", "Neuraxial anesthesia is reasonable", (G, W, F, VL)),
     ("ACC", "Class I", "Level A", "Statins are recommended", (G, S, F, HI)),
-    ("HRS", "Class IIb", "Level B", "Pacing may be considered", (G, W, F, MO)),
+    # 2016 AHA/ACC PAD (PMC5477786) and 2023 HRS/APHRS/LAHRS pacing (PMC11062890) print 2015+ LOE
+    ("AHA", "I", "B-NR", "Patients at increased risk of PAD should undergo a history", (G, S, F, LO)),
+    ("ACC", "III: Harm", "B-R", "CTA should not be performed in asymptomatic PAD", (G, S, A, MO)),
+    ("HRS", "2a", "B-NR", "Periodic assessment of ventricular function is reasonable", (G, W, F, LO)),
+    ("APHRS", "3: No Benefit", "B-R", "CRT is not useful", (G, W, A, MO)),
     ("NLA", "III - Harm", "B-R", "Niacin should not be used", (G, S, A, MO)),
     ("NLA", "III: No Benefit", "B-R", "Lp(a) apheresis is not useful", (G, W, A, MO)),
     # Pre-2015 ACC/AHA: one undivided Class III ("not helpful and may be harmful"), as ESC III (D4)
-    ("AHA", "Class III", "Level C", "Routine screening is not recommended", (G, S, A, VL)),
+    (ScalePair("S_ACCAHA_COR", "E_ESC"), "Class III", "Level C", "Routine screening is not recommended", (G, S, A, VL)),
 ]
 
 
 @pytest.mark.parametrize("society, raw_strength, raw_certainty, text, expected", SURVEY,
-                         ids=[f"{s}:{rs}|{rc}" for s, rs, rc, _, _ in SURVEY])
+                         ids=[f"{getattr(s, 'evidence', s)}:{rs}|{rc}" for s, rs, rc, _, _ in SURVEY])
 def test_survey_notation(society, raw_strength, raw_certainty, text, expected):
     h = harmonize(raw_strength, raw_certainty, text, G, GradingFamily.OTHER, scales=_survey_scales(society))
     assert (h.category, h.strength, h.direction, h.certainty) == expected
