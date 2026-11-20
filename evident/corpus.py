@@ -24,7 +24,8 @@ from datetime import date
 from enum import Enum
 from typing import Optional
 
-from evident.domain import GradingFamily, Guideline
+from evident.domain import GradingFamily, Guideline, ScalePair
+from evident.grading_tables import GradingTableError, match, resolve_scales
 from evident.store import Store
 from utils.doi import doi_to_filename, normalize_doi, strip_doi_prefix
 
@@ -38,6 +39,8 @@ _FIRST_DATA_LINE = 2  # line 1 is the header
 _REQUIRED_COLUMNS = ("doi", "society", "year", "title", "topic_id", "grading_family")
 _OPTIONAL_COLUMNS = ("supersedes_doi", "pdf_filename")
 _JOINT_COLUMN = "joint_with"  # may be absent from the header
+# Native scales overriding the family default (M6.3, D10); may be absent from the header, both or neither set
+_STRENGTH_SCALE_COLUMN, _EVIDENCE_SCALE_COLUMN = "strength_scale", "evidence_scale"
 _JOINT_SEPARATOR = ";"
 
 _SEARCH_KEYS = ("start", "cutoff")  # corpus/search.json, ISO dates
@@ -83,6 +86,7 @@ class ManifestEntry:
     supersedes: tuple[str, ...] = ()  # older editions it wholly replaces, e.g. ("10.1007/a", "10.1007/b")
     joint_with: tuple[str, ...] = ()  # other MVP societies co-leading it, e.g. ("ESICM",)
     line: int = 0  # source line, for error messages
+    scales: Optional[ScalePair] = None  # e.g. ScalePair("S_GRADE_NUM", "E_GRADE_LETTER3"); None = family default
 
 
 @dataclass(frozen=True)
@@ -264,6 +268,8 @@ def sync_to_store(entries: list[ManifestEntry], store: Store, pdf_dir: str) -> S
             grading_family=e.grading_family, supersedes_doi=_JOINT_SEPARATOR.join(e.supersedes) or None,
             pdf_path=pdf_path if pdf_present else None,
             pdf_sha256=sha,
+            strength_scale=e.scales.strength if e.scales else None,
+            evidence_scale=e.scales.evidence if e.scales else None,
         ))
         (report.updated if existing else report.added).append(e.doi)
     return report
@@ -309,6 +315,8 @@ def _parse_row(row: dict, line: int, problems: list[str]) -> Optional[ManifestEn
         if joint not in _KNOWN_SOCIETIES or joint == society:
             problem(f"joint_with '{joint}' is not another known society")
 
+    scales = _parse_scales(value(_STRENGTH_SCALE_COLUMN), value(_EVIDENCE_SCALE_COLUMN), family, problem)
+
     if len(problems) > n_before:
         return None
 
@@ -316,7 +324,7 @@ def _parse_row(row: dict, line: int, problems: list[str]) -> Optional[ManifestEn
                        if d.strip())
     return ManifestEntry(
         doi=doi, society=society, year=year, title=title, topic_id=topic_id,
-        grading_family=family, supersedes=supersedes, joint_with=joint_with, line=line,
+        grading_family=family, supersedes=supersedes, joint_with=joint_with, line=line, scales=scales,
         # Filename keeps the DOI's original case, matching existing PDF names
         pdf_filename=value("pdf_filename") or doi_to_filename(raw_doi),
     )
@@ -414,6 +422,28 @@ def _parse_year(raw: str) -> Optional[int]:
     except ValueError:
         return None
     return year if _MIN_YEAR <= year <= date.today().year else None
+
+
+def _parse_scales(strength: str, evidence: str, family: Optional[GradingFamily], problem) -> Optional[ScalePair]:
+    """Both scale columns or neither; known keys on the right axis; GradingFamily.OTHER needs them."""
+    if not strength and not evidence:
+        if family is not None and family != GradingFamily.GRADE and resolve_scales(family, None) is None:
+            problem(f"grading_family '{family.value}' needs strength_scale and evidence_scale")
+        return None
+    if not strength or not evidence:
+        problem("strength_scale and evidence_scale must be set together")
+        return None
+    if family == GradingFamily.GRADE:
+        problem("grading_family 'grade' uses its own rules: leave strength_scale and evidence_scale empty")
+        return None
+
+    pair = ScalePair(strength, evidence)
+    try:
+        match(pair, "", "")
+    except GradingTableError as e:
+        problem(str(e))
+        return None
+    return pair
 
 
 def _parse_family(raw: str) -> Optional[GradingFamily]:

@@ -13,6 +13,7 @@ import os
 import pytest
 
 from evident.corpus import file_sha256
+from evident.grading_tables import tables_sha256
 from evident.dedup import DedupVerdictError, Verdict, merge_rows, read_verdict_rows, write_adjudications
 from evident.domain import SnapshotState
 from evident.extraction import ArtifactMismatchError, Artifacts
@@ -359,6 +360,7 @@ class TestRelease:
         assert record["search"] == {"start": "2016-01-01", "cutoff": "2026-10-04"}
         assert set(record["inputs"]["pdfs"]) == {_A, _B, _C}
         assert record["inputs"]["dedup_verdicts_sha256"] == file_sha256(world.ledger)
+        assert record["inputs"]["grading_tables_sha256"] == tables_sha256()
         assert record["counts"]["current"] == 3
         assert "tables/headline.csv" in record["outputs"]
 

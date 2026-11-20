@@ -9,6 +9,8 @@ benchmark_log*
 unsloth_compiled_cache/
 !tests/fixtures/**/*.csv
 !corpus/manifest.csv
+!evident/grading_data/*.csv
+!corpus/grading/*.csv
 !corpus/candidates.csv
 !corpus/pdf_rebinds.csv
 .venv/

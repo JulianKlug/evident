@@ -17,6 +17,7 @@ from evident.corpus import (
     load_theme_assignments,
     sync_to_store,
 )
+from evident.domain import ScalePair
 from evident.store import DuplicatePdfError, Store
 
 _REPO_MANIFEST = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "manifest.csv")
@@ -25,6 +26,7 @@ _REPO_THEMES = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "th
 _REPO_SEARCH = os.path.join(os.path.dirname(__file__), "..", "..", "corpus", "search.json")
 _N_REPO_GUIDELINES = 85
 _HEADER = "doi,society,year,title,topic_id,supersedes_doi,grading_family,pdf_filename"
+_SCALES_HEADER = _HEADER + ",strength_scale,evidence_scale"
 _A = "10.1007/a,ESICM,2016,Fluids v1,fluids,,grade,"
 _B = "10.1007/b,ESICM,2020,Fluids v2,fluids,10.1007/a,grade,"
 _C = "10.1007/c,ESICM,2024,Fluids v3,fluids,10.1007/b,grade,"
@@ -96,6 +98,24 @@ class TestLoadManifest:
     def test_joint_with_must_be_another_known_society(self, tmp_path, joint):
         problems = _problems(_manifest(tmp_path, f"{_A},{joint}", header=_HEADER + ",joint_with"))
         assert "joint_with" in problems[0]
+
+    def test_scales_override_family_default(self, tmp_path):
+        row = "10.1007/a,ESICM,2016,T,t,,grade_numeric,,S_GRADE_NUM,E_GRADE_LETTER3"
+        entry = load_manifest(_manifest(tmp_path, row, header=_SCALES_HEADER))[0]
+        assert entry.scales == ScalePair("S_GRADE_NUM", "E_GRADE_LETTER3")
+        assert load_manifest(_manifest(tmp_path, _A))[0].scales is None
+
+    @pytest.mark.parametrize("family, strength, evidence, fragment", [
+        ("grade_numeric", "S_GRADE_NUM", "", "set together"),
+        ("grade_numeric", "S_NOPE", "E_GRADE_LETTER", "Unknown grading scale"),
+        ("grade_numeric", "E_GRADE_LETTER", "S_GRADE_NUM", "expected strength"),
+        ("grade", "S_GRADE_NUM", "E_GRADE_LETTER", "own rules"),
+        ("other", "", "", "needs strength_scale"),
+    ])
+    def test_scale_rules(self, tmp_path, family, strength, evidence, fragment):
+        row = f"10.1007/a,ESICM,2016,T,t,,{family},,{strength},{evidence}"
+        problems = _problems(_manifest(tmp_path, row, header=_SCALES_HEADER))
+        assert len(problems) == 1 and fragment in problems[0]
 
     def test_all_problems_reported_together(self, tmp_path):
         problems = _problems(_manifest(tmp_path, "bad,ESC,1,,X,,nope,", _A, _A))

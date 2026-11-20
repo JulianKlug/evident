@@ -233,7 +233,13 @@
       cell(tr, r.category === "graded" ? [r.strength, r.direction].filter(Boolean).join(" ") || "unmapped"
                                        : r.category.replace("_", " "));
       cell(tr, r.category === "graded" ? (r.certainty || r.certainty_status).replace("_", " ") : "");
-      cell(tr, [r.raw_strength, r.raw_certainty].filter(Boolean).join(" · "));
+      // Native grade as printed; hover: its grading system and the sensitivity-analysis mapping (M6.3)
+      var raw = cell(tr, [r.raw_strength, r.raw_certainty].filter(Boolean).join(" · "));
+      if (r.grading_family && r.grading_family !== "grade") {
+        raw.title = r.grading_family + " (" + [r.strength_scale, r.evidence_scale].filter(Boolean).join(", ") +
+          ")\nalternative: " + ([r.strength_alt, r.direction_alt].filter(Boolean).join(" ") ||
+          r.category_alt.replace("_", " ")) + (r.certainty_alt ? " / " + r.certainty_alt.replace("_", " ") : "");
+      }
       rBody.appendChild(tr);
     });
     count.textContent = hits.length + " recommendation(s)" +

@@ -1,0 +1,315 @@
+scale_key,axis,native_code,aliases,native_meaning,harmonised,direction,alternative,confidence,note
+S_GRADE2,strength,Strong,,Strong / 'we recommend' / SR,STRONG,as stated,,H,
+S_GRADE2,strength,Conditional,,Conditional / Weak / Discretionary (DR) / 'we suggest',CONDITIONAL,as stated,,H,
+S_GRADE2,strength,GPS,,"Good/Best practice statement, GPP, CBR, Non-GRADEd, Clinical consensus, Expert opinion, Consensus statement",UNGRADED,as stated,,H,Ungraded by design (GRADE).
+S_GRADE_NUM,strength,1,I,Level 1 / Grade 1 / I (EGS) – we recommend,STRONG,as stated,,H,"Often combined with evidence: 1A, 2C…"
+S_GRADE_NUM,strength,2,II,Level 2 / Grade 2 / II (EGS) – we suggest,CONDITIONAL,as stated,,H,
+S_GRADE_NUM,strength,Not graded,,Not graded / Opinion / Best practice,UNGRADED,as stated,,H,
+S_GRADE_DIR5,strength,↑↑,,Strong for,STRONG,FOR,,H,
+S_GRADE_DIR5,strength,↑,,Weak for,CONDITIONAL,FOR,,H,
+S_GRADE_DIR5,strength,↔,,Neither for nor against / No recommendation,NO_REC,NEUTRAL,,H,
+S_GRADE_DIR5,strength,Θ,,Neither for nor against / No recommendation,NO_REC,NEUTRAL,,H,
+S_GRADE_DIR5,strength,↓,,Weak against,CONDITIONAL,AGAINST,,H,
+S_GRADE_DIR5,strength,↓↓,,Strong against,STRONG,AGAINST,,H,
+S_GRADE_DIR5,strength,GPP,,Good practice point,UNGRADED,as stated,,H,
+S_ACCAHA_COR,strength,1,I,Class 1 (strong) – is recommended,STRONG,FOR,,H,
+S_ACCAHA_COR,strength,2a,IIa|II a,Class 2a (moderate) – is reasonable,CONDITIONAL,FOR,STRONG,M,Intermediate tier: conservative rule (only the top tier = STRONG).
+S_ACCAHA_COR,strength,2b,IIb|II b,Class 2b (weak) – may be reasonable,CONDITIONAL,FOR,,H,
+S_ACCAHA_COR,strength,3: No benefit,III: No benefit,Class 3: No Benefit (moderate),CONDITIONAL,AGAINST,STRONG,M,ACC/AHA labels this tier 'moderate'.
+S_ACCAHA_COR,strength,3: Harm,III: Harm,Class 3: Harm (strong),STRONG,AGAINST,,H,
+S_ESC_CLASS,strength,I,1,Is recommended / indicated,STRONG,FOR,,H,
+S_ESC_CLASS,strength,IIa,2a|II a|ILA|LLA,Should be considered,CONDITIONAL,FOR,STRONG,M,Intermediate tier (conservative rule).
+S_ESC_CLASS,strength,IIb,2b|II b|ILB|LIB,May be considered,CONDITIONAL,FOR,,H,
+S_ESC_CLASS,strength,II,,ESH 2023: IIa+IIb merged ('conflicting benefit'),CONDITIONAL,FOR,,H,
+S_ESC_CLASS,strength,III,3|ILI|LLI,Is not recommended,STRONG,AGAINST,CONDITIONAL,M,ESC does not distinguish 'no benefit' from 'harm'.
+S_IDSA_AE,strength,A,,"Strong evidence for efficacy with a substantial clinical benefit, strongly recommended",STRONG,FOR,,H,
+S_IDSA_AE,strength,B,,"Strong or moderate evidence for efficacy but with a limited clinical benefit, generally recommended",CONDITIONAL,FOR,STRONG,M,Intermediate tier.
+S_IDSA_AE,strength,C,,"Insufficient evidence for efficacy or benefit does not outweigh the risk or the disadvantages, optional",CONDITIONAL,as stated,NO_REC,M,"'Optional' treated as open recommendation (D3): CONDITIONAL, direction from wording, alt NO_REC. Wording: ESMO CPG Suppl. Table S1."
+S_IDSA_AE,strength,D,,"Moderate evidence against efficacy or for adverse outcome, generally not recommended",CONDITIONAL,AGAINST,STRONG,M,ECMM: D = recommendation against (no E).
+S_IDSA_AE,strength,E,,"Strong evidence against efficacy or for adverse outcome, never recommended",STRONG,AGAINST,,H,
+S_LETTER_GRADE,strength,A,,Grade A – strong / 'shall' / based on level 1 evidence,STRONG,as stated,,H,ESRS: A = 'very strong'.
+S_LETTER_GRADE,strength,B,,Grade B – 'should' / level 2–3 evidence,CONDITIONAL,as stated,STRONG,M,ESRS: B = 'strong' → consider STRONG.
+S_LETTER_GRADE,strength,C,,Grade C – 'may/can' / level 4 or extrapolated evidence,CONDITIONAL,as stated,,M,
+S_LETTER_GRADE,strength,D,,"Grade D – level 5, inconsistent evidence or expert opinion",CONDITIONAL,as stated,UNGRADED,L,"D6: grade D → CONDITIONAL. In these systems the letter mainly reflects the level of evidence, not the benefit/harm trade-off."
+S_LETTER_GRADE,strength,CBR,,"Consensus-based recommendation, Accord d'experts, Good practice point",UNGRADED,as stated,,H,
+S_LETTER_GRADE,strength,AE,,"Consensus-based recommendation, Accord d'experts, Good practice point",UNGRADED,as stated,,H,
+S_LETTER_GRADE,strength,GPP,,"Consensus-based recommendation, Accord d'experts, Good practice point",UNGRADED,as stated,,H,
+S_AWMF,strength,A,,soll / soll nicht (strong recommendation),STRONG,as stated,,H,
+S_AWMF,strength,B,,sollte / sollte nicht (recommendation),CONDITIONAL,as stated,,H,
+S_AWMF,strength,0,,kann (open recommendation),CONDITIONAL,as stated,NO_REC,M,"D3: open ('kann') → CONDITIONAL; direction from wording ('kann erwogen werden' FOR, 'kann verzichtet werden' AGAINST)."
+S_AWMF,strength,EK,,Expertenkonsens,UNGRADED,as stated,,H,
+S_EASL3,strength,Strong,,Strong recommendation,STRONG,as stated,,H,
+S_EASL3,strength,Weak,,Weak recommendation,CONDITIONAL,as stated,,H,
+S_EASL3,strength,Open,,Open recommendation ('can'),CONDITIONAL,as stated,NO_REC,M,"D3: open ('can') → CONDITIONAL; direction from wording (e.g. 'can be combined' FOR, 'cannot be recommended' AGAINST). Limitation: 'insufficient evidence, cannot recommend' is closer to NO_REC; needs text-level detection."
+S_3TIER,strength,Strong,,Strong,STRONG,as stated,,H,
+S_3TIER,strength,Moderate,,Moderate,CONDITIONAL,as stated,STRONG,M,Intermediate tier.
+S_3TIER,strength,Weak,,Weak / Limited / Conditional / Optional,CONDITIONAL,as stated,,H,
+S_3TIER,strength,No recommendation,,No recommendation / Insufficient evidence,NO_REC,NEUTRAL,,H,
+S_3TIER,strength,Expert opinion,,Expert opinion / Consensus / Clinical principle,UNGRADED,as stated,,H,
+S_USPSTF,strength,A,,"Recommends – high certainty, substantial net benefit",STRONG,FOR,,H,
+S_USPSTF,strength,B,,Recommends – moderate net benefit,STRONG,FOR,CONDITIONAL,M,Exception to the intermediate-tier rule: USPSTF 'recommends' for both A and B.
+S_USPSTF,strength,C,,Selectively offer – small net benefit,CONDITIONAL,FOR,,H,
+S_USPSTF,strength,D,,Recommends against,STRONG,AGAINST,CONDITIONAL,M,
+S_USPSTF,strength,I,,Insufficient evidence,NO_REC,NEUTRAL,,H,
+S_AAN,strength,A,,Level A – must,STRONG,as stated,,H,
+S_AAN,strength,B,,Level B – should,CONDITIONAL,as stated,STRONG,M,Intermediate tier.
+S_AAN,strength,C,,Level C – may,CONDITIONAL,as stated,,H,
+S_AAN,strength,U,,Level U – insufficient / unproven,NO_REC,NEUTRAL,,H,
+S_AAN,strength,R,,Level R – research only,NO_REC,NEUTRAL,,H,
+S_ABC_INSUFF,strength,A,,High clinical certainty / good evidence / strong panel support,STRONG,as stated,,H,
+S_ABC_INSUFF,strength,Level I,,High clinical certainty / good evidence / strong panel support,STRONG,as stated,,H,
+S_ABC_INSUFF,strength,B,,Moderate certainty / fair evidence / 'suggested',CONDITIONAL,as stated,STRONG,M,Intermediate tier.
+S_ABC_INSUFF,strength,Level II,,Moderate certainty / fair evidence / 'suggested',CONDITIONAL,as stated,STRONG,M,Intermediate tier.
+S_ABC_INSUFF,strength,C,,Low certainty / poor evidence / 'may be considered' / consensus,CONDITIONAL,as stated,UNGRADED,M,ACEP C '(consensus)' → UNGRADED.
+S_ABC_INSUFF,strength,Level III,,Low certainty / poor evidence / 'may be considered' / consensus,CONDITIONAL,as stated,UNGRADED,M,ACEP C '(consensus)' → UNGRADED.
+S_ABC_INSUFF,strength,I,,Insufficient or conflicting evidence,NO_REC,NEUTRAL,,H,
+S_ABC_INSUFF,strength,Insufficient,,Insufficient or conflicting evidence,NO_REC,NEUTRAL,,H,
+S_AAP_KAS,strength,Strong recommendation,,"Benefits clearly exceed harms, excellent evidence",STRONG,as stated,,H,
+S_AAP_KAS,strength,Recommendation,,Moderate recommendation,CONDITIONAL,as stated,STRONG,M,Intermediate tier.
+S_AAP_KAS,strength,Option,,Option / Weak recommendation,CONDITIONAL,as stated,,H,
+S_AAP_KAS,strength,No recommendation,,No recommendation,NO_REC,NEUTRAL,,H,
+S_NCCN,strength,Category 1,,"High-level evidence, uniform consensus (≥85%)",NOT_REPORTED,FOR,,H,"D7: not a grading; native code kept. Categories = evidence + consensus, not strength in the GRADE sense."
+S_NCCN,strength,Category 2A,,"Lower-level evidence, uniform consensus (≥85%)",NOT_REPORTED,FOR,,H,D7: not a grading; native code kept. NCCN default category.
+S_NCCN,strength,Category 2B,,"Lower-level evidence, consensus 50–85%",NOT_REPORTED,FOR,,H,D7: not a grading; native code kept.
+S_NCCN,strength,Category 3,,Major disagreement,NOT_REPORTED,NEUTRAL,,H,D7: not a grading; native code kept.
+S_NCCN,strength,Preferred,,Preferred intervention,NOT_REPORTED,FOR,,H,D7: not a grading; native code kept. Preference ≠ strength; also store in a separate field.
+S_NCCN,strength,Other recommended,,Other recommended intervention,NOT_REPORTED,FOR,,H,D7: not a grading; native code kept.
+S_NCCN,strength,Useful in certain circumstances,,Useful in certain circumstances,NOT_REPORTED,FOR,,H,D7: not a grading; native code kept.
+S_ESC_CCS,strength,Advised TO DO,,Advised to do,STRONG,FOR,,H,
+S_ESC_CCS,strength,MAY DO,,May do,CONDITIONAL,FOR,,H,
+S_ESC_CCS,strength,Advised NOT TO DO,,Advised not to do,STRONG,AGAINST,CONDITIONAL,M,
+S_AUC,strength,Usually appropriate (7–9),,Appropriate,NOT_REPORTED,FOR,,H,D7: not a grading; native code kept. Appropriateness is not a strength of recommendation: also store the native score.
+S_AUC,strength,Level 1,,Appropriate,NOT_REPORTED,FOR,,H,D7: not a grading; native code kept. Appropriateness is not a strength of recommendation: also store the native score.
+S_AUC,strength,May be appropriate (4–6),,May be appropriate (incl. 'disagreement'),NOT_REPORTED,FOR,,H,D7: not a grading; native code kept.
+S_AUC,strength,Level 2,,May be appropriate (incl. 'disagreement'),NOT_REPORTED,FOR,,H,D7: not a grading; native code kept.
+S_AUC,strength,Rarely,,Rarely appropriate / not recommended routinely,NOT_REPORTED,AGAINST,,H,D7: not a grading; native code kept.
+S_AUC,strength,Usually not appropriate (1–3),,Rarely appropriate / not recommended routinely,NOT_REPORTED,AGAINST,,H,D7: not a grading; native code kept.
+S_AUC,strength,Level 3,,Rarely appropriate / not recommended routinely,NOT_REPORTED,AGAINST,,H,D7: not a grading; native code kept.
+S_CONSENSUS,strength,*,,Strong consensus / consensus / endorsed / agreement %,NOT_REPORTED,as stated,,H,Consensus is never strength (D8); an evidence grade printed beside it is kept (D9). Record the % or tier in the consensus_level field.
+S_ACOEM,strength,Strongly Recommended (A),,,STRONG,FOR,,H,
+S_ACOEM,strength,Moderately Recommended (B),,,CONDITIONAL,FOR,STRONG,M,
+S_ACOEM,strength,Recommended (C),,,CONDITIONAL,FOR,,H,
+S_ACOEM,strength,"Recommended, Insufficient Evidence (I)",,,UNGRADED,FOR,,M,Consensus recommendation.
+S_ACOEM,strength,"No Recommendation, Insufficient Evidence (I)",,,NO_REC,NEUTRAL,,H,
+S_ACOEM,strength,"Not Recommended, Insufficient Evidence (I)",,,UNGRADED,AGAINST,,M,
+S_ACOEM,strength,Not Recommended (C),,,CONDITIONAL,AGAINST,,H,
+S_ACOEM,strength,Moderately Not Recommended (B),,,CONDITIONAL,AGAINST,STRONG,M,
+S_ACOEM,strength,Strongly Not Recommended (A),,,STRONG,AGAINST,,H,
+S_SCCT,strength,3,,Strong – should be performed,STRONG,FOR,,H,
+S_SCCT,strength,2,,Moderate – might be reasonable,CONDITIONAL,FOR,STRONG,M,
+S_SCCT,strength,1,,Weak – can be considered,CONDITIONAL,FOR,,H,
+S_SCCT,strength,0,,Insufficient evidence,NO_REC,NEUTRAL,,H,
+S_SCCT,strength,−1,,Recommended not to do,STRONG,AGAINST,CONDITIONAL,M,
+S_SHEA,strength,Essential practice,,Should be adopted by all hospitals,STRONG,FOR,,M,
+S_SHEA,strength,Additional approach,,Can be considered,CONDITIONAL,FOR,,M,
+S_SHEA,strength,Unresolved issue,,Unresolved,NO_REC,NEUTRAL,,M,
+S_SHEA,strength,Not recommended,,Approaches that should not be considered,STRONG,AGAINST,CONDITIONAL,M,
+S_MDS,strength,Clinically useful,,,NOT_REPORTED,FOR,,H,D7: not a grading; native code kept.
+S_MDS,strength,Possibly useful,,,NOT_REPORTED,FOR,,H,D7: not a grading; native code kept.
+S_MDS,strength,Investigational,,,NOT_REPORTED,NEUTRAL,,H,D7: not a grading; native code kept.
+S_MDS,strength,Unlikely useful,,,NOT_REPORTED,AGAINST,,H,D7: not a grading; native code kept.
+S_MDS,strength,Not useful,,,NOT_REPORTED,AGAINST,,H,D7: not a grading; native code kept.
+S_DPWG,strength,Essential,,,NOT_REPORTED,FOR,,H,"D7: not a grading; native code kept. Refers to the pharmacogenetic test, not to a treatment."
+S_DPWG,strength,Beneficial,,,NOT_REPORTED,FOR,,H,D7: not a grading; native code kept.
+S_DPWG,strength,Potentially beneficial,,,NOT_REPORTED,FOR,,H,D7: not a grading; native code kept.
+S_DPWG,strength,Not required,,,NOT_REPORTED,NEUTRAL,,H,D7: not a grading; native code kept.
+S_WFSBP,strength,RG 1,,Top grade: best evidence + good risk-benefit,STRONG,FOR,,H,
+S_WFSBP,strength,RG 2,,"Second grade (e.g. LoE A with moderate risk-benefit, or LoE B)",CONDITIONAL,FOR,STRONG,M,D1: only top grade STRONG. WFSBP v3 (2023) writes 'LoE X/RG n'.
+S_WFSBP,strength,RG 3,,Third grade; also reflects side effects / line of treatment (e.g. LoE A/RG 3 risperidone),CONDITIONAL,FOR,,H,
+S_WFSBP,strength,RG 4,,Fourth grade (e.g. LoE C1 or D),CONDITIONAL,FOR,UNGRADED,M,
+S_WFSBP,strength,RG 5,,Fifth grade (inconsistent evidence; not used in v3),NO_REC,NEUTRAL,,M,
+S_WFSBP,strength,RG 1-,,"Negative recommendation, top grade (e.g. debriefing for PTSD, LoE A-)",STRONG,AGAINST,,H,v3 (2023) notation; D1/D4.
+S_WFSBP,strength,RG 2-,,"Negative recommendation, second grade (e.g. St John's wort in OCD, LoE B-)",CONDITIONAL,AGAINST,,H,v3 (2023) notation; D1/D4.
+S_OARSI,strength,Core,,Core treatment / strong for,STRONG,FOR,,H,
+S_OARSI,strength,1A,,Core treatment / strong for,STRONG,FOR,,H,
+S_OARSI,strength,1B,,Conditional for (2 = lower vote share),CONDITIONAL,FOR,,H,
+S_OARSI,strength,2,,Conditional for (2 = lower vote share),CONDITIONAL,FOR,,H,
+S_OARSI,strength,3,,No consensus,NO_REC,NEUTRAL,,H,
+S_OARSI,strength,4A,,Conditional against,CONDITIONAL,AGAINST,,H,
+S_OARSI,strength,4B,,Conditional against,CONDITIONAL,AGAINST,,H,
+S_OARSI,strength,5,,Strong against,STRONG,AGAINST,,H,
+S_ECHM,strength,Type 1,,Strongly recommended,STRONG,FOR,,H,
+S_ECHM,strength,Type 2,,Recommended / suggested,CONDITIONAL,FOR,,M,
+S_ECHM,strength,Type 3,,Optional,CONDITIONAL,FOR,NO_REC,M,
+S_ECHM,strength,Negative,,Negative recommendation,STRONG,AGAINST,CONDITIONAL,M,
+S_MASCC,strength,Recommendation,,Level I–II evidence,STRONG,as stated,,M,
+S_MASCC,strength,Suggestion,,Level III–V evidence,CONDITIONAL,as stated,,M,
+S_MASCC,strength,NGP,,No guideline possible,NO_REC,NEUTRAL,,H,
+S_WORDING,strength,must,,Strong wording,STRONG,as stated,,M,Requires extracting the verb from each recommendation.
+S_WORDING,strength,offer,,Strong wording,STRONG,as stated,,M,Requires extracting the verb from each recommendation.
+S_WORDING,strength,we recommend,,Strong wording,STRONG,as stated,,M,Requires extracting the verb from each recommendation.
+S_WORDING,strength,do not offer,,Strong wording,STRONG,as stated,,M,Requires extracting the verb from each recommendation.
+S_WORDING,strength,consider,,Conditional wording,CONDITIONAL,as stated,,M,
+S_WORDING,strength,should be considered,,Conditional wording,CONDITIONAL,as stated,,M,
+S_WORDING,strength,could,,Conditional wording,CONDITIONAL,as stated,,M,
+S_WORDING,strength,may,,Conditional wording,CONDITIONAL,as stated,,M,
+S_WORDING,strength,GPP,,Good practice point,UNGRADED,as stated,,H,
+S_LINE,strength,First-line,,Level 1 or 2 evidence plus clinical support,STRONG,FOR,CONDITIONAL,M,D7 exception (jk 2026-11-19): CANMAT/ISBD line = evidence + benefit-harm judgement (CANMAT 2024 Table 3).
+S_LINE,strength,Second-line,,Level 3 evidence or higher plus clinical support,CONDITIONAL,FOR,,M,D7 exception (jk 2026-11-19): CANMAT/ISBD line = evidence + benefit-harm judgement (CANMAT 2024 Table 3).
+S_LINE,strength,Third-line,,Level 4 evidence or higher plus clinical support,CONDITIONAL,FOR,,M,D7 exception (jk 2026-11-19): CANMAT/ISBD line = evidence + benefit-harm judgement (CANMAT 2024 Table 3).
+S_LINE,strength,Not recommended,,Level 1 or 2 evidence for lack of efficacy or safety concerns,STRONG,AGAINST,CONDITIONAL,M,D7 exception (jk 2026-11-19): CANMAT/ISBD line = evidence + benefit-harm judgement (CANMAT 2024 Table 3).
+S_NONE,strength,*,,No strength assigned,NOT_REPORTED,as stated,,H,
+S_NO_GRADING,strength,*,,Ungraded consensus statement,UNGRADED,as stated,,H,
+E_GRADE4,evidence,High,,High / ⊕⊕⊕⊕ / Good quality (AAO) / Hoog,HIGH,,,H,ESE lists 'Strong' instead of 'High'.
+E_GRADE4,evidence,Moderate,,Moderate / Intermediate (ASCO) / ⊕⊕⊕◯ / Redelijk,MODERATE,,,H,
+E_GRADE4,evidence,Low,,Low / Weak (CPIC) / ⊕⊕◯◯ / Laag,LOW,,,H,
+E_GRADE4,evidence,Very low,,"Very low / Insufficient (ASCO, AACAP) / ⊕◯◯◯ / Zeer laag",VERY_LOW,,,H,AAO 'Insufficient quality': LOW or VERY_LOW.
+E_GRADE4,evidence,Ungraded,,Ungraded (GPS),NOT_APPLICABLE,,,H,
+E_GRADE_LETTER,evidence,A,,High,HIGH,,,H,
+E_GRADE_LETTER,evidence,B,,Moderate,MODERATE,,,H,
+E_GRADE_LETTER,evidence,C,,Low (4-level scales with a separate D = very low),LOW,,,H,D14.
+E_GRADE_LETTER,evidence,D,,Very low,VERY_LOW,,,M,EFLM: D = expert consensus → VERY_LOW (D13).
+E_GRADE_LETTER,evidence,E,,Expert consensus (IAGG) / Insufficient (ASRM),VERY_LOW,,,M,
+E_GRADE_LETTER,evidence,Insufficient,,Expert consensus (IAGG) / Insufficient (ASRM),VERY_LOW,,,M,
+E_GRADE_LETTER3,evidence,A,,High,HIGH,,,H,
+E_GRADE_LETTER3,evidence,B,,Moderate,MODERATE,,,H,
+E_GRADE_LETTER3,evidence,C,,Low or very low (no separate D level),LOW,,VERY_LOW,M,D14: GRADE_terminology_comparison.md (historical ACCP: C = low or very low)
+E_GRADE_LETTER3,evidence,Insufficient,,Insufficient evidence (ASRM),VERY_LOW,,,M,
+E_ACCAHA,evidence,A,,"High-quality evidence from >1 RCT, MA of RCTs",HIGH,,,H,
+E_ACCAHA,evidence,B-R,,Moderate-quality evidence from ≥1 RCT,MODERATE,,,H,
+E_ACCAHA,evidence,B-NR,,Moderate-quality evidence from non-randomized studies,LOW,,MODERATE,M,"'Design' rule (observational = LOW, GRADE convention). See Decision D2."
+E_ACCAHA,evidence,C-LD,,"Limited data (randomized or not, with limitations)",VERY_LOW,,LOW,M,
+E_ACCAHA,evidence,C-EO,,Consensus of expert opinion,VERY_LOW,,,H,
+E_ESC,evidence,A,,Multiple RCTs or meta-analyses,HIGH,,,H,
+E_ESC,evidence,B,,Single RCT or large non-randomized studies,MODERATE,,LOW,M,Mixes single RCT and observational evidence.
+E_ESC,evidence,C,,"Consensus of experts and/or small/retrospective studies, registries",VERY_LOW,,LOW,M,Mostly expert consensus → VERY_LOW (D13); alt LOW for small/retrospective studies (jk 2026-11-19).
+E_ROMAN3,evidence,I,1,≥1 properly randomized controlled trial,HIGH,,MODERATE,M,May rest on a single RCT.
+E_ROMAN3,evidence,II,2,"Non-randomized trials, cohort/case-control, dramatic uncontrolled results",LOW,,MODERATE,M,'Design' rule (Decision D2).
+E_ROMAN3,evidence,III,3,"Expert opinion, descriptive studies, committee reports",VERY_LOW,,,H,
+E_ROMAN5_ESMO,evidence,I,,≥1 large RCT of good quality or MA of RCTs without heterogeneity,HIGH,,,H,
+E_ROMAN5_ESMO,evidence,II,,Small RCTs / RCTs with suspected bias / MA with heterogeneity,MODERATE,,,H,
+E_ROMAN5_ESMO,evidence,III,,Prospective cohort studies,LOW,,,H,
+E_ROMAN5_ESMO,evidence,IV,,Retrospective cohort or case-control studies,LOW,,VERY_LOW,H,"GRADE handbook 5.1.1: comparative observational (cohort, case-control) starts LOW; case series → VERY_LOW."
+E_ROMAN5_ESMO,evidence,V,,"No control group, case reports, expert opinion",VERY_LOW,,,H,
+E_OXFORD2011,evidence,1,,Systematic review of RCTs / n-of-1,HIGH,,,H,
+E_OXFORD2011,evidence,2,,RCT or observational study with dramatic effect,MODERATE,,HIGH,M,
+E_OXFORD2011,evidence,3,,Non-randomized controlled cohort / follow-up,LOW,,,H,
+E_OXFORD2011,evidence,4,,"Case series, case-control, historically controlled",VERY_LOW,,LOW,H,"Mixed level (case series VERY_LOW, case-control LOW). GRADE handbook 5.1.1: comparative observational (cohort, case-control) starts LOW; case series → VERY_LOW."
+E_OXFORD2011,evidence,5,,Mechanism-based reasoning / expert opinion,VERY_LOW,,,H,
+E_OXFORD2009,evidence,1a,,SR of RCTs / all-or-none,HIGH,,,H,
+E_OXFORD2009,evidence,1c,,SR of RCTs / all-or-none,HIGH,,,H,
+E_OXFORD2009,evidence,1b,,Individual RCT,MODERATE,,HIGH,M,
+E_OXFORD2009,evidence,2a,,SR of cohorts / cohort or low-quality RCT / outcomes research,LOW,,MODERATE,M,
+E_OXFORD2009,evidence,2b,,SR of cohorts / cohort or low-quality RCT / outcomes research,LOW,,MODERATE,M,
+E_OXFORD2009,evidence,2c,,SR of cohorts / cohort or low-quality RCT / outcomes research,LOW,,MODERATE,M,
+E_OXFORD2009,evidence,3a,,Case-control / non-experimental,LOW,,VERY_LOW,M,"GRADE handbook 5.1.1: case-control = observational, starts LOW (D2)."
+E_OXFORD2009,evidence,3b,,Case-control / non-experimental,LOW,,VERY_LOW,M,"GRADE handbook 5.1.1: case-control = observational, starts LOW (D2)."
+E_OXFORD2009,evidence,3,,Case-control / non-experimental,LOW,,VERY_LOW,M,"GRADE handbook 5.1.1: case-control = observational, starts LOW (D2)."
+E_OXFORD2009,evidence,4,,Case series (EAU : expert opinion),VERY_LOW,,,M,EAU LE 4 = expert opinion.
+E_OXFORD2009,evidence,5,,Expert opinion,VERY_LOW,,,H,
+E_NICE_OLD,evidence,Ia,,Meta-analysis of RCTs,HIGH,,,H,
+E_NICE_OLD,evidence,Ib,,At least one RCT,MODERATE,,HIGH,M,
+E_NICE_OLD,evidence,II,,Controlled non-randomised / quasi-experimental,LOW,,,H,
+E_NICE_OLD,evidence,IIa,,Controlled non-randomised / quasi-experimental,LOW,,,H,
+E_NICE_OLD,evidence,IIb,,Controlled non-randomised / quasi-experimental,LOW,,,H,
+E_NICE_OLD,evidence,III,,"Non-experimental descriptive: comparative, correlation, case-control studies (Shekelle 1999)",LOW,,VERY_LOW,H,GRADE handbook 5.1.1: comparative observational starts LOW (jk 2026-11-19).
+E_NICE_OLD,evidence,IV,,Expert committee reports / opinion,VERY_LOW,,,H,
+E_SIGN,evidence,1++,,"High-quality MA/SR of RCTs, RCTs with very low risk of bias",HIGH,,,H,
+E_SIGN,evidence,1+,,"Well-conducted MA/SR/RCTs, low risk of bias",MODERATE,,HIGH,M,
+E_SIGN,evidence,1−,,MA/SR/RCTs with high risk of bias,LOW,,VERY_LOW,M,
+E_SIGN,evidence,2++,,Case-control or cohort studies (high / well-conducted),LOW,,,H,
+E_SIGN,evidence,2+,,Case-control or cohort studies (high / well-conducted),LOW,,,H,
+E_SIGN,evidence,2−,,Cohort with high risk of bias / non-analytic studies,VERY_LOW,,,H,
+E_SIGN,evidence,3,,Cohort with high risk of bias / non-analytic studies,VERY_LOW,,,H,
+E_SIGN,evidence,4,,Expert opinion,VERY_LOW,,,H,
+E_AAN_CLASS,evidence,Class I,,Highest risk-of-bias criteria met (RCT),HIGH,,,H,
+E_AAN_CLASS,evidence,Class II,,RCT lacking criteria / prospective matched cohort,MODERATE,,,H,
+E_AAN_CLASS,evidence,Class III,,Other controlled studies,LOW,,,H,
+E_AAN_CLASS,evidence,Class IV,,"Uncontrolled, case series, expert opinion",VERY_LOW,,,M,
+E_AAN_CLASS,evidence,Class X,,ACEP: excluded studies (fatal flaws),NOT_APPLICABLE,,,H,
+E_DESIGN_ABCD,evidence,A,,"RCTs / meta-analyses, consistent",HIGH,,,H,
+E_DESIGN_ABCD,evidence,B,,RCTs with limitations / limited body of data,MODERATE,,,H,
+E_DESIGN_ABCD,evidence,C,,Non-randomized or observational studies,LOW,,,H,
+E_DESIGN_ABCD,evidence,D,,Panel consensus / expert opinion / case reports,VERY_LOW,,,M,
+E_DESIGN_ABCD,evidence,X,,"AAP/AAO-HNS: exceptional situations, validating studies impossible",NOT_APPLICABLE,,,M,Often paired with a strong recommendation.
+E_ADA,evidence,A,,"Well-conducted, generalizable RCTs",HIGH,,,H,
+E_ADA,evidence,B,,Well-conducted cohort studies,LOW,,MODERATE,M,'Design' rule (Decision D2).
+E_ADA,evidence,C,,Poorly controlled or uncontrolled studies,VERY_LOW,,LOW,M,
+E_ADA,evidence,E,,Expert consensus or clinical experience,VERY_LOW,,,H,
+E_SIR,evidence,A,,Multiple RCTs / SR of high-quality RCTs,HIGH,,,H,
+E_SIR,evidence,B,,RCTs with limitations,MODERATE,,,H,
+E_SIR,evidence,C,,Nonrandomized designs,LOW,,,H,
+E_SIR,evidence,D,,Limited quality,VERY_LOW,,,H,
+E_SIR,evidence,E,,Expert opinion,VERY_LOW,,,H,
+E_LEVEL_NUM,evidence,I,,High-quality RCT / SR of RCTs,HIGH,,,H,
+E_LEVEL_NUM,evidence,II,,Lesser-quality RCT / prospective cohort,MODERATE,,LOW,M,
+E_LEVEL_NUM,evidence,III,,Case-control / retrospective,LOW,,,H,
+E_LEVEL_NUM,evidence,IV,,Case series (ESSKA : incl. expert opinion),VERY_LOW,,,M,
+E_LEVEL_NUM,evidence,V,,Expert opinion,VERY_LOW,,,H,
+E_LEVEL4_EXPERT,evidence,1,,RCTs / meta-analyses,HIGH,,,H,
+E_LEVEL4_EXPERT,evidence,2,,RCT or well-designed non-randomized studies,MODERATE,,LOW,M,
+E_LEVEL4_EXPERT,evidence,3,,Observational / uncontrolled studies,LOW,,VERY_LOW,M,
+E_LEVEL4_EXPERT,evidence,4,,Expert opinion,VERY_LOW,,,H,
+E_SORT,evidence,1,,Good-quality patient-oriented evidence,HIGH,,,H,
+E_SORT,evidence,2,,Limited-quality patient-oriented evidence,LOW,,MODERATE,M,
+E_SORT,evidence,3,,"Consensus, usual practice, opinion, disease-oriented",VERY_LOW,,,H,
+E_AHRQ,evidence,High,,,HIGH,,,H,
+E_AHRQ,evidence,Moderate,,,MODERATE,,,H,
+E_AHRQ,evidence,Low,,,LOW,,,H,
+E_AHRQ,evidence,Insufficient,,,VERY_LOW,,NOT_REPORTED,M,
+E_ACR,evidence,Strong,,,HIGH,,,M,
+E_ACR,evidence,Moderate,,,MODERATE,,,M,
+E_ACR,evidence,Limited,,,LOW,,VERY_LOW,M,
+E_ACR,evidence,Expert Opinion,,,VERY_LOW,,,H,
+E_NCCN,evidence,Category 1,,High-level evidence,HIGH,,,M,
+E_NCCN,evidence,Category 2A,,Lower-level evidence (incl. clinical experience),LOW,,VERY_LOW,M,"D7: 2A/2B differ by vote, 3 = disagreement; vote → consensus_level (D8)."
+E_NCCN,evidence,Category 2B,,Lower-level evidence (incl. clinical experience),LOW,,VERY_LOW,M,"D7: 2A/2B differ by vote, 3 = disagreement; vote → consensus_level (D8)."
+E_NCCN,evidence,Category 3,,Lower-level evidence (incl. clinical experience),LOW,,VERY_LOW,M,"D7: 2A/2B differ by vote, 3 = disagreement; vote → consensus_level (D8)."
+E_EHRA,evidence,META and RCT,,,HIGH,,,H,
+E_EHRA,evidence,RCT/observational (intermediate),,,MODERATE,,,M,
+E_EHRA,evidence,Observational,,,LOW,,,H,
+E_EHRA,evidence,Opinion,,Expert consensus,VERY_LOW,,,H,
+E_EPUAP,evidence,A,,,HIGH,,,M,
+E_EPUAP,evidence,B1,,,MODERATE,,,M,
+E_EPUAP,evidence,B2,,,LOW,,,M,
+E_EPUAP,evidence,C,,Indirect evidence / expert,VERY_LOW,,,M,
+E_EPUAP,evidence,GPS,,Good practice statement,NOT_APPLICABLE,,,H,
+E_ECHM,evidence,A,,Sufficient RCTs,HIGH,,,H,
+E_ECHM,evidence,B,,Some RCTs + ample expert consensus,MODERATE,,LOW,M,
+E_ECHM,evidence,C,,"No RCT possible, international expert consensus",VERY_LOW,,,H,
+E_ACOEM,evidence,A,,Two or more high-quality studies,HIGH,,,H,
+E_ACOEM,evidence,B,,One high-quality or multiple moderate-quality studies,MODERATE,,,H,
+E_ACOEM,evidence,C,,At least one moderate-quality study,LOW,,,H,
+E_ACOEM,evidence,I,,Insufficient,VERY_LOW,,,M,
+E_IAS,evidence,Ia,,RCT (peer-reviewed / abstract),HIGH,,MODERATE,M,Ib = abstract data.
+E_IAS,evidence,Ib,,RCT (peer-reviewed / abstract),HIGH,,MODERATE,M,Ib = abstract data.
+E_IAS,evidence,IIa,,"Non-randomized, cohort, case-control",LOW,,MODERATE,M,
+E_IAS,evidence,IIb,,"Non-randomized, cohort, case-control",LOW,,MODERATE,M,
+E_IAS,evidence,III,,Expert opinion,VERY_LOW,,,H,
+E_WFSBP,evidence,CE A,,Full evidence from controlled studies,HIGH,,,H,v3 (2023): 'LoE A'.
+E_WFSBP,evidence,CE B,,Limited positive evidence,MODERATE,,,M,v3 (2023): 'LoE B'.
+E_WFSBP,evidence,CE C,,"Uncontrolled studies, case reports, expert opinion (C1–C3)",LOW,,VERY_LOW,M,C3 = expert opinion. v3 (2023): 'LoE C1–C3'.
+E_WFSBP,evidence,CE D,,Inconsistent results,VERY_LOW,,,M,v3 (2023): 'LoE D'.
+E_WFSBP,evidence,CE E,,Negative evidence,MODERATE,AGAINST,,M,Pre-2023 versions only (v3 uses A-/B-). Negative evidence: confident no-effect finding.
+E_WFSBP,evidence,CE F,,Lack of evidence,VERY_LOW,,NOT_REPORTED,M,
+E_WFSBP,evidence,A-,,"Negative evidence, full (v3: e.g. meta-analysis d=0.05)",HIGH,AGAINST,,H,v3 (2023) replaces CE E with A-/B-.
+E_WFSBP,evidence,B-,,"Negative evidence, limited (v3: e.g. one negative DBPC study)",MODERATE,AGAINST,,H,v3 (2023) replaces CE E with A-/B-.
+E_MDS,evidence,Efficacious,,,NOT_REPORTED,,,H,"D7: efficacy conclusion, not certainty."
+E_MDS,evidence,Likely efficacious,,,NOT_REPORTED,,,H,"D7: efficacy conclusion, not certainty."
+E_MDS,evidence,Unlikely efficacious,,,NOT_REPORTED,,,H,"D7: efficacy conclusion, not certainty."
+E_MDS,evidence,Non-efficacious,,,NOT_REPORTED,,,H,"D7: efficacy conclusion, not certainty."
+E_MDS,evidence,Insufficient evidence,,,VERY_LOW,,,M,
+E_DPWG,evidence,4,,Well-performed controlled studies or MA,HIGH,,,M,"D7: genuine quality score, kept."
+E_DPWG,evidence,3,,,MODERATE,,,M,
+E_DPWG,evidence,2,,,LOW,,,M,
+E_DPWG,evidence,1,,,VERY_LOW,,,M,
+E_DPWG,evidence,0,,Data on file,VERY_LOW,,,L,
+E_EPA,evidence,A,,Grade A (≥1 level-I study/review),HIGH,,MODERATE,M,"Derived from the recommendation letter: levels I–IV rate studies, never printed per recommendation (jk 2026-11-19)."
+E_EPA,evidence,B,,Grade B (level-II body or extrapolated from I/II),MODERATE,,,M,"Derived from the recommendation letter: levels I–IV rate studies, never printed per recommendation (jk 2026-11-19)."
+E_EPA,evidence,C,,Grade C (level II–III or extrapolated),LOW,,,M,"Derived from the recommendation letter: levels I–IV rate studies, never printed per recommendation (jk 2026-11-19)."
+E_EPA,evidence,D,,Grade D (level III–IV or expert consensus),VERY_LOW,,,M,"Derived from the recommendation letter: levels I–IV rate studies, never printed per recommendation (jk 2026-11-19)."
+E_EFCNI,evidence,"A, high quality",,"Scientific evidence, GRADE high",HIGH,,,H,ESCNH methods page; jk 2026-11-19.
+E_EFCNI,evidence,"A, moderate quality",,"Scientific evidence, GRADE moderate",MODERATE,,,H,ESCNH methods page; jk 2026-11-19.
+E_EFCNI,evidence,"A, low quality",,"Scientific evidence, GRADE low",LOW,,,H,ESCNH methods page; jk 2026-11-19.
+E_EFCNI,evidence,"A, very low quality",,"Scientific evidence, GRADE very low",VERY_LOW,,,H,ESCNH methods page; jk 2026-11-19.
+E_EFCNI,evidence,"B, high quality",,"Cultural values (level = how widely shared, not certainty)",VERY_LOW,,,H,"Values/experience, not research (as D13). ESCNH methods page; jk 2026-11-19."
+E_EFCNI,evidence,"B, moderate quality",,"Cultural values (level = how widely shared, not certainty)",VERY_LOW,,,H,"Values/experience, not research (as D13). ESCNH methods page; jk 2026-11-19."
+E_EFCNI,evidence,"B, low quality",,"Cultural values (level = how widely shared, not certainty)",VERY_LOW,,,H,"Values/experience, not research (as D13). ESCNH methods page; jk 2026-11-19."
+E_EFCNI,evidence,"B, very low quality",,"Cultural values (level = how widely shared, not certainty)",VERY_LOW,,,H,"Values/experience, not research (as D13). ESCNH methods page; jk 2026-11-19."
+E_EFCNI,evidence,"C, high quality",,"Laws, regulations (level = EU vs national)",NOT_APPLICABLE,,,H,ESCNH methods page; jk 2026-11-19.
+E_EFCNI,evidence,"C, moderate quality",,"Laws, regulations (level = EU vs national)",NOT_APPLICABLE,,,H,ESCNH methods page; jk 2026-11-19.
+E_NONE,evidence,*,,,NOT_REPORTED,,,H,
+S_ADLM,strength,A,,Strongly recommend (for/against) – high or moderate evidence + strong expert agreement,STRONG,as stated,,H,
+S_ADLM,strength,B,,Recommend (for/against),CONDITIONAL,as stated,,M,
+S_ADLM,strength,C,,Insufficient information to make a recommendation,NO_REC,NEUTRAL,,H,
+S_ADLM,strength,GPP,,Good practice point,UNGRADED,as stated,,H,

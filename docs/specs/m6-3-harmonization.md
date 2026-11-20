@@ -1,6 +1,6 @@
 # Spec: M6.3 — Harmonization of non-GRADE grading systems
 
-**Status:** Not started
+**Status:** Mapping tables, harmonize dispatch and outputs implemented (2026-11-19); decisions D1–D14 signed off
 **Sources of truth:** `docs/roadmap.md` (M6, risks: harmonization disputes), `evident/harmonization.py`,
 `evident/domain.py`, `docs/specs/m6-0-society-registry.md` (gold set).
 
@@ -64,9 +64,10 @@ Example, ESC / ACC-AHA:
 | Class IIb | weak | for | — |
 | Class III (no benefit / harm) | strong | against | — |
 | Level A | — | — | high |
-| Level B (B-R, B-NR) | — | — | moderate |
-| Level C (C-LD) | — | — | low |
-| Level C (C-EO, expert opinion) | — | — | very_low |
+| Level B-R | — | — | moderate |
+| Level B-NR | — | — | low (alt. moderate, D2) |
+| Level C-LD | — | — | very_low (alt. low) |
+| Level C-EO (expert opinion) | — | — | very_low (D13) |
 
 Each table states its ambiguous calls (here: IIa vs IIb collapse; C-EO). Ambiguity is resolved once,
 documented, and reported in the paper (roadmap risk "harmonization disputes").
@@ -91,8 +92,54 @@ documented, and reported in the paper (roadmap risk "harmonization disputes").
 - Generated mapping document committed.
 - Remaining families listed with planned shape, or marked unsupported (their guidelines excluded with reason).
 
-## 9. Open decisions
+## 9. Decisions (resolved 2026-11-19)
 
-- ESC IIa/IIb: both weak, or a third strength level (would change `Strength` and every analysis).
-- S3 single-axis grades: infer certainty from the grade's definition, or leave certainty `unmapped`.
-- S5 documents: exclude, or keep as `no_recommendation`.
+Source of truth: `evident/grading_data/decisions.csv` (D1–D14), rendered in `docs/harmonization_tables.md`;
+methods text: `docs/methods_grading_harmonisation.md`.
+
+- ESC IIa/IIb: both weak; only the top tier is strong (D1). The alternative mapping (IIa → strong) is the
+  sensitivity analysis, so `Strength` keeps two levels.
+- S3 single-axis grades: letter grades map to strength (A → strong, B–D → weak; D1, D6). Certainty comes from
+  the evidence level printed beside the grade. Only EPA prints the letter alone, so its certainty is read off the
+  letter's definition (`scales.csv` `codes_from = strength_grade`). An Oxford/SIGN letter without a printed level
+  leaves certainty `unmapped` (D9): the letter folds several levels together (SIGN B = 2++ or extrapolated 1++/1+).
+- S5 systems: strength `unmapped` (D7), evidence kept where it is a real certainty scale. Exception:
+  CANMAT/ISBD lines of treatment are a benefit-harm judgement and map to strength.
+
+## 10. Implementation (as built)
+
+- Crosswalk data: `evident/grading_data/{scales,crosswalk,families,decisions}.csv`, exported from the reviewed
+  workbook by `scripts/export_grading_tables.py`; `--doc` regenerates `docs/harmonization_tables.md` (a test diffs it).
+- `GradingFamily` values = coarse families with default scales (`families.csv`). A guideline overrides them with
+  `strength_scale` / `evidence_scale` in `corpus/manifest.csv` (D10; store migration 5), e.g. 3- vs 4-level letters (D14).
+- `harmonize(..., scales, variant)`: GRADE path unchanged; other families → `grading_tables.match` (token windows,
+  filler words dropped, digit-letter split "1C") → crosswalk values → GRADE category/direction rules.
+  `MappingVariant.ALTERNATIVE` returns the sensitivity mapping.
+- Raw labels are stored unchanged and harmonized on read, so a mapping change never needs re-extraction.
+- Outputs: `recommendations.csv` / dashboard add family, scales and the alternative mapping;
+  `tables/headline_sensitivity.csv` when any non-GRADE guideline is published.
+- Families: `idsa` (evidence I–III; also ESCMID/ECMM, D = against) and `esmo` (I–V) are separate, so each has
+  the right default evidence scale.
+- Notation (§6): combined labels are split only where a token is no code itself ("I-A", "IIa-B", "2a-B-NR",
+  "1C", "AII"); the other axis is read only from tokens the first match left, never from a window that is a code
+  of the first axis ("Class II a" = IIa, not level A); ties between different mappings stay unmapped. Legacy
+  aliases: ESC numeric classes and the NI9RV3E7 OCR forms (ILA, LIB, ILI …), arabic IDSA quality levels.
+- Direction (all families, GRADE included): "not recommended", "cannot be recommended", "do not offer",
+  "not indicated", "avoid …", "should be avoided", German "soll/sollte … nicht" → against; "cannot be
+  recommended" with an evidence-gap clause ("insufficient evidence") → no recommendation.
+- Legacy ERS: NI9RV3E7 (ESC_ERS, 217 labelled rows) and BDYDTUHA (ABCD_123 = ESCMID SoR A–D + QoE I–III,
+  60 rows) map every row through `esc_class` and `idsa` (tests need the local data dir).
+- Coverage (§8): `corpus/grading/society_grading_survey.csv` (exported with the tables) → theoretical coverage
+  (assigned scales in the crosswalk) 277 of 284 graded surveyed societies (97.5%) on at least one axis, 251
+  (88.4%) on both; the 7 others are D7 systems. Printed labels: tested on survey notation examples only. Counted against the survey,
+  one representative guideline per society; the exit against the M6.0 gold set stays open until it exists.
+- Review round 2: `S_CONSENSUS` → not reported (was ungraded), so Delphi societies grading evidence (ESPNIC,
+  ESNM, ESSR, ESNR) keep their certainty; ESPE (no evidence grade) moves to `S_NO_GRADING`. ACC/AHA 2015+ roman
+  classes ("COR IIa", "III - Harm"); a free-standing dash is a separator. A bare "III" on the 2015+ scale is
+  ambiguous → unmapped; pre-2015 ACC/AHA (undivided III) uses `S_ESC_CLASS` + `E_ESC`.
+- Provenance: `grading_tables_sha256` (all crosswalk CSVs) is a release input; a table change makes `status`
+  report the release stale.
+- Schema v5: read-only opening needs the exact schema, so the frozen v4 paper1 DB is reproduced with the code
+  at tag `paper1-freeze` (`docs/paper1/README.md`), never migrated.
+- Not done here: census regexes (M6.2), `consensus_level` extraction (M6.4), per-decision sensitivity analyses
+  (e.g. D1 or D2 alone; M7).

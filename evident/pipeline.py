@@ -36,12 +36,14 @@ from evident.analytics import (
     Edition,
     GuidelineFacts,
     HarmonizedRow,
+    HeadlineRow,
     caption_facts,
     certainty_distribution,
     guideline_summary,
     headline,
     strength_by_certainty,
     trends,
+    with_variant,
 )
 from evident.corpus import (
     Candidate,
@@ -82,10 +84,13 @@ from evident.domain import (
     ExtractionRun,
     ExtractorVersion,
     GateResult,
+    GradingFamily,
     Guideline,
     LlmCall,
+    MappingVariant,
     MemberOrigin,
     RawRecommendation,
+    ScalePair,
     RunStatus,
     Snapshot,
     SnapshotState,
@@ -100,6 +105,7 @@ from evident.extraction import (
     prompt_template,
     version_for,
 )
+from evident.grading_tables import resolve_scales, tables_sha256
 from evident.harmonization import harmonize
 from evident.paper import (
     EDITION_RULE,
@@ -996,7 +1002,8 @@ def _outliers(store: Store, snapshot_id: int, guidelines: dict[int, Guideline]) 
     for gid, recs in _active_recs(store, snapshot_id).items():
         family = guidelines[gid].grading_family
         n_ungraded = sum(
-            harmonize(r.raw_strength, r.raw_certainty, r.text, r.raw_category, family).category != Category.GRADED
+            harmonize(r.raw_strength, r.raw_certainty, r.text, r.raw_category, family,
+                      _guideline_scales(guidelines[gid])).category != Category.GRADED
             for r in recs)
         stats[gid] = (len(recs), n_ungraded / len(recs) if recs else 0.0)
 
@@ -1097,6 +1104,8 @@ def _release_inputs(deps: PipelineDeps, runs: list[tuple[Guideline, ExtractionRu
         "search_sha256": _sha_or_none(deps.search_path),
         "dedup_verdicts_sha256": _sha_or_none(deps.dedup_verdicts_path),
         "themes_sha256": _sha_or_none(deps.themes_path),
+        # Mapping data: a crosswalk change changes the harmonized outputs without any new extraction
+        "grading_tables_sha256": tables_sha256(),
         "pdfs": {g.doi: run.pdf_sha256 for g, run in runs},
         "runs": {g.doi: run.id for g, run in runs},
     }
@@ -1260,12 +1269,26 @@ def _harmonized_rows(store: Store, snap: Snapshot,
         member = members.get(g.id)
         facts.append(GuidelineFacts(e.doi, e.society, e.year, e.title, e.topic_id, edition, e.joint_with,
                                     member.excluded_reason if member else None))
-        rows.extend(
-            HarmonizedRow(g.doi, g.society, g.year,
-                          harmonize(r.raw_strength, r.raw_certainty, r.text, r.raw_category, g.grading_family),
-                          edition, r.text, r.page, r.raw_strength, r.raw_certainty, r.ordinal)
-            for r in active.get(g.id, []))
+        rows.extend(_harmonized_row(g, r, edition) for r in active.get(g.id, []))
     return rows, facts
+
+
+def _guideline_scales(g: Guideline) -> Optional[ScalePair]:
+    """The manifest's native scales (D10), else None: GRADE rules or the family default."""
+    return ScalePair(g.strength_scale, g.evidence_scale) if g.strength_scale and g.evidence_scale else None
+
+
+def _harmonized_row(g: Guideline, r: RawRecommendation, edition: Edition) -> HarmonizedRow:
+    """Primary mapping plus the sensitivity alternative; GRADE has no alternative (grade_alt stays None)."""
+    scales = _guideline_scales(g)
+    grade = harmonize(r.raw_strength, r.raw_certainty, r.text, r.raw_category, g.grading_family, scales)
+    grade_alt = None
+    if g.grading_family != GradingFamily.GRADE:
+        grade_alt = harmonize(r.raw_strength, r.raw_certainty, r.text, r.raw_category, g.grading_family, scales,
+                              MappingVariant.ALTERNATIVE)
+        scales = resolve_scales(g.grading_family, scales)
+    return HarmonizedRow(g.doi, g.society, g.year, grade, edition, r.text, r.page, r.raw_strength, r.raw_certainty,
+                         r.ordinal, g.grading_family.value, scales, grade_alt)
 
 
 def _screen_rows(rows: list[HarmonizedRow], similarity) -> list[CandidatePair]:
@@ -1351,6 +1374,7 @@ def _bundle(deps: PipelineDeps, snap: Snapshot, rows: list[HarmonizedRow], facts
         code_sha=deps.code_sha(),
         validation=_validation_summary(deps.store, snap.id),
         headline=headline(rows, snap.id, snap.extractor_version_id, model),
+        headline_sensitivity=_headline_sensitivity(rows, snap, model),
         certainty=certainty_distribution(rows),
         crosstab=strength_by_certainty(rows),
         trends=trends(rows),
@@ -1360,6 +1384,13 @@ def _bundle(deps: PipelineDeps, snap: Snapshot, rows: list[HarmonizedRow], facts
         paper=paper,
         themes=theme_certainty(rows, load_theme_assignments(deps.themes_path)) if deps.themes_path else [],
     )
+
+
+def _headline_sensitivity(rows: list[HarmonizedRow], snap: Snapshot, model: str) -> list[HeadlineRow]:
+    """Headline under the crosswalk alternatives; empty while every guideline is GRADE (nothing differs)."""
+    if all(r.grade_alt is None for r in rows):
+        return []
+    return headline(with_variant(rows, MappingVariant.ALTERNATIVE), snap.id, snap.extractor_version_id, model)
 
 
 # ── package internals ───────────────────────────────────────────

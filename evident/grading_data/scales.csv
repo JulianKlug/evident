@@ -1,0 +1,65 @@
+scale_key,axis,description,equivalence,codes_from
+S_GRADE2,strength,"GRADE textuel : Strong / Conditional (Weak, Discretionary)",Direct,own
+S_GRADE_NUM,strength,"Numeric GRADE (ACCP/KDIGO): 1 = recommend, 2 = suggest",Direct,own
+S_GRADE_DIR5,strength,GRADE directionnel 5 niveaux (↑↑ ↑ ↔ ↓ ↓↓),Direct,own
+S_ACCAHA_COR,strength,ACC/AHA Class of Recommendation (2015+),Structured,own
+S_ESC_CLASS,strength,"ESC Classes I / IIa / IIb / III (also ESH I/II/III and pre-2015 ACC/AHA, undivided III)",Structured,own
+S_IDSA_AE,strength,IDSA-USPHS / ESMO : grade A–E (lettre),Structured,own
+S_LETTER_GRADE,strength,"Letter grade of recommendation derived from level of evidence (Oxford, SIGN 50, HAS, AACE/ASMBS, SORT, ESSKA, EPA…)",Approximate,own
+S_AWMF,strength,AWMF Empfehlungsgrad A / B / 0,Structured,own
+S_EASL3,strength,EASL/EASD/EASO : Strong / Weak / Open,Structured,own
+S_3TIER,strength,"Three-tier text scale Strong / Moderate / Weak (ASCO, ASTRO, SSO, ASRM, AAP-like, SIR, CPIC, AAOS, AAST, AUA…)",Structured,own
+S_USPSTF,strength,USPSTF A / B / C / D / I,Structured,own
+S_AAN,strength,AAN Level A / B / C / U / R,Structured,own
+S_ABC_INSUFF,strength,"Levels A/B/C (or I/II/III) + Insufficient (AANS/CNS, NASS, ACEP, IAS-USA)",Structured,own
+S_AAP_KAS,strength,AAP / AAO-HNSF Key Action Statements,Structured,own
+S_NCCN,strength,NCCN consensus categories (1/2A/2B/3) and preference categories (also SITC),Not a grading (D7),own
+S_ESC_CCS,strength,"ESC Clinical Consensus Statements (EHRA, EAPCI) : TO DO / MAY DO / NOT TO DO",Structured,own
+S_AUC,strength,"Appropriateness criteria (ACR, RSNA, SNMMI, EACVI) – score 1–9 or Level 1–3",Not a grading (D7),own
+S_CONSENSUS,strength,"Delphi agreement only (no strength) – ESNM, ESSR, ESNR, ESPE, IAP, ESPNIC, EFORT",Not equivalent,own
+S_ACOEM,strength,ACOEM (9 labels crossing direction and evidence),Structured,own
+S_SCCT,strength,SCCT score Delphi 3 / 2 / 1 / 0 / −1,Structured,own
+S_SHEA,strength,SHEA Compendium : Essential / Additional / Unresolved,Approximate,own
+S_MDS,strength,MDS-EBM 'implications for clinical practice',Not a grading (D7),own
+S_DPWG,strength,DPWG – clinical utility of genotyping,Not a grading (D7),own
+S_WFSBP,strength,WFSBP Recommendation Grade RG 1–5,Structured,own
+S_OARSI,strength,OARSI Levels 1A–5,Direct,own
+S_ECHM,strength,ECHM Type 1 / 2 / 3 / Negative,Structured,own
+S_MASCC,strength,MASCC/ISOO : Recommendation / Suggestion / NGP,Structured,own
+S_WORDING,strength,"Strength conveyed by wording (NICE/BTS, BSSH, ESCRS)",Approximate,own
+S_LINE,strength,CANMAT/ISBD line of treatment (evidence + benefit-harm judgement),Approximate (D7 exception),own
+S_NONE,strength,"System grading evidence only (ADA, GINA, GOLD, WGO, ECCO, AHRQ…)",—,own
+S_NO_GRADING,strength,Consensus / position statement without grading,—,own
+E_GRADE4,evidence,"GRADE High / Moderate / Low / Very low (+ variants: Intermediate, Weak, Insufficient, ⊕, Hoog/Redelijk…)",Direct,own
+E_GRADE_LETTER,evidence,"Letter GRADE A–D, 4 levels (KDIGO/BHIVA/SVS/AACAP…); 3-level variant: E_GRADE_LETTER3",Direct,own
+E_ACCAHA,evidence,"ACC/AHA Level of Evidence 2015+ (A, B-R, B-NR, C-LD, C-EO)",Structured,own
+E_ESC,evidence,ESC / ACC-AHA (avant 2015) Level A / B / C,Structured,own
+E_ROMAN3,evidence,IDSA-USPHS quality I / II / III,Structured,own
+E_ROMAN5_ESMO,evidence,ESMO/IDSA-adapted I–V,Structured,own
+E_OXFORD2011,evidence,Oxford CEBM 2011 levels 1–5 (and related numeric 1–5 scales),Structured,own
+E_OXFORD2009,evidence,"Oxford CEBM 2009 1a–5 (EAU, ASAS, ESRS, EADO, PReS)",Structured,own
+E_NICE_OLD,evidence,"Legacy NICE/SIGN hierarchy Ia–IV (EANM, ESTRO, ESSO, ESR, EUSOBI, EUSOMA, RCOG…) – Shekelle et al. BMJ 1999",Structured,own
+E_SIGN,evidence,"SIGN 50: 1++ … 4 (ISUOG, IUGA, E-AHPBA)",Structured,own
+E_AAN_CLASS,evidence,"AAN study classes I–IV (also AANS/CNS, ACEP, BTF)",Structured,own
+E_DESIGN_ABCD,evidence,"Design-based letters A–D, D = consensus (GINA, GOLD, SCCT, ESUR, AAP, AAO-HNS, IPNA, ERA/ESPN)",Structured,own
+E_ADA,evidence,ADA A / B / C / E (ISPAD),Structured,own
+E_SIR,evidence,SIR A–E,Structured,own
+E_LEVEL_NUM,evidence,"Design-based levels I–V (NASS, ASPS, ESSKA I–IV, MASCC LoE)",Structured,own
+E_LEVEL4_EXPERT,evidence,"Levels 1–4 where 4 = expert opinion (AACE BEL/ASMBS, CANMAT, ICUD/SIU, SIOG)",Structured,own
+E_SORT,evidence,SORT (AMSSM) levels 1–3,Structured,own
+E_AHRQ,evidence,AHRQ EPC Strength of Evidence,Direct,own
+E_ACR,evidence,ACR Appropriateness Criteria – Strength of Evidence,Structured,own
+E_NCCN,evidence,NCCN categories (evidence component),Approximate,own
+E_EHRA,evidence,ESC CCS – source of evidence,Structured,own
+E_EPUAP,evidence,EPUAP/NPIAP Strength of Evidence,Structured,own
+E_ECHM,evidence,ECHM A / B / C,Structured,own
+E_ACOEM,evidence,ACOEM A / B / C / I,Structured,own
+E_IAS,evidence,IAS-USA Ia–III,Structured,own
+E_WFSBP,evidence,WFSBP Categories of Evidence A–F,Structured,own
+E_MDS,evidence,MDS-EBM efficacy conclusions,Not equivalent,own
+E_DPWG,evidence,DPWG quality 0–4,Structured,own
+E_EPA,evidence,EPA (Gaebel/Galderisi): evidence derived from recommendation grade A–D (study levels I–IV not reported per recommendation),Approximate,strength_grade
+E_EFCNI,evidence,EFCNI (ESCNH) categories A / B / C,Approximate,own
+E_NONE,evidence,No grading of evidence,—,own
+S_ADLM,strength,ADLM/NACB 2011: A / B / C / GPP (laboratory medicine practice guidelines),Structured,own
+E_GRADE_LETTER3,evidence,"Letter GRADE A–C, 3 levels: C = low or very low (historical ACCP: SMFM, APA, ASRM, AUA)",Direct,own

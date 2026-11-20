@@ -11,11 +11,12 @@ ungraded certainty are excluded and reported as counts. Empty denominator → em
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Optional, Sequence
 
-from evident.domain import AxisStatus, Category, Certainty, Direction, HarmonizedGrade, Strength
+from evident.domain import (AxisStatus, Category, Certainty, Direction, HarmonizedGrade, MappingVariant, ScalePair,
+                            Strength)
 
 _ALL = "ALL"
 _PCT_DIGITS = 1
@@ -41,6 +42,17 @@ class HarmonizedRow:
     raw_strength: str = ""
     raw_certainty: str = ""
     ordinal: Optional[int] = None  # position in its run, as the M3 spot check refers to rows
+    # M6.3: native grading system and the sensitivity-analysis mapping (None = same as grade, e.g. GRADE)
+    grading_family: str = "grade"
+    scales: Optional[ScalePair] = None
+    grade_alt: Optional[HarmonizedGrade] = None
+
+
+def with_variant(rows: list[HarmonizedRow], variant: MappingVariant) -> list[HarmonizedRow]:
+    """Rows graded with the chosen crosswalk variant; ALTERNATIVE swaps in grade_alt where it exists."""
+    if variant == MappingVariant.PRIMARY:
+        return list(rows)
+    return [replace(r, grade=r.grade_alt) if r.grade_alt is not None else r for r in rows]
 
 
 @dataclass(frozen=True)

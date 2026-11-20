@@ -147,6 +147,11 @@ _MIGRATIONS = [
         # The PDF bytes a run read: a replaced PDF changes results under the same version
         "ALTER TABLE extraction_run ADD COLUMN pdf_sha256 TEXT",
     ]),
+    (5, [
+        # Native grading scales of a non-GRADE guideline when not the family default (M6.3, decision D10)
+        "ALTER TABLE guideline ADD COLUMN strength_scale TEXT",
+        "ALTER TABLE guideline ADD COLUMN evidence_scale TEXT",
+    ]),
 ]
 _CODE_SCHEMA_VERSION = _MIGRATIONS[-1][0]
 
@@ -276,16 +281,19 @@ class Store:
         with self._transaction():
             self._conn.execute(
                 """INSERT INTO guideline (doi, society, year, title, topic_id, supersedes_doi,
-                                          grading_family, pdf_path, pdf_sha256, added_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                          grading_family, pdf_path, pdf_sha256, added_at,
+                                          strength_scale, evidence_scale)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT(doi) DO UPDATE SET
                      society = excluded.society, year = excluded.year, title = excluded.title,
                      topic_id = excluded.topic_id, supersedes_doi = excluded.supersedes_doi,
                      grading_family = excluded.grading_family, pdf_path = excluded.pdf_path,
-                     pdf_sha256 = excluded.pdf_sha256""",
+                     pdf_sha256 = excluded.pdf_sha256, strength_scale = excluded.strength_scale,
+                     evidence_scale = excluded.evidence_scale""",
                 (doi, g.society, g.year, g.title, g.topic_id,
                  normalize_doi(g.supersedes_doi) if g.supersedes_doi else None,
-                 GradingFamily(g.grading_family).value, g.pdf_path, g.pdf_sha256, _now()),
+                 GradingFamily(g.grading_family).value, g.pdf_path, g.pdf_sha256, _now(),
+                 g.strength_scale, g.evidence_scale),
             )
         return self._conn.execute("SELECT id FROM guideline WHERE doi = ?", (doi,)).fetchone()["id"]
 
