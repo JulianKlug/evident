@@ -55,11 +55,11 @@ git tree.
 ```
 uv sync --extra pipeline
 uv run python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
-  publish --snapshot 8 --package out/paper1 --analysis-config configs/paper1.json \
+  publish --snapshot 8 --package out/paper_drafts/paper1 --analysis-config configs/paper1.json \
   --heldout-labels <data root>/intensive_care_medicine_heldout
 ```
 
-Writes `out/dashboard/index.html` (self-contained), plus `out/tables`, `out/figures`, `out/paper1`.
+Writes `out/dashboard/index.html` (self-contained), plus `out/tables`, `out/figures`, `out/paper_drafts/paper1`.
 Details: `docs/paper1/README.md`.
 
 Serve locally, then open http://localhost:8000:

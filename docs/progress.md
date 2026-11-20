@@ -873,7 +873,7 @@ SCCM accuracy is unvalidated (no labelled SCCM guideline). `publish` regenerates
 
 ## M3 spot check: v2 on unlabelled guidelines (2026-10-07)
 
-Spec §7. Sample (seed 0, 3 current unlabelled guidelines per society) plus SSC 2026 by hand (current edition; replaces SSC 2021 in the spec). Snapshot 8 output against each guideline's own recommendation list (summary table or numbered/boxed statements), graded only; one reviewer pass per guideline, every error class re-checked against the PDF. Counts only, no GT written (Decision 3); per-guideline JSON in `out/spotcheck_m3/` (not committed).
+Spec §7. Sample (seed 0, 3 current unlabelled guidelines per society) plus SSC 2026 by hand (current edition; replaces SSC 2021 in the spec). Snapshot 8 output against each guideline's own recommendation list (summary table or numbered/boxed statements), graded only; one reviewer pass per guideline, every error class re-checked against the PDF. Counts only, no GT written (Decision 3); per-guideline JSON in `out/m3_snapshot/spotcheck_m3/` (not committed).
 
 | Guideline | TP | FP | FN | Strength ok | Certainty ok |
 |-----------|----|----|----|-------------|--------------|
@@ -953,7 +953,7 @@ All 12 added guidelines extracted with v2 into snapshot 8 (`add`); `status`: 85/
 
 ## M4: proof-of-principle analysis package (2026-10-13)
 
-Spec §3–§8. `publish --snapshot 8 --package DIR --analysis-config configs/paper1.json --heldout-labels DIR` opens the frozen DB read-only, audits it against the config (checksums, 85 runs with PDF hashes, 75 current editions, candidates = manifest), scores the held-out SCCM labels (BioLORD on CPU), and writes `out/paper1/` (`docs/paper1/README.md`) besides the standard outputs. Analytics in `evident/paper.py`; held-out and spot-check loaders in `evident/validation.py`; draft skeleton `docs/paper1/draft.md.j2`. Spot-check reference lists committed to `corpus/spotcheck_m3/`.
+Spec §3–§8. `publish --snapshot 8 --package DIR --analysis-config configs/paper1.json --heldout-labels DIR` opens the frozen DB read-only, audits it against the config (checksums, 85 runs with PDF hashes, 75 current editions, candidates = manifest), scores the held-out SCCM labels (BioLORD on CPU), and writes `out/paper_drafts/paper1/` (`docs/paper1/README.md`) besides the standard outputs. Analytics in `evident/paper.py`; held-out and spot-check loaders in `evident/validation.py`; draft skeleton `docs/paper1/draft.md.j2`. Spot-check reference lists committed to `corpus/spotcheck_m3/`.
 
 On the frozen DB: audit passes; the package stops at the held-out labels (3 blank templates), as specified. Table 1 reproduces the headline (ALL 1294 graded; strong 26.1% [20.5, 32.4], against 17.7% [13.0, 22.9], high/moderate 27.5% [22.9, 32.6]). `validate --snapshot 8` on a copy: unchanged (F1 0.939). Spot-check bias now: published − truth strong +0.9, against −1.2, high/moderate 0.0 points; published values moved slightly from the 2026-10-13 bias note (graded 264 → 262) because the no-direction rule came after it.
 

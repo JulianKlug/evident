@@ -8,7 +8,7 @@ From the repository root (relative paths in `configs/paper1.json`), no LLM or GP
 
 ```
 python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
-  publish --snapshot 8 --package out/paper1 --analysis-config configs/paper1.json \
+  publish --snapshot 8 --package out/paper_drafts/paper1 --analysis-config configs/paper1.json \
   --heldout-labels <data root>/intensive_care_medicine_heldout \
   [--draft-template docs/paper1/draft.md.j2]
 ```
@@ -28,7 +28,7 @@ python -m evident --db <data root>/frozen/paper1_snapshot8_2026-10-13.sqlite \
 - Duplicate removal recomputes the screen with that BioLORD and applies the frozen verdicts (`corpus/dedup/paper1_verdicts.csv`, from `scripts/paper1_dedup_adjudicate.py`); a screened pair without a verdict fails the run.
 - A rerun gives byte-identical files; compare against `analysis_manifest.json` → `outputs`.
 
-## Files (`out/paper1/`)
+## Files (`out/paper_drafts/paper1/`)
 
 | File | Content |
 |------|---------|

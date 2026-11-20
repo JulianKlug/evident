@@ -3,14 +3,14 @@
 A check, not an accuracy estimate: 0 errors in 15 still allows up to 22% (95% Clopper–Pearson).
 Table S2 (no duplicate removal) bounds the effect of wrong merges; this sample looks where errors matter:
 
-    out/paper1_v2/duplicates.csv ─┬─ 5 removed copies whose grade differs from the kept copy  (grade enters tables)
-                                  └─ 5 removed copies with the same grade
-    judges/disagreements.csv ────── 5 pairs the first two judges split (the third decided)
-                                  ▼ fixed seed, shuffled, verdicts hidden
+    out/paper_drafts/paper1_v2/duplicates.csv ─┬─ 5 removed copies whose grade differs from the kept copy  (grade enters tables)
+                                               └─ 5 removed copies with the same grade
+    judges/disagreements.csv ─────────────────── 5 pairs the first two judges split (the third decided)
+                                               ▼ fixed seed, shuffled, verdicts hidden
     corpus/dedup/audit/human_sample.csv  (label: same / different)  +  human_key.csv
 
 Usage:
-    python scripts/paper1_dedup_human_sample.py draw  [--duplicates out/paper1_v2/duplicates.csv]
+    python scripts/paper1_dedup_human_sample.py draw  [--duplicates out/paper_drafts/paper1_v2/duplicates.csv]
     python scripts/paper1_dedup_human_sample.py score
 """
 
@@ -33,7 +33,7 @@ _N_GRADE_CONFLICT = 5
 _N_SAME_GRADE = 5
 _N_SPLIT = 5
 _CONFIDENCE = 0.95
-_DUPLICATES = "out/paper1_v2/duplicates.csv"
+_DUPLICATES = "out/paper_drafts/paper1_v2/duplicates.csv"
 _DISAGREEMENTS = "corpus/dedup/judges/disagreements.csv"
 _VERDICTS = "corpus/dedup/paper1_verdicts.csv"
 _SAMPLE = "corpus/dedup/audit/human_sample.csv"
